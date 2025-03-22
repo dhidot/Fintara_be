@@ -5,6 +5,7 @@ import com.auth0.jwt.algorithms.Algorithm;
 import com.auth0.jwt.exceptions.JWTVerificationException;
 import com.auth0.jwt.interfaces.DecodedJWT;
 import com.auth0.jwt.interfaces.JWTVerifier;
+import org.springframework.security.core.userdetails.UserDetails;
 import org.springframework.stereotype.Component;
 import java.util.Date;
 
@@ -41,5 +42,15 @@ public class JwtUtil {
 
     public String extractUsername(String token) {
         return verifyToken(token).getSubject();
+    }
+
+    public boolean validateToken(String token, UserDetails userDetails) {
+        try {
+            DecodedJWT decodedJWT = verifyToken(token);
+            String username = decodedJWT.getSubject();
+            return username.equals(userDetails.getUsername()) && !decodedJWT.getExpiresAt().before(new Date());
+        } catch (Exception e) {
+            return false;
+        }
     }
 }
