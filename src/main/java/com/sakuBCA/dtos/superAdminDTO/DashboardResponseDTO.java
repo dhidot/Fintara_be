@@ -1,4 +1,4 @@
-package com.sakuBCA.dtos;
+package com.sakuBCA.dtos.superAdminDTO;
 
 import lombok.AllArgsConstructor;
 import lombok.Data;

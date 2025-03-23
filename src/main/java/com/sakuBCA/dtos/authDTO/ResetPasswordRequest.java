@@ -1,4 +1,4 @@
-package com.sakuBCA.dtos;
+package com.sakuBCA.dtos.authDTO;
 
 import lombok.Getter;
 import lombok.Setter;

@@ -1,9 +1,9 @@
 package com.sakuBCA.services;
 
-import com.sakuBCA.dtos.CustomerDetailsRequest;
-import com.sakuBCA.dtos.PegawaiDetailsRequest;
+import com.sakuBCA.dtos.superAdminDTO.CustomerDetailsRequest;
+import com.sakuBCA.dtos.superAdminDTO.PegawaiDetailsRequest;
 import com.sakuBCA.enums.StatusPegawai;
-import com.sakuBCA.enums.UserType;
+import com.sakuBCA.dtos.exceptions.CustomException;
 import com.sakuBCA.models.CustomerDetails;
 import com.sakuBCA.models.PegawaiDetails;
 import com.sakuBCA.models.User;
@@ -12,6 +12,7 @@ import com.sakuBCA.repositories.PegawaiDetailsRepository;
 import com.sakuBCA.repositories.UserRepository;
 import com.sakuBCA.utils.JwtUtil;
 import lombok.RequiredArgsConstructor;
+import org.springframework.http.HttpStatus;
 import org.springframework.stereotype.Service;
 
 @Service
@@ -26,7 +27,7 @@ public class ProfileService {
         // Ambil email dari token
         String email = jwtUtil.extractUsername(token.replace("Bearer ", ""));
         User user = userRepository.findByEmail(email)
-                .orElseThrow(() -> new RuntimeException("User not found"));
+                .orElseThrow(() -> new CustomException("User not found", HttpStatus.NOT_FOUND));
 
         // Cek apakah user sudah punya detail pegawai
         PegawaiDetails pegawaiDetails = pegawaiDetailsRepository.findByUser(user)
@@ -46,7 +47,7 @@ public class ProfileService {
         // Ambil email dari token
         String email = jwtUtil.extractUsername(token.replace("Bearer ", ""));
         User user = userRepository.findByEmail(email)
-                .orElseThrow(() -> new RuntimeException("User not found"));
+                .orElseThrow(() -> new CustomException("User not found", HttpStatus.NOT_FOUND));
 
         // Cek apakah user sudah punya detail customer
         CustomerDetails customerDetails = customerDetailsRepository.findByUser(user)

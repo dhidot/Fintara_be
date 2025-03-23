@@ -1,19 +1,14 @@
 package com.sakuBCA.controllers;
 
-import com.sakuBCA.dtos.LoginRequest;
-import com.sakuBCA.dtos.RegisterCustomerRequest;
-import com.sakuBCA.dtos.RegisterPegawaiRequest;
-import com.sakuBCA.dtos.ResetPasswordRequest;
-import com.sakuBCA.models.BlacklistedToken;
+import com.sakuBCA.dtos.authDTO.LoginRequest;
+import com.sakuBCA.dtos.customerDTO.RegisterCustomerRequest;
+import com.sakuBCA.dtos.authDTO.ResetPasswordRequest;
 import com.sakuBCA.models.User;
-import com.sakuBCA.repositories.BlacklistedTokenRepository;
 import com.sakuBCA.services.AuthService;
 import com.sakuBCA.services.UserService;
 import com.sakuBCA.utils.JwtUtil;
-import jakarta.servlet.http.HttpServletRequest;
 import lombok.RequiredArgsConstructor;
 import org.springframework.http.ResponseEntity;
-import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.web.bind.annotation.*;
 
 import java.util.Map;

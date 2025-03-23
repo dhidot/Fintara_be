@@ -1,9 +1,8 @@
 package com.sakuBCA.controllers;
 
-import com.sakuBCA.dtos.RegisterPegawaiRequest;
-import com.sakuBCA.dtos.UpdatePegawaiRequest;
-import com.sakuBCA.dtos.UserWithPegawaiResponse;
-import com.sakuBCA.models.PegawaiDetails;
+import com.sakuBCA.dtos.superAdminDTO.RegisterPegawaiRequest;
+import com.sakuBCA.dtos.superAdminDTO.UpdatePegawaiRequest;
+import com.sakuBCA.dtos.superAdminDTO.UserWithPegawaiResponse;
 import com.sakuBCA.models.User;
 import com.sakuBCA.services.PegawaiService;
 import lombok.RequiredArgsConstructor;
@@ -58,9 +57,6 @@ public class PegawaiController {
             @PathVariable Long id,
             @RequestBody UpdatePegawaiRequest request,
             @RequestHeader("Authorization") String token) {
-
-        System.out.println("🔹 Token diterima: " + token);
-        System.out.println("🔹 Request update pegawai: " + request.toString());
 
         UserWithPegawaiResponse updatedPegawai = pegawaiService.updatePegawai(id, request);
         return ResponseEntity.ok(updatedPegawai);
