@@ -1,6 +1,7 @@
 package com.sakuBCA.dtos;
 
 import com.sakuBCA.enums.StatusPegawai;
+import com.sakuBCA.models.PegawaiDetails;
 import lombok.Getter;
 import lombok.Setter;
 
@@ -12,10 +13,10 @@ public class PegawaiDetailsDTO {
     private Integer branchId;
     private StatusPegawai statusPegawai;
 
-    public PegawaiDetailsDTO(Integer id, String nip, Integer branchId, StatusPegawai statusPegawai) {
-        this.id = id;
-        this.nip = nip;
-        this.branchId = branchId;
-        this.statusPegawai = statusPegawai;
+    public PegawaiDetailsDTO(PegawaiDetails pegawaiDetails) {
+        this.id = pegawaiDetails.getId();
+        this.nip = pegawaiDetails.getNip();
+        this.branchId = pegawaiDetails.getBranchId();
+        this.statusPegawai = pegawaiDetails.getStatusPegawai();
     }
 }

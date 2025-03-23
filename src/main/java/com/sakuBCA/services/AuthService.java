@@ -16,6 +16,7 @@ import org.springframework.http.ResponseEntity;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Service;
 
+import java.util.Collections;
 import java.util.List;
 
 @Service
@@ -29,43 +30,17 @@ public class AuthService {
 
     public String login(String email, String password) {
         User user = userRepository.findByEmail(email)
-                .orElseThrow(() -> new RuntimeException("User not found"));
+                .orElseThrow(() -> new RuntimeException("User tidak ditemukan"));
 
         if (!passwordEncoder.matches(password, user.getPassword())) {
-            throw new RuntimeException("Invalid credentials");
+            throw new RuntimeException("Email atau password salah");
         }
 
-        return jwtUtil.generateToken(user.getEmail(), user.getRole().getName());
+        // Ambil authorities dari user
+        List<String> authorities = List.of(user.getRole().getName());
+
+        return jwtUtil.generateToken(user.getEmail(), authorities);
     }
-
-    @Transactional
-    public User registerPegawai(String name, String email, String password, String pegawaiRoleName, String token) {
-        // 🔹 Ambil user yang sedang login dari token
-        String userEmail = jwtUtil.extractUsername(token);
-        User loggedInUser = userRepository.findByEmail(userEmail)
-                .orElseThrow(() -> new RuntimeException("Anda tidak memiliki izin untuk mendaftarkan pegawai"));
-
-        // 🔹 Cek apakah user login adalah Super Admin
-        if (!"Super Admin".equals(loggedInUser.getRole().getName())) {
-            throw new RuntimeException("Anda tidak memiliki izin untuk mendaftarkan pegawai");
-        }
-
-        // 🔹 Pastikan role pegawai valid (Back Office, Branch Admin, Marketing)
-        Role pegawaiRole = roleRepository.findByName(pegawaiRoleName)
-                .orElseThrow(() -> new RuntimeException("Role pegawai tidak ditemukan"));
-
-        // 🔹 Buat akun pegawai baru
-        User pegawai = User.builder()
-                .name(name)
-                .email(email)
-                .password(passwordEncoder.encode(password))
-                .userType(UserType.PEGAWAI)
-                .role(pegawaiRole)
-                .build();
-
-        return userRepository.save(pegawai);
-    }
-
 
     @Transactional
     public User registerCustomer(String name, String email, String password) {
