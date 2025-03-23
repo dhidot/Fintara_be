@@ -31,22 +31,6 @@ public class AuthController {
         return ResponseEntity.ok(authService.registerCustomer(request.getName(), request.getEmail(), request.getPassword()));
     }
 
-    @PreAuthorize("hasAuthority('Super Admin')")
-    @PostMapping("/register/pegawai")
-    public ResponseEntity<User> registerPegawai(
-            @RequestHeader("Authorization") String token,
-            @RequestBody RegisterPegawaiRequest request) {
-
-        User pegawai = authService.registerPegawai(
-                request.getName(),
-                request.getEmail(),
-                request.getPassword(),
-                request.getRole(),
-                token.replace("Bearer ", "")
-        );
-        return ResponseEntity.ok(pegawai);
-    }
-
     @PostMapping("/login")
     public ResponseEntity<String> login(@RequestBody LoginRequest request) {
         String token = authService.login(request.getEmail(), request.getPassword());

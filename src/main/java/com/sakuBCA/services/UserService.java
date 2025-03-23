@@ -28,17 +28,17 @@ public class UserService implements UserDetailsService{
     private final PasswordEncoder passwordEncoder;
     private final PasswordResetTokenRepository tokenRepository;
     private final RoleRepository roleRepository;
-    private final JavaMailSender emailSender;
+    private final EmailService emailService;
 
     @Autowired
     public UserService(UserRepository userRepository, RoleRepository roleRepository,
                        PasswordEncoder passwordEncoder, PasswordResetTokenRepository tokenRepository,
-                       JavaMailSender emailSender) {
+                       JavaMailSender emailSender, EmailService emailservice) {
         this.userRepository = userRepository;
         this.passwordEncoder = passwordEncoder;
         this.roleRepository = roleRepository;
         this.tokenRepository = tokenRepository;
-        this.emailSender = emailSender;
+        this.emailService = emailservice;
     }
 
     public List<UserResponseDTO> getAllUsers() {
@@ -66,10 +66,7 @@ public class UserService implements UserDetailsService{
                         : null,
                 user.getPegawaiDetails() != null ?
                         new PegawaiDetailsDTO(
-                                user.getPegawaiDetails().getId(),
-                                user.getPegawaiDetails().getNip(),
-                                user.getPegawaiDetails().getBranchId(),
-                                user.getPegawaiDetails().getStatusPegawai()
+                                user.getPegawaiDetails()
                         )
                         : null
         )).collect(Collectors.toList());
@@ -87,11 +84,6 @@ public class UserService implements UserDetailsService{
                 .build();
     }
 
-    public User registerUser(User user) {
-        user.setPassword(passwordEncoder.encode(user.getPassword()));
-        return userRepository.save(user);
-    }
-
     public void sendResetPasswordToken(String email){
         User user = userRepository.findByEmail(email)
                 .orElseThrow(() -> new RuntimeException("User tidak ditemukan"));
@@ -101,17 +93,8 @@ public class UserService implements UserDetailsService{
         PasswordResetToken passwordResetToken = new PasswordResetToken(token, user);
         tokenRepository.save(passwordResetToken);
 
-        // Kirim ke email user
-        String resetUrl = "http://localhost:8080/auth/reset-password?token=" + token;
-        sendEmail(user.getEmail(), resetUrl);
-    }
-
-    private void sendEmail(String emailTo, String resetUrl){
-        SimpleMailMessage message = new SimpleMailMessage();
-        message.setTo(emailTo);
-        message.setSubject("Reset Password");
-        message.setText("Klik link berikut untuk mereset password: " + resetUrl);
-        emailSender.send(message);
+        // 🔹 Kirim email token reset password
+        emailService.sendResetPasswordToken(email, token);
     }
 
     public void resetPassword(String token, String newPassword) {
