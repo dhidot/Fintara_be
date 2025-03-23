@@ -7,12 +7,12 @@ import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 
 @RestController
-@RequestMapping("/api/v1/customer")
+@RequestMapping("/api/v1")
 @RequiredArgsConstructor
 public class CustomerController {
     private final CustomerService customerService;
 
-    @PostMapping
+    @PostMapping("/customer")
     public ResponseEntity<CustomerDetails> saveCustomer(@RequestBody CustomerDetails customer) {
         return ResponseEntity.ok(customerService.saveCustomerDetails(customer));
     }

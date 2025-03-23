@@ -13,6 +13,9 @@ import org.springframework.mail.javamail.JavaMailSender;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.security.crypto.bcrypt.BCryptPasswordEncoder;
 import org.springframework.security.crypto.password.PasswordEncoder;
+import org.springframework.security.core.userdetails.UserDetails;
+import org.springframework.security.core.userdetails.UserDetailsService;
+import org.springframework.security.core.userdetails.UsernameNotFoundException;
 import org.springframework.stereotype.Service;
 
 import java.util.List;
@@ -20,7 +23,7 @@ import java.util.UUID;
 import java.util.stream.Collectors;
 
 @Service
-public class UserService {
+public class UserService implements UserDetailsService{
     private final UserRepository userRepository;
     private final PasswordEncoder passwordEncoder;
     private final PasswordResetTokenRepository tokenRepository;
@@ -70,6 +73,18 @@ public class UserService {
                         )
                         : null
         )).collect(Collectors.toList());
+    }
+
+    @Override
+    public UserDetails loadUserByUsername(String username) throws UsernameNotFoundException {
+        User user = userRepository.findByEmail(username)
+                .orElseThrow(() -> new UsernameNotFoundException("User dengan email " + username + " tidak ditemukan"));
+
+        return org.springframework.security.core.userdetails.User
+                .withUsername(user.getEmail())
+                .password(user.getPassword())
+                .roles(user.getRole().getName()) // Pastikan role sudah dikonversi ke bentuk yang benar
+                .build();
     }
 
     public User registerUser(User user) {
