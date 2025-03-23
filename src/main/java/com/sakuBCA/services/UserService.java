@@ -1,14 +1,15 @@
 package com.sakuBCA.services;
 
-import com.sakuBCA.dtos.CustomerDetailsDTO;
-import com.sakuBCA.dtos.PegawaiDetailsDTO;
-import com.sakuBCA.dtos.UserResponseDTO;
+import com.sakuBCA.dtos.superAdminDTO.CustomerDetailsDTO;
+import com.sakuBCA.dtos.superAdminDTO.PegawaiDetailsDTO;
+import com.sakuBCA.dtos.superAdminDTO.UserResponseDTO;
+import com.sakuBCA.dtos.exceptions.CustomException;
 import com.sakuBCA.models.PasswordResetToken;
 import com.sakuBCA.models.User;
 import com.sakuBCA.repositories.PasswordResetTokenRepository;
 import com.sakuBCA.repositories.RoleRepository;
 import com.sakuBCA.repositories.UserRepository;
-import org.springframework.mail.SimpleMailMessage;
+import org.springframework.http.HttpStatus;
 import org.springframework.mail.javamail.JavaMailSender;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.security.crypto.bcrypt.BCryptPasswordEncoder;
@@ -65,7 +66,7 @@ public class UserService implements UserDetailsService{
     @Override
     public UserDetails loadUserByUsername(String username) throws UsernameNotFoundException {
         User user = userRepository.findByEmail(username)
-                .orElseThrow(() -> new UsernameNotFoundException("User dengan email " + username + " tidak ditemukan"));
+                .orElseThrow(() -> new CustomException("User dengan email " + username + " tidak ditemukan", HttpStatus.NOT_FOUND));
 
         return org.springframework.security.core.userdetails.User
                 .withUsername(user.getEmail())
@@ -76,7 +77,7 @@ public class UserService implements UserDetailsService{
 
     public void sendResetPasswordToken(String email){
         User user = userRepository.findByEmail(email)
-                .orElseThrow(() -> new RuntimeException("User tidak ditemukan"));
+                .orElseThrow(() -> new CustomException("User tidak ditemukan", HttpStatus.NOT_FOUND));
 
         // Generate token unik
         String token = UUID.randomUUID().toString();
@@ -89,7 +90,7 @@ public class UserService implements UserDetailsService{
 
     public void resetPassword(String token, String newPassword) {
         PasswordResetToken resetToken = tokenRepository.findByToken(token)
-                .orElseThrow(() -> new RuntimeException("Token tidak valid atau sudah kadaluarsa"));
+                .orElseThrow(() -> new CustomException("Token tidak valid", HttpStatus.BAD_REQUEST));
 
         User user = resetToken.getUser();
         user.setPassword(new BCryptPasswordEncoder().encode(newPassword));

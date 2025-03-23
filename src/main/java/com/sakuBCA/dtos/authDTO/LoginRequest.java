@@ -1,4 +1,4 @@
-package com.sakuBCA.dtos;
+package com.sakuBCA.dtos.authDTO;
 
 public class LoginRequest {
     private String email;

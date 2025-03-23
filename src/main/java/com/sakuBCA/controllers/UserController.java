@@ -1,10 +1,7 @@
 package com.sakuBCA.controllers;
 
-import com.sakuBCA.dtos.UserResponseDTO;
-import com.sakuBCA.models.User;
+import com.sakuBCA.dtos.superAdminDTO.UserResponseDTO;
 import com.sakuBCA.services.UserService;
-import lombok.RequiredArgsConstructor;
-import org.springframework.http.ResponseEntity;
 import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.web.bind.annotation.*;
 

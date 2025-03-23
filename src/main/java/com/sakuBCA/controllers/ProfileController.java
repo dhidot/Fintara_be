@@ -1,18 +1,9 @@
 package com.sakuBCA.controllers;
 
-import com.sakuBCA.dtos.CustomerDetailsRequest;
-import com.sakuBCA.dtos.PegawaiDetailsRequest;
-import com.sakuBCA.enums.StatusPegawai;
-import com.sakuBCA.enums.UserType;
-import com.sakuBCA.models.PegawaiDetails;
-import com.sakuBCA.models.User;
-import com.sakuBCA.repositories.CustomerDetailsRepository;
-import com.sakuBCA.repositories.PegawaiDetailsRepository;
-import com.sakuBCA.repositories.UserRepository;
+import com.sakuBCA.dtos.superAdminDTO.CustomerDetailsRequest;
+import com.sakuBCA.dtos.superAdminDTO.PegawaiDetailsRequest;
 import com.sakuBCA.services.ProfileService;
-import com.sakuBCA.utils.JwtUtil;
 import lombok.RequiredArgsConstructor;
-import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 

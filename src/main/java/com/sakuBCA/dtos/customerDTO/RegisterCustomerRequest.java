@@ -1,4 +1,4 @@
-package com.sakuBCA.dtos;
+package com.sakuBCA.dtos.customerDTO;
 
 import com.fasterxml.jackson.annotation.JsonProperty;
 import lombok.Data;

@@ -37,4 +37,18 @@ public class RoleController {
         return roleService.createRole(role);
     }
 
+    @PreAuthorize("hasAuthority('Super Admin')")
+    @PutMapping("/edit/{id}")
+    public ResponseEntity<String> editRole(@PathVariable Integer id, @RequestBody Role role) {
+        System.out.println("Menerima request PUT: " + role.getName());
+        return roleService.editRole(id, role);
+    }
+
+    @PreAuthorize("hasAuthority('Super Admin')")
+    @DeleteMapping("/delete/{id}")
+    public ResponseEntity<String> deleteRole(@PathVariable Integer id) {
+        System.out.println("Menerima request DELETE: " + id);
+        return roleService.deleteRole(id);
+    }
+
 }

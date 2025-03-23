@@ -1,6 +1,7 @@
 package com.sakuBCA.services;
 
 import com.sakuBCA.enums.UserType;
+import com.sakuBCA.dtos.exceptions.CustomException;
 import com.sakuBCA.models.BlacklistedToken;
 import com.sakuBCA.models.Role;
 import com.sakuBCA.models.User;
@@ -8,15 +9,12 @@ import com.sakuBCA.repositories.BlacklistedTokenRepository;
 import com.sakuBCA.repositories.RoleRepository;
 import com.sakuBCA.repositories.UserRepository;
 import com.sakuBCA.utils.JwtUtil;
-import jakarta.servlet.http.HttpServletRequest;
 import jakarta.transaction.Transactional;
 import lombok.RequiredArgsConstructor;
-import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.http.ResponseEntity;
+import org.springframework.http.HttpStatus;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Service;
 
-import java.util.Collections;
 import java.util.List;
 
 @Service
@@ -30,10 +28,10 @@ public class AuthService {
 
     public String login(String email, String password) {
         User user = userRepository.findByEmail(email)
-                .orElseThrow(() -> new RuntimeException("User tidak ditemukan"));
+                .orElseThrow(() -> new CustomException("User tidak ditemukan", HttpStatus.NOT_FOUND));
 
         if (!passwordEncoder.matches(password, user.getPassword())) {
-            throw new RuntimeException("Email atau password salah");
+            throw new CustomException("Email atau password salah", HttpStatus.NOT_FOUND);
         }
 
         // Ambil authorities dari user
@@ -45,7 +43,7 @@ public class AuthService {
     @Transactional
     public User registerCustomer(String name, String email, String password) {
         Role customerRole = roleRepository.findByName("CUSTOMER")
-                .orElseThrow(() -> new RuntimeException("Role CUSTOMER tidak ditemukan"));
+                .orElseThrow(() -> new CustomException("Role CUSTOMER tidak ditemukan", HttpStatus.NOT_FOUND));
 
         User customer = User.builder()
                 .name(name)
@@ -64,7 +62,7 @@ public class AuthService {
 
         // Cek apakah token sudah di-blacklist
         if (blacklistedTokenRepository.existsByToken(token)) {
-            throw new RuntimeException("Token sudah tidak valid.");
+            throw new CustomException("Token sudah tidak valid", HttpStatus.BAD_REQUEST);
         }
 
         // Tambahkan token ke blacklist
