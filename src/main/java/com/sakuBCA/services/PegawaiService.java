@@ -143,4 +143,10 @@ public class PegawaiService {
         return response;
     }
 
+    public void deletePegawai(Long id) {
+        User user = userRepository.findById(Math.toIntExact(id))
+                .orElseThrow(() -> new RuntimeException("User dengan ID " + id + " tidak ditemukan"));
+
+        userRepository.delete(user);
+    }
 }

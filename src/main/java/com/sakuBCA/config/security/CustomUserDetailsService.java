@@ -1,6 +1,5 @@
-package com.sakuBCA.security;
+package com.sakuBCA.config.security;
 
-import com.sakuBCA.config.CustomUserDetails;
 import com.sakuBCA.models.User;
 import com.sakuBCA.repositories.UserRepository;
 import org.springframework.context.annotation.Primary;
