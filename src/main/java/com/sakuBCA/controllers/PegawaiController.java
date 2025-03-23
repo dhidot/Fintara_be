@@ -66,5 +66,11 @@ public class PegawaiController {
         return ResponseEntity.ok(updatedPegawai);
     }
 
+    @PreAuthorize("hasAuthority('Super Admin')") // Hanya bisa diakses oleh Super Admin
+    @DeleteMapping("/{id}")
+    public ResponseEntity<String> deletePegawai(@PathVariable Long id) {
+        pegawaiService.deletePegawai(id);
+        return ResponseEntity.ok("Pegawai dengan ID " + id + " berhasil dihapus");
+    }
 
 }

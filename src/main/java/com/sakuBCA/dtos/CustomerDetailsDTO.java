@@ -1,5 +1,6 @@
 package com.sakuBCA.dtos;
 
+import com.sakuBCA.models.CustomerDetails;
 import lombok.Getter;
 import lombok.Setter;
 
@@ -21,19 +22,17 @@ public class CustomerDetailsDTO {
     private String statusRumah;
     private BigDecimal plafond;
 
-    public CustomerDetailsDTO(Integer id, LocalDate ttl, String alamat, String noTelp, String nik,
-                              String namaIbuKandung, String pekerjaan, BigDecimal gaji, String noRek,
-                              String statusRumah, BigDecimal plafond) {
-        this.id = id;
-        this.ttl = ttl;
-        this.alamat = alamat;
-        this.noTelp = noTelp;
-        this.nik = nik;
-        this.namaIbuKandung = namaIbuKandung;
-        this.pekerjaan = pekerjaan;
-        this.gaji = gaji;
-        this.noRek = noRek;
-        this.statusRumah = statusRumah;
-        this.plafond = plafond;
+    public CustomerDetailsDTO(CustomerDetails customerDetails) {
+        this.id = customerDetails.getId();
+        this.ttl = customerDetails.getTtl();
+        this.alamat = customerDetails.getAlamat();
+        this.noTelp = customerDetails.getNoTelp();
+        this.nik = customerDetails.getNik();
+        this.namaIbuKandung = customerDetails.getNamaIbuKandung();
+        this.pekerjaan = customerDetails.getPekerjaan();
+        this.gaji = customerDetails.getGaji();
+        this.noRek = customerDetails.getNoRek();
+        this.statusRumah = customerDetails.getStatusRumah();
+        this.plafond = customerDetails.getPlafond();
     }
 }

@@ -5,6 +5,7 @@ import com.sakuBCA.repositories.RoleRepository;
 import com.sakuBCA.services.RoleService;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.ResponseEntity;
+import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.web.bind.annotation.*;
 
 import java.util.List;
@@ -29,7 +30,7 @@ public class RoleController {
         return roleService.getAllRoles();
     }
 
-
+    @PreAuthorize("hasAuthority('Super Admin')")
     @PostMapping("/create")
     public ResponseEntity<Role> createRole(@RequestBody Role role) {
         System.out.println("Menerima request POST: " + role.getName());

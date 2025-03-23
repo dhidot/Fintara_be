@@ -1,4 +1,4 @@
-package com.sakuBCA.config;
+package com.sakuBCA.config.security;
 
 import com.sakuBCA.models.User;
 import org.springframework.security.core.GrantedAuthority;

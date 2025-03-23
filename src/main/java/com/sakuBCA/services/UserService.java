@@ -51,17 +51,7 @@ public class UserService implements UserDetailsService{
                 user.getRole().getName(),
                 user.getCustomerDetails() != null ?
                         new CustomerDetailsDTO(
-                                user.getCustomerDetails().getId(),
-                                user.getCustomerDetails().getTtl(),
-                                user.getCustomerDetails().getAlamat(),
-                                user.getCustomerDetails().getNoTelp(),
-                                user.getCustomerDetails().getNik(),
-                                user.getCustomerDetails().getNamaIbuKandung(),
-                                user.getCustomerDetails().getPekerjaan(),
-                                user.getCustomerDetails().getGaji(),
-                                user.getCustomerDetails().getNoRek(),
-                                user.getCustomerDetails().getStatusRumah(),
-                                user.getCustomerDetails().getPlafond()
+                                user.getCustomerDetails()
                         )
                         : null,
                 user.getPegawaiDetails() != null ?

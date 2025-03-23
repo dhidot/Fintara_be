@@ -10,6 +10,9 @@ import java.util.Optional;
 import java.util.UUID;
 
 public interface UserRepository extends JpaRepository<User, Integer> {
+    @Query("SELECT u FROM User u WHERE u.customerDetails IS NOT NULL")
+    List<User> findAllWithCustomer();
+
     @Query("SELECT u FROM User u WHERE u.pegawaiDetails IS NOT NULL")
     List<User> findAllWithPegawai();
 

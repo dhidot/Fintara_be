@@ -1,4 +1,4 @@
-package com.sakuBCA.config;
+package com.sakuBCA.config.security;
 
 import com.sakuBCA.utils.JwtUtil;
 import com.sakuBCA.repositories.BlacklistedTokenRepository;
