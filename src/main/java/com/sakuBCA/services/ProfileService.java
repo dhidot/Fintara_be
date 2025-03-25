@@ -4,6 +4,7 @@ import com.sakuBCA.dtos.superAdminDTO.CustomerDetailsRequest;
 import com.sakuBCA.dtos.superAdminDTO.PegawaiDetailsRequest;
 import com.sakuBCA.enums.StatusPegawai;
 import com.sakuBCA.config.exceptions.CustomException;
+import com.sakuBCA.models.Branch;
 import com.sakuBCA.models.CustomerDetails;
 import com.sakuBCA.models.PegawaiDetails;
 import com.sakuBCA.models.User;
@@ -37,7 +38,9 @@ public class ProfileService {
 
         // Set data baru
         pegawaiDetails.setNip(request.getNip());
-//        pegawaiDetails.setBranchId(request.getBranchId());
+        Branch branch = branchRepository.findById(request.getBranchId())
+                .orElseThrow(() -> new CustomException("Branch not found", HttpStatus.NOT_FOUND));
+        pegawaiDetails.setBranch(branch);
         pegawaiDetails.setStatusPegawai(StatusPegawai.valueOf(request.getStatusPegawai()));
 
         // Simpan ke database

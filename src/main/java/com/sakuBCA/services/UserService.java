@@ -18,23 +18,27 @@ import org.springframework.security.core.userdetails.UserDetails;
 import org.springframework.security.core.userdetails.UserDetailsService;
 import org.springframework.security.core.userdetails.UsernameNotFoundException;
 import org.springframework.stereotype.Service;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 import java.util.List;
 import java.util.UUID;
 import java.util.stream.Collectors;
 
 @Service
-public class UserService implements UserDetailsService{
+public class UserService implements UserDetailsService {
     private final UserRepository userRepository;
     private final PasswordEncoder passwordEncoder;
     private final PasswordResetTokenRepository tokenRepository;
     private final RoleRepository roleRepository;
     private final EmailService emailService;
 
+    private static final Logger logger = LoggerFactory.getLogger(UserService.class);
+
     @Autowired
     public UserService(UserRepository userRepository, RoleRepository roleRepository,
                        PasswordEncoder passwordEncoder, PasswordResetTokenRepository tokenRepository,
-                       JavaMailSender emailSender, EmailService emailservice) {
+                       EmailService emailservice) {
         this.userRepository = userRepository;
         this.passwordEncoder = passwordEncoder;
         this.roleRepository = roleRepository;
@@ -43,60 +47,82 @@ public class UserService implements UserDetailsService{
     }
 
     public List<UserResponseDTO> getAllUsers() {
-        List<User> users = userRepository.findAll();
+        try {
+            List<User> users = userRepository.findAll();
 
-        return users.stream().map(user -> new UserResponseDTO(
-                user.getId(),
-                user.getName(),
-                user.getEmail(),
-                user.getRole().getName(),
-                user.getCustomerDetails() != null ?
-                        new CustomerDetailsDTO(
-                                user.getCustomerDetails()
-                        )
-                        : null,
-                user.getPegawaiDetails() != null ?
-                        new PegawaiDetailsDTO(
-                                user.getPegawaiDetails()
-                        )
-                        : null
-        )).collect(Collectors.toList());
+            return users.stream().map(user -> new UserResponseDTO(
+                    user.getId(),
+                    user.getName(),
+                    user.getEmail(),
+                    user.getRole().getName(),
+                    user.getCustomerDetails() != null ?
+                            new CustomerDetailsDTO(user.getCustomerDetails()) : null,
+                    user.getPegawaiDetails() != null ?
+                            new PegawaiDetailsDTO(user.getPegawaiDetails()) : null
+            )).collect(Collectors.toList());
+
+        } catch (Exception e) {
+            logger.error("Error saat mengambil daftar pengguna: {}", e.getMessage(), e);
+            throw new CustomException("Gagal mengambil daftar pengguna", HttpStatus.INTERNAL_SERVER_ERROR);
+        }
     }
 
     @Override
     public UserDetails loadUserByUsername(String username) throws UsernameNotFoundException {
-        User user = userRepository.findByEmail(username)
-                .orElseThrow(() -> new CustomException("User dengan email " + username + " tidak ditemukan", HttpStatus.NOT_FOUND));
+        try {
+            User user = userRepository.findByEmail(username)
+                    .orElseThrow(() -> new CustomException("User dengan email " + username + " tidak ditemukan", HttpStatus.NOT_FOUND));
 
-        return org.springframework.security.core.userdetails.User
-                .withUsername(user.getEmail())
-                .password(user.getPassword())
-                .roles(user.getRole().getName()) // Pastikan role sudah dikonversi ke bentuk yang benar
-                .build();
+            return org.springframework.security.core.userdetails.User
+                    .withUsername(user.getEmail())
+                    .password(user.getPassword())
+                    .roles(user.getRole().getName())
+                    .build();
+        } catch (Exception e) {
+            logger.error("Error saat memuat pengguna: {}", e.getMessage(), e);
+            throw new CustomException("Gagal memuat data pengguna", HttpStatus.INTERNAL_SERVER_ERROR);
+        }
     }
 
-    public void sendResetPasswordToken(String email){
-        User user = userRepository.findByEmail(email)
-                .orElseThrow(() -> new CustomException("User tidak ditemukan", HttpStatus.NOT_FOUND));
+    public void sendResetPasswordToken(String email) {
+        try {
+            User user = userRepository.findByEmail(email)
+                    .orElseThrow(() -> new CustomException("User tidak ditemukan", HttpStatus.NOT_FOUND));
 
-        // Generate token unik
-        String token = UUID.randomUUID().toString();
-        PasswordResetToken passwordResetToken = new PasswordResetToken(token, user);
-        tokenRepository.save(passwordResetToken);
+            // Generate token unik
+            String token = UUID.randomUUID().toString();
+            PasswordResetToken passwordResetToken = new PasswordResetToken(token, user);
+            tokenRepository.save(passwordResetToken);
 
-        // 🔹 Kirim email token reset password
-        emailService.sendResetPasswordToken(email, token);
+            // 🔹 Kirim email token reset password
+            emailService.sendResetPasswordToken(email, token);
+
+        } catch (CustomException e) {
+            logger.error("Kesalahan bisnis: {}", e.getMessage());
+            throw e;
+        } catch (Exception e) {
+            logger.error("Error saat mengirim token reset password: {}", e.getMessage(), e);
+            throw new CustomException("Gagal mengirim token reset password", HttpStatus.INTERNAL_SERVER_ERROR);
+        }
     }
 
     public void resetPassword(String token, String newPassword) {
-        PasswordResetToken resetToken = tokenRepository.findByToken(token)
-                .orElseThrow(() -> new CustomException("Token tidak valid", HttpStatus.BAD_REQUEST));
+        try {
+            PasswordResetToken resetToken = tokenRepository.findByToken(token)
+                    .orElseThrow(() -> new CustomException("Token tidak valid atau sudah kedaluwarsa", HttpStatus.BAD_REQUEST));
 
-        User user = resetToken.getUser();
-        user.setPassword(new BCryptPasswordEncoder().encode(newPassword));
-        userRepository.save(user);
+            User user = resetToken.getUser();
+            user.setPassword(new BCryptPasswordEncoder().encode(newPassword));
+            userRepository.save(user);
 
-        tokenRepository.delete(resetToken); // Hapus token setelah digunakan
+            tokenRepository.delete(resetToken); // Hapus token setelah digunakan
+
+        } catch (CustomException e) {
+            logger.error("Kesalahan bisnis: {}", e.getMessage());
+            throw e;
+        } catch (Exception e) {
+            logger.error("Error saat mereset password: {}", e.getMessage(), e);
+            throw new CustomException("Gagal mereset password", HttpStatus.INTERNAL_SERVER_ERROR);
+        }
     }
-
 }
