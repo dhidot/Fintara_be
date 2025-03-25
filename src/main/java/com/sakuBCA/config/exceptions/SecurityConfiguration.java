@@ -21,8 +21,8 @@ import java.util.List;
 @EnableWebSecurity
 @RequiredArgsConstructor
 public class SecurityConfiguration {
-
     private final JwtAuthenticationFilter jwtAuthenticationFilter; // Assuming JwtAuthenticationFilter is defined elsewhere
+    private final CustomAuthenticationEntryPoint authenticationEntryPoint;
 
     @Bean
     public PasswordEncoder passwordEncoder() {
@@ -49,10 +49,12 @@ public class SecurityConfiguration {
                                 .requestMatchers("/api/v1/auth/**").permitAll() // Auth endpoints are accessible by everyone
                                 .requestMatchers("/api/v1/roles/**").hasAuthority("Super Admin") // Role management is only for Super Admin
                                 .requestMatchers("/api/v1/users/all").hasAnyAuthority("Super Admin", "Back Office") // User data is accessible by Admin and Back Office
+                                .requestMatchers("/api/v1/branches/**").hasAuthority("Super Admin") // Role management is only for Super Admin
                                 .requestMatchers("/api/v1/dashboard/data").hasAnyAuthority("Super Admin", "Branch Manager", "Marketing") // Dashboard is for certain levels
                                 .requestMatchers("/api/v1/pegawai/**").hasAuthority("Super Admin")
                                 .anyRequest().authenticated()
-                );
+                ).exceptionHandling(exception -> exception
+                        .authenticationEntryPoint(authenticationEntryPoint));
 
         // Register JwtAuthenticationFilter before UsernamePasswordAuthenticationFilter
         http.addFilterBefore(jwtAuthenticationFilter, UsernamePasswordAuthenticationFilter.class);
