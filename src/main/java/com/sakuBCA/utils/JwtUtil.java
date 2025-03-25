@@ -5,6 +5,8 @@ import com.auth0.jwt.algorithms.Algorithm;
 import com.auth0.jwt.exceptions.JWTVerificationException;
 import com.auth0.jwt.interfaces.DecodedJWT;
 import com.auth0.jwt.interfaces.JWTVerifier;
+import com.sakuBCA.config.exceptions.CustomException;
+import org.springframework.http.HttpStatus;
 import org.springframework.security.core.GrantedAuthority;
 import org.springframework.security.core.authority.SimpleGrantedAuthority;
 import org.springframework.security.core.userdetails.UserDetails;
@@ -36,7 +38,7 @@ public class JwtUtil {
                     .build();
             return verifier.verify(token);
         } catch (JWTVerificationException e) {
-            throw new RuntimeException("Invalid or expired token");
+            throw new CustomException("Invalid or expired token", HttpStatus.UNAUTHORIZED);
         }
     }
 
@@ -53,14 +55,26 @@ public class JwtUtil {
                 .collect(Collectors.toList());
     }
 
-    // Validate Token
+    // Validate Token dengan Exception Handling yang lebih spesifik
     public boolean validateToken(String token, UserDetails userDetails) {
         try {
             DecodedJWT decodedJWT = verifyToken(token);
             String username = decodedJWT.getSubject();
-            return username.equals(userDetails.getUsername()) && !decodedJWT.getExpiresAt().before(new Date());
+
+            if (!username.equals(userDetails.getUsername())) {
+                throw new CustomException("Token tidak sesuai dengan pengguna", HttpStatus.UNAUTHORIZED);
+            }
+
+            if (decodedJWT.getExpiresAt().before(new Date())) {
+                throw new CustomException("Token telah kedaluwarsa", HttpStatus.UNAUTHORIZED);
+            }
+
+            return true;
+        } catch (JWTVerificationException e) {
+            throw new CustomException("Token tidak valid: " + e.getMessage(), HttpStatus.UNAUTHORIZED);
         } catch (Exception e) {
-            return false;
+            throw new CustomException("Kesalahan validasi token: " + e.getMessage(), HttpStatus.FORBIDDEN);
         }
     }
+
 }

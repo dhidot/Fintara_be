@@ -2,12 +2,15 @@ package com.sakuBCA.config;
 
 import com.sakuBCA.enums.StatusPegawai;
 import com.sakuBCA.enums.UserType;
+import com.sakuBCA.models.Branch;
 import com.sakuBCA.models.PegawaiDetails;
 import com.sakuBCA.models.Role;
 import com.sakuBCA.models.User;
+import com.sakuBCA.repositories.BranchRepository;
 import com.sakuBCA.repositories.PegawaiDetailsRepository;
 import com.sakuBCA.repositories.RoleRepository;
 import com.sakuBCA.repositories.UserRepository;
+import jakarta.transaction.Transactional;
 import org.springframework.boot.CommandLineRunner;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
@@ -32,8 +35,29 @@ public class StartupConfig {
         };
     }
 
+    @Transactional
     @Bean
-    CommandLineRunner initSuperAdmin(UserRepository userRepository, PegawaiDetailsRepository pegawaiDetailsRepository, RoleRepository roleRepository, PasswordEncoder passwordEncoder) {
+    CommandLineRunner initBranches(BranchRepository branchRepository) {
+        return args -> {
+            List<String> branchNames = List.of("Pusat", "Jakarta Selatan", "Surabaya", "Bandung", "Medan");
+
+            for (String name : branchNames) {
+                if (branchRepository.findByName(name).isEmpty()) {
+                    Branch branch = Branch.builder()
+                            .name(name)
+                            .address("Alamat " + name)
+                            .build();
+                    branchRepository.save(branch);
+                }
+            }
+
+            System.out.println("✅ Branches berhasil diinisialisasi!");
+        };
+    }
+
+    @Bean
+    CommandLineRunner initSuperAdmin(UserRepository userRepository, PegawaiDetailsRepository pegawaiDetailsRepository,
+                                     RoleRepository roleRepository, PasswordEncoder passwordEncoder, BranchRepository branchRepository) {
         return args -> {
             // **1. Cek Role "Super Admin"**
             Role superAdminRole = roleRepository.findByName("Super Admin")
@@ -53,10 +77,18 @@ public class StartupConfig {
                         .userType(UserType.PEGAWAI) // **Tambahkan userType**
                         .build();
 
+                Branch pusatBranch = branchRepository.findByName("Pusat")
+                        .orElseGet(() -> {
+                            Branch newBranch = new Branch();
+                            newBranch.setName("Pusat");
+                            return branchRepository.save(newBranch);
+                        });
+
                 PegawaiDetails details = PegawaiDetails.builder()
+                        .nip("20242751")
                         .statusPegawai(StatusPegawai.ACTIVE) // **Enum**
-                        .user(superAdmin) // **Hubungkan ke user**
-                        .branchId(null) // **Sesuaikan dengan database**
+                        .user(superAdmin)
+                        .branch(pusatBranch)
                         .build();
 
                 // **3. Simpan User & PegawaiDetails**

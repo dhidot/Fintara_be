@@ -9,7 +9,7 @@ import java.util.List;
 import java.util.Optional;
 import java.util.UUID;
 
-public interface UserRepository extends JpaRepository<User, Integer> {
+public interface UserRepository extends JpaRepository<User, UUID> {
     @Query("SELECT u FROM User u WHERE u.customerDetails IS NOT NULL")
     List<User> findAllWithCustomer();
 
@@ -17,7 +17,7 @@ public interface UserRepository extends JpaRepository<User, Integer> {
     List<User> findAllWithPegawai();
 
     @Query("SELECT u FROM User u LEFT JOIN FETCH u.pegawaiDetails WHERE u.id = :userId")
-    Optional<User> findByIdWithPegawai(@Param("userId") Long userId);
+    Optional<User> findByIdWithPegawai(@Param("userId") UUID userId);
 
     Optional<User> findByEmail(String email);
 }

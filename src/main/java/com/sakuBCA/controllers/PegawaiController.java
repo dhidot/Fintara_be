@@ -11,6 +11,7 @@ import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.web.bind.annotation.*;
 
 import java.util.List;
+import java.util.UUID;
 
 @RestController
 @RequestMapping("/api/v1/pegawai")
@@ -46,7 +47,7 @@ public class PegawaiController {
 
     @PreAuthorize("hasAuthority('Super Admin')") // Hanya bisa diakses oleh Super Admin
     @GetMapping("/{id}")
-    public ResponseEntity<UserWithPegawaiResponse> getPegawaiById(@PathVariable Long id) {
+    public ResponseEntity<UserWithPegawaiResponse> getPegawaiById(@PathVariable UUID id) {
         UserWithPegawaiResponse pegawai = pegawaiService.getPegawaiById(id);
         return ResponseEntity.ok(pegawai);
     }
@@ -54,7 +55,7 @@ public class PegawaiController {
     @PreAuthorize("hasAuthority('Super Admin')") // Hanya bisa diakses oleh Super Admin
     @PutMapping("/{id}")
     public ResponseEntity<UserWithPegawaiResponse> updatePegawai(
-            @PathVariable Long id,
+            @PathVariable UUID id,
             @RequestBody UpdatePegawaiRequest request,
             @RequestHeader("Authorization") String token) {
 
@@ -64,7 +65,7 @@ public class PegawaiController {
 
     @PreAuthorize("hasAuthority('Super Admin')") // Hanya bisa diakses oleh Super Admin
     @DeleteMapping("/{id}")
-    public ResponseEntity<String> deletePegawai(@PathVariable Long id) {
+    public ResponseEntity<String> deletePegawai(@PathVariable UUID id) {
         pegawaiService.deletePegawai(id);
         return ResponseEntity.ok("Pegawai dengan ID " + id + " berhasil dihapus");
     }

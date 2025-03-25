@@ -15,8 +15,8 @@ import java.util.UUID;
 @Builder
 public class PegawaiDetails {
     @Id
-    @GeneratedValue(strategy = GenerationType.IDENTITY)
-    private Integer id;
+    @GeneratedValue(generator = "UUID", strategy = GenerationType.AUTO)
+    private UUID id;
 
     @JsonBackReference
     @OneToOne
@@ -24,9 +24,11 @@ public class PegawaiDetails {
     private User user;
 
     private String nip;
-    private Integer branchId;
+
+    @ManyToOne // ✅ Relasi dengan Branch
+    @JoinColumn(name = "branch_id", nullable = false)
+    private Branch branch; // 🔥
 
     @Enumerated(EnumType.STRING)
-    @Setter
     private StatusPegawai statusPegawai;
 }

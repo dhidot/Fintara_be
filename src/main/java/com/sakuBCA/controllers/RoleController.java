@@ -9,6 +9,7 @@ import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.web.bind.annotation.*;
 
 import java.util.List;
+import java.util.UUID;
 
 @RestController
 @RequestMapping("/api/v1/roles")
@@ -39,14 +40,14 @@ public class RoleController {
 
     @PreAuthorize("hasAuthority('Super Admin')")
     @PutMapping("/edit/{id}")
-    public ResponseEntity<String> editRole(@PathVariable Integer id, @RequestBody Role role) {
+    public ResponseEntity<String> editRole(@PathVariable UUID id, @RequestBody Role role) {
         System.out.println("Menerima request PUT: " + role.getName());
         return roleService.editRole(id, role);
     }
 
     @PreAuthorize("hasAuthority('Super Admin')")
     @DeleteMapping("/delete/{id}")
-    public ResponseEntity<String> deleteRole(@PathVariable Integer id) {
+    public ResponseEntity<String> deleteRole(@PathVariable UUID id) {
         System.out.println("Menerima request DELETE: " + id);
         return roleService.deleteRole(id);
     }

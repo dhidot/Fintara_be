@@ -14,8 +14,8 @@ import java.util.UUID;
 @Builder
 public class Role implements GrantedAuthority {
     @Id
-    @GeneratedValue(strategy = GenerationType.IDENTITY)
-    private Integer id;
+    @GeneratedValue(generator = "UUID", strategy = GenerationType.AUTO)
+    private UUID id;
 
     @Getter
     @Column(name = "name", nullable = false, unique = true)

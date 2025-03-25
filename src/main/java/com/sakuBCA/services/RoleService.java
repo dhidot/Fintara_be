@@ -1,6 +1,6 @@
 package com.sakuBCA.services;
 
-import com.sakuBCA.dtos.exceptions.CustomException;
+import com.sakuBCA.config.exceptions.CustomException;
 import com.sakuBCA.models.Role;
 import com.sakuBCA.repositories.RoleRepository;
 import org.springframework.http.HttpStatus;
@@ -9,6 +9,7 @@ import org.springframework.stereotype.Service;
 import org.springframework.web.bind.annotation.RequestBody;
 
 import java.util.List;
+import java.util.UUID;
 
 @Service
 public class RoleService {
@@ -30,7 +31,7 @@ public class RoleService {
         return ResponseEntity.ok(roleRepository.save(role));
     }
 
-    public ResponseEntity<String> editRole(Integer id, Role role) {
+    public ResponseEntity<String> editRole(UUID id, Role role) {
         Role roleData = roleRepository.findById(id)
                 .orElseThrow(() -> new CustomException("Role tidak ditemukan!", HttpStatus.NOT_FOUND));
 
@@ -40,7 +41,7 @@ public class RoleService {
         return ResponseEntity.ok("Role berhasil diubah!");
     }
 
-    public ResponseEntity<String> deleteRole(Integer id) {
+    public ResponseEntity<String> deleteRole(UUID id) {
         Role role = roleRepository.findById(id)
                 .orElseThrow(() -> new CustomException("Role tidak ditemukan!", HttpStatus.NOT_FOUND));
 

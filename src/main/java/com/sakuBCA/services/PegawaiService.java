@@ -5,7 +5,8 @@ import com.sakuBCA.dtos.superAdminDTO.UpdatePegawaiRequest;
 import com.sakuBCA.dtos.superAdminDTO.UserWithPegawaiResponse;
 import com.sakuBCA.enums.StatusPegawai;
 import com.sakuBCA.enums.UserType;
-import com.sakuBCA.dtos.exceptions.CustomException;
+import com.sakuBCA.config.exceptions.CustomException;
+import com.sakuBCA.models.Branch;
 import com.sakuBCA.models.PegawaiDetails;
 import com.sakuBCA.models.Role;
 import com.sakuBCA.models.User;
@@ -22,6 +23,7 @@ import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Service;
 
 import java.util.List;
+import java.util.UUID;
 import java.util.stream.Collectors;
 
 @Service
@@ -37,7 +39,7 @@ public class PegawaiService {
     @PreAuthorize(("hasAuthority('Super Admin')"))
     @Transactional
     public User registerPegawai(String name, String email, String role,
-                                String nip, Long branchId, StatusPegawai statusPegawai, String token) {
+                                String nip, Branch branch, StatusPegawai statusPegawai, String token) {
         // 🔹 Ambil user yang sedang login dari token
         String userEmail = jwtUtil.extractUsername(token);
         User loggedInUser = userRepository.findByEmail(userEmail)
@@ -68,7 +70,7 @@ public class PegawaiService {
         // 🔹 Buat PegawaiDetails baru
         PegawaiDetails pegawaiDetails = PegawaiDetails.builder()
                 .nip(nip)
-                .branchId(Math.toIntExact(branchId))
+                .branch(branch)
                 .statusPegawai(StatusPegawai.valueOf(statusPegawai.name())) // Simpan status pegawai sebagai String
                 .user(pegawai)
                 .build();
@@ -91,7 +93,7 @@ public class PegawaiService {
             return users.stream().map(user -> {
                 UserWithPegawaiResponse response = new UserWithPegawaiResponse();
 
-                response.setId(Long.valueOf(user.getId()));
+                response.setId(user.getId());
                 response.setName(user.getName());
                 response.setEmail(user.getEmail());
 
@@ -118,12 +120,12 @@ public class PegawaiService {
     }
 
 
-    public UserWithPegawaiResponse getPegawaiById(Long userId) {
+    public UserWithPegawaiResponse getPegawaiById(UUID userId) {
         User user = userRepository.findByIdWithPegawai(userId)
                 .orElseThrow(() -> new CustomException("User dengan ID " + userId + " tidak ditemukan", HttpStatus.NOT_FOUND));
 
         UserWithPegawaiResponse response = new UserWithPegawaiResponse();
-        response.setId(Long.valueOf(user.getId()));
+        response.setId(user.getId());
         response.setName(user.getName());
         response.setEmail(user.getEmail());
         response.setRole(user.getRole().getName());
@@ -136,7 +138,7 @@ public class PegawaiService {
     }
 
     //Edit Data Pegawai
-    public UserWithPegawaiResponse updatePegawai(Long userId, UpdatePegawaiRequest request) {
+    public UserWithPegawaiResponse updatePegawai(UUID userId, UpdatePegawaiRequest request) {
         User user = userRepository.findByIdWithPegawai(userId)
                 .orElseThrow(() -> new CustomException("User dengan ID " + userId + " tidak ditemukan", HttpStatus.BAD_REQUEST));
 
@@ -148,7 +150,7 @@ public class PegawaiService {
         if (user.getPegawaiDetails() != null) {
             PegawaiDetails pegawai = user.getPegawaiDetails();
             pegawai.setNip(request.getNip());
-            pegawai.setBranchId(Integer.valueOf(request.getBranchId()));
+//            pegawai.setBranchId(Integer.valueOf(request.getBranchId()));
             pegawai.setStatusPegawai(StatusPegawai.valueOf(request.getStatusPegawai()));
             pegawaiRepository.save(pegawai);
         }
@@ -157,7 +159,7 @@ public class PegawaiService {
 
         // Konversi ke response DTO
         UserWithPegawaiResponse response = new UserWithPegawaiResponse();
-        response.setId(Long.valueOf(user.getId()));
+        response.setId(user.getId());
         response.setName(user.getName());
         response.setEmail(user.getEmail());
         response.setRole(user.getRole().getName());
@@ -166,8 +168,8 @@ public class PegawaiService {
         return response;
     }
 
-    public void deletePegawai(Long id) {
-        User user = userRepository.findById(Math.toIntExact(id))
+    public void deletePegawai(UUID id) {
+        User user = userRepository.findById(id)
                 .orElseThrow(() -> new CustomException("User dengan ID " + id + " tidak ditemukan", HttpStatus.BAD_REQUEST));
 
         userRepository.delete(user);

@@ -1,4 +1,4 @@
-package com.sakuBCA.dtos.exceptions;
+package com.sakuBCA.config.exceptions;
 
 import org.springframework.http.HttpStatus;
 

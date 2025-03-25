@@ -1,6 +1,6 @@
 package com.sakuBCA.services;
 
-import com.sakuBCA.dtos.exceptions.CustomException;
+import com.sakuBCA.config.exceptions.CustomException;
 import com.sakuBCA.dtos.superAdminDTO.CustomerDetailsDTO;
 import com.sakuBCA.dtos.superAdminDTO.UserWithCustomerResponse;
 import com.sakuBCA.models.CustomerDetails;

@@ -3,7 +3,7 @@ package com.sakuBCA.services;
 import com.sakuBCA.dtos.superAdminDTO.CustomerDetailsDTO;
 import com.sakuBCA.dtos.superAdminDTO.PegawaiDetailsDTO;
 import com.sakuBCA.dtos.superAdminDTO.UserResponseDTO;
-import com.sakuBCA.dtos.exceptions.CustomException;
+import com.sakuBCA.config.exceptions.CustomException;
 import com.sakuBCA.models.PasswordResetToken;
 import com.sakuBCA.models.User;
 import com.sakuBCA.repositories.PasswordResetTokenRepository;

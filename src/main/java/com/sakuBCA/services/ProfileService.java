@@ -3,10 +3,11 @@ package com.sakuBCA.services;
 import com.sakuBCA.dtos.superAdminDTO.CustomerDetailsRequest;
 import com.sakuBCA.dtos.superAdminDTO.PegawaiDetailsRequest;
 import com.sakuBCA.enums.StatusPegawai;
-import com.sakuBCA.dtos.exceptions.CustomException;
+import com.sakuBCA.config.exceptions.CustomException;
 import com.sakuBCA.models.CustomerDetails;
 import com.sakuBCA.models.PegawaiDetails;
 import com.sakuBCA.models.User;
+import com.sakuBCA.repositories.BranchRepository;
 import com.sakuBCA.repositories.CustomerDetailsRepository;
 import com.sakuBCA.repositories.PegawaiDetailsRepository;
 import com.sakuBCA.repositories.UserRepository;
@@ -21,6 +22,7 @@ public class ProfileService {
     private final UserRepository userRepository;
     private final PegawaiDetailsRepository pegawaiDetailsRepository;
     private final CustomerDetailsRepository customerDetailsRepository;
+    private final BranchRepository branchRepository;
     private final JwtUtil jwtUtil;
 
     public String updatePegawaiDetails(String token, PegawaiDetailsRequest request) {
@@ -35,7 +37,7 @@ public class ProfileService {
 
         // Set data baru
         pegawaiDetails.setNip(request.getNip());
-        pegawaiDetails.setBranchId(request.getBranchId());
+//        pegawaiDetails.setBranchId(request.getBranchId());
         pegawaiDetails.setStatusPegawai(StatusPegawai.valueOf(request.getStatusPegawai()));
 
         // Simpan ke database

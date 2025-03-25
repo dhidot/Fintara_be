@@ -7,6 +7,7 @@ import com.sakuBCA.models.User;
 import com.sakuBCA.services.AuthService;
 import com.sakuBCA.services.UserService;
 import com.sakuBCA.utils.JwtUtil;
+import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
@@ -22,8 +23,9 @@ public class AuthController {
     private final JwtUtil jwtUtil;
 
     @PostMapping("/register/customer")
-    public ResponseEntity<User> registerCustomer(@RequestBody RegisterCustomerRequest request) {
-        return ResponseEntity.ok(authService.registerCustomer(request.getName(), request.getEmail(), request.getPassword()));
+    public ResponseEntity<User> registerCustomer(@Valid @RequestBody RegisterCustomerRequest request) {
+        User user = authService.registerCustomer(request.getName(), request.getEmail(), request.getPassword());
+        return ResponseEntity.ok(user);
     }
 
     @PostMapping("/login")

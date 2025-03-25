@@ -1,5 +1,6 @@
-package com.sakuBCA.config.security;
+package com.sakuBCA.config.exceptions;
 
+import com.sakuBCA.config.security.JwtAuthenticationFilter;
 import lombok.RequiredArgsConstructor;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
@@ -21,8 +22,7 @@ import java.util.List;
 @EnableWebSecurity
 @RequiredArgsConstructor
 public class SecurityConfiguration {
-    private final JwtAuthenticationFilter jwtAuthenticationFilter; // Assuming JwtAuthenticationFilter is defined elsewhere
-    private final CustomAuthenticationEntryPoint authenticationEntryPoint;
+    private final JwtAuthenticationFilter jwtAuthenticationFilter;
 
     @Bean
     public PasswordEncoder passwordEncoder() {
@@ -40,24 +40,18 @@ public class SecurityConfiguration {
     @Bean
     public SecurityFilterChain securityFilterChain(HttpSecurity http) throws Exception {
         http
-                .csrf(csrf -> csrf.disable()) // Disable CSRF for stateless JWT authentication
-                .sessionManagement(session ->
-                        session.sessionCreationPolicy(SessionCreationPolicy.STATELESS) // Set session creation policy to stateless
+                .csrf(csrf -> csrf.disable())
+                .sessionManagement(session -> session.sessionCreationPolicy(SessionCreationPolicy.STATELESS))
+                .authorizeHttpRequests(authz -> authz
+                        .requestMatchers("/api/v1/auth/**").permitAll()
+                        .requestMatchers("/api/v1/roles/**").hasAuthority("Super Admin")
+                        .requestMatchers("/api/v1/users/all").hasAnyAuthority("Super Admin", "Back Office")
+                        .requestMatchers("/api/v1/branches/**").hasAuthority("Super Admin")
+                        .requestMatchers("/api/v1/dashboard/data").hasAnyAuthority("Super Admin", "Branch Manager", "Marketing")
+                        .requestMatchers("/api/v1/pegawai/**").hasAuthority("Super Admin")
+                        .anyRequest().authenticated()
                 )
-                .authorizeRequests(authz ->
-                        authz
-                                .requestMatchers("/api/v1/auth/**").permitAll() // Auth endpoints are accessible by everyone
-                                .requestMatchers("/api/v1/roles/**").hasAuthority("Super Admin") // Role management is only for Super Admin
-                                .requestMatchers("/api/v1/users/all").hasAnyAuthority("Super Admin", "Back Office") // User data is accessible by Admin and Back Office
-                                .requestMatchers("/api/v1/branches/**").hasAuthority("Super Admin") // Role management is only for Super Admin
-                                .requestMatchers("/api/v1/dashboard/data").hasAnyAuthority("Super Admin", "Branch Manager", "Marketing") // Dashboard is for certain levels
-                                .requestMatchers("/api/v1/pegawai/**").hasAuthority("Super Admin")
-                                .anyRequest().authenticated()
-                ).exceptionHandling(exception -> exception
-                        .authenticationEntryPoint(authenticationEntryPoint));
-
-        // Register JwtAuthenticationFilter before UsernamePasswordAuthenticationFilter
-        http.addFilterBefore(jwtAuthenticationFilter, UsernamePasswordAuthenticationFilter.class);
+                .addFilterBefore(jwtAuthenticationFilter, UsernamePasswordAuthenticationFilter.class);
 
         return http.build();
     }

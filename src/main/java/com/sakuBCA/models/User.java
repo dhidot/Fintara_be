@@ -4,6 +4,7 @@ import com.fasterxml.jackson.annotation.JsonManagedReference;
 import com.sakuBCA.enums.UserType;
 import jakarta.persistence.*;
 import lombok.*;
+import org.hibernate.annotations.GenericGenerator;
 
 import java.util.UUID;
 
@@ -17,8 +18,9 @@ import java.util.UUID;
 @Builder
 public class User {
     @Id
-    @GeneratedValue(strategy = GenerationType.IDENTITY)
-    private Integer id;
+    @GeneratedValue(generator = "UUID", strategy = GenerationType.AUTO)
+    @Column(name = "id", updatable = false, nullable = false, columnDefinition = "BINARY(16)")
+    private UUID id;
 
     private String name;
     private String email;

@@ -3,17 +3,19 @@ package com.sakuBCA.dtos.superAdminDTO;
 import lombok.Getter;
 import lombok.Setter;
 
+import java.util.UUID;
+
 @Getter
 @Setter
 public class UserResponseDTO {
-    private Integer id;
+    private UUID id;
     private String name;
     private String email;
     private String role;
     private CustomerDetailsDTO customerDetails;
     private PegawaiDetailsDTO pegawaiDetails;
 
-    public UserResponseDTO(Integer id, String name, String email, String role,
+    public UserResponseDTO(UUID id, String name, String email, String role,
                            CustomerDetailsDTO customerDetails, PegawaiDetailsDTO pegawaiDetails) {
         this.id = id;
         this.name = name;

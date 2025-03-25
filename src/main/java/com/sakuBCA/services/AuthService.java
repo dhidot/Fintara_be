@@ -1,7 +1,7 @@
 package com.sakuBCA.services;
 
 import com.sakuBCA.enums.UserType;
-import com.sakuBCA.dtos.exceptions.CustomException;
+import com.sakuBCA.config.exceptions.CustomException;
 import com.sakuBCA.models.BlacklistedToken;
 import com.sakuBCA.models.Role;
 import com.sakuBCA.models.User;

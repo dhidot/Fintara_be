@@ -1,4 +1,4 @@
-package com.sakuBCA.dtos.exceptions;
+package com.sakuBCA.config.exceptions;
 
 import lombok.Getter;
 import lombok.Setter;
