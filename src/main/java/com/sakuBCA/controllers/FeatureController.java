@@ -6,6 +6,7 @@ import com.sakuBCA.repositories.FeatureRepository;
 import lombok.RequiredArgsConstructor;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.security.access.annotation.Secured;
+import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.web.bind.annotation.*;
 
 import com.sakuBCA.services.FeatureService;
@@ -23,8 +24,8 @@ public class FeatureController {
         this.featureService = featureService;
     }
 
-    @Secured("GET_FEATURES")
-    @GetMapping
+    @Secured("FEATURE_GET_FEATURES")
+    @GetMapping("/all")
     public List<FeatureDTO> getAllFeatures() {
         List<Feature> features = featureService.getAllFeatures();
         return features.stream().map(FeatureDTO::new).toList();

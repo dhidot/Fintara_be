@@ -41,27 +41,23 @@ public class RoleController {
         return ResponseEntity.ok(roleDTOs);
     }
 
-    @PreAuthorize("hasAuthority('Super Admin')")
     @PostMapping("/create")
     public ResponseEntity<Role> createRole(@RequestBody Role role) {
         System.out.println("Menerima request POST: " + role.getName());
         return roleService.createRole(role);
     }
 
-    @PreAuthorize("hasAuthority('Super Admin')")
     @PutMapping("/edit/{id}")
     public ResponseEntity<String> editRole(@PathVariable UUID id, @RequestBody Role role) {
         System.out.println("Menerima request PUT: " + role.getName());
         return roleService.editRole(id, role);
     }
 
-    @PreAuthorize("hasAuthority('Super Admin')")
     @DeleteMapping("/delete/{id}")
     public ResponseEntity<String> deleteRole(@PathVariable UUID id) {
         System.out.println("Menerima request DELETE: " + id);
         return roleService.deleteRole(id);
     }
-
 
     @GetMapping("/{roleId}/features")
     public ResponseEntity<List<String>> getFeatures(@PathVariable UUID roleId) {

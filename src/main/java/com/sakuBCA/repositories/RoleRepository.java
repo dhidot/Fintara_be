@@ -13,10 +13,12 @@ import java.util.UUID;
 @Repository
 public interface RoleRepository extends JpaRepository<Role, UUID> {
     boolean existsByName(String name);
+
     Optional<Role> findByName(String name);
-    @Query("SELECT r FROM Role r LEFT JOIN FETCH r.roleFeatures WHERE r.id = :roleId")
-    Optional<Role> findByIdWithFeatures(@Param("roleId") UUID roleId);
 
     @Query("SELECT r FROM Role r LEFT JOIN FETCH r.roleFeatures")
     List<Role> findAllWithFeatures();
+
+    @Query("SELECT r.name FROM Role r WHERE r.id = :roleId")
+    String findRoleNameById(@Param("roleId") UUID roleId);
 }

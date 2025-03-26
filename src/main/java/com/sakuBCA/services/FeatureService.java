@@ -29,6 +29,10 @@ public class FeatureService {
                 .orElseThrow(() -> new RuntimeException("Feature not found"));
     }
 
+    public String getFeatureNameById(UUID id) {
+        return featureRepository.findFeatureNameById(id);
+    }
+
     public Feature updateFeature(UUID id, Feature updatedFeature) {
         Feature feature = getFeatureById(id);
         feature.setName(updatedFeature.getName());

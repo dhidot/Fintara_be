@@ -36,7 +36,6 @@ public class BranchController {
     }
 
     // 🔹 READ ALL
-    @Secured("FEATURE_")
     @GetMapping("/all")
     public List<Branch> getAllBranches() {
         return branchService.getAllBranches();

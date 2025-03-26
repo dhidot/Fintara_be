@@ -12,7 +12,7 @@ import com.sakuBCA.repositories.BranchRepository;
 import com.sakuBCA.repositories.CustomerDetailsRepository;
 import com.sakuBCA.repositories.PegawaiDetailsRepository;
 import com.sakuBCA.repositories.UserRepository;
-import com.sakuBCA.utils.JwtUtil;
+import com.sakuBCA.utils.JwtUtils;
 import lombok.RequiredArgsConstructor;
 import org.springframework.http.HttpStatus;
 import org.springframework.stereotype.Service;
@@ -24,11 +24,11 @@ public class ProfileService {
     private final PegawaiDetailsRepository pegawaiDetailsRepository;
     private final CustomerDetailsRepository customerDetailsRepository;
     private final BranchRepository branchRepository;
-    private final JwtUtil jwtUtil;
+    private final JwtUtils jwtUtils;
 
     public String updatePegawaiDetails(String token, PegawaiDetailsRequest request) {
         // Ambil email dari token
-        String email = jwtUtil.extractUsername(token.replace("Bearer ", ""));
+        String email = jwtUtils.extractToken(token.replace("Bearer ", ""));
         User user = userRepository.findByEmail(email)
                 .orElseThrow(() -> new CustomException("User not found", HttpStatus.NOT_FOUND));
 
@@ -50,7 +50,7 @@ public class ProfileService {
 
     public String updateCustomerDetails(String token, CustomerDetailsRequest request) {
         // Ambil email dari token
-        String email = jwtUtil.extractUsername(token.replace("Bearer ", ""));
+        String email = jwtUtils.extractToken(token.replace("Bearer ", ""));
         User user = userRepository.findByEmail(email)
                 .orElseThrow(() -> new CustomException("User not found", HttpStatus.NOT_FOUND));
 
