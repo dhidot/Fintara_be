@@ -1,11 +1,13 @@
 package com.sakuBCA.services;
 
+import com.sakuBCA.config.security.UserDetailsImpl;
 import com.sakuBCA.enums.UserType;
 import com.sakuBCA.config.exceptions.CustomException;
 import com.sakuBCA.models.BlacklistedToken;
 import com.sakuBCA.models.Role;
 import com.sakuBCA.models.User;
 import com.sakuBCA.repositories.BlacklistedTokenRepository;
+import com.sakuBCA.repositories.RoleFeatureRepository;
 import com.sakuBCA.repositories.RoleRepository;
 import com.sakuBCA.repositories.UserRepository;
 import com.sakuBCA.utils.JwtUtil;
@@ -22,6 +24,7 @@ import java.util.List;
 public class AuthService {
     private final BlacklistedTokenRepository blacklistedTokenRepository;
     private final UserRepository userRepository;
+    private final RoleFeatureRepository roleFeatureRepository;
     private final PasswordEncoder passwordEncoder;
     private final RoleRepository roleRepository;
     private final JwtUtil jwtUtil;
@@ -31,13 +34,17 @@ public class AuthService {
                 .orElseThrow(() -> new CustomException("User tidak ditemukan", HttpStatus.NOT_FOUND));
 
         if (!passwordEncoder.matches(password, user.getPassword())) {
-            throw new CustomException("Email atau password salah", HttpStatus.NOT_FOUND);
+            throw new CustomException("Email atau password salah", HttpStatus.UNAUTHORIZED);
         }
 
-        // Ambil authorities dari user
-        List<String> authorities = List.of(user.getRole().getName());
+        // Ambil fitur dari role
+        List<String> features = roleFeatureRepository.findFeaturesByRoleId(user.getRole().getId());
 
-        return jwtUtil.generateToken(user.getEmail(), authorities);
+        // Buat objek UserDetailsImpl
+        UserDetailsImpl userDetails = new UserDetailsImpl(user.getEmail(), user.getPassword(), features);
+
+        // Panggil generateToken dengan userDetails
+        return jwtUtil.generateToken(userDetails);
     }
 
     @Transactional
