@@ -36,50 +36,50 @@ public class PegawaiService {
     private final EmailService emailService;
     private final JwtUtils jwtUtils;
 
-//    @Transactional
-//    public User registerPegawai(String name, String email, String role,
-//                                String nip, Branch branch, StatusPegawai statusPegawai, String token) {
-//        // 🔹 Ambil user yang sedang login dari token
-//        String userEmail = jwtUtils.extractUsername(token);
-//        User loggedInUser = userRepository.findByEmail(userEmail)
-//                .orElseThrow(() -> new CustomException("Anda tidak memiliki akses untuk mendaftarkan pegawai", HttpStatus.FORBIDDEN));
-//
-//        // 🔹 Pastikan user yang login adalah Super Admin
-//        if (!"Super Admin".equals(loggedInUser.getRole().getName())) {
-//            throw new CustomException("Anda tidak memiliki izin untuk mendaftarkan pegawai", HttpStatus.FORBIDDEN);
-//        }
-//
-//        // 🔹 Cek apakah role pegawai valid di database
-//        Role pegawaiRole = roleRepository.findByName(role)
-//                .orElseThrow(() -> new CustomException("Role pegawai tidak ditemukan", HttpStatus.NOT_FOUND));
-//
-//        // 🔹 Autogenerate password sementara (8 karakter alfanumerik)
-//        String generatedPassword = RandomStringUtils.randomAlphanumeric(8);
-//
-//        // 🔹 Buat akun pegawai baru
-//        User pegawai = User.builder()
-//                .name(name)
-//                .email(email)
-//                .password(passwordEncoder.encode(generatedPassword)) // Simpan password terenkripsi
-//                .role(pegawaiRole)
-//                .userType(UserType.PEGAWAI)
-//                .build();
-//        userRepository.save(pegawai);
-//
-//        // 🔹 Buat PegawaiDetails baru
-//        PegawaiDetails pegawaiDetails = PegawaiDetails.builder()
-//                .nip(nip)
-//                .branch(branch)
-//                .statusPegawai(StatusPegawai.valueOf(statusPegawai.name())) // Simpan status pegawai sebagai String
-//                .user(pegawai)
-//                .build();
-//        pegawaiRepository.save(pegawaiDetails);
-//
-//        // 🔹 Kirim password ke email pegawai
-//        emailService.sendInitialPasswordEmail(email, generatedPassword);
-//
-//        return pegawai;
-//    }
+    @Transactional
+    public User registerPegawai(String name, String email, String role,
+                                String nip, Branch branch, StatusPegawai statusPegawai, String token) {
+        // 🔹 Ambil user yang sedang login dari token
+        String userEmail = jwtUtils.extractToken(token);
+        User loggedInUser = userRepository.findByEmail(userEmail)
+                .orElseThrow(() -> new CustomException("Anda tidak memiliki akses untuk mendaftarkan pegawai", HttpStatus.FORBIDDEN));
+
+        // 🔹 Pastikan user yang login adalah Super Admin
+        if (!"Super Admin".equals(loggedInUser.getRole().getName())) {
+            throw new CustomException("Anda tidak memiliki izin untuk mendaftarkan pegawai", HttpStatus.FORBIDDEN);
+        }
+
+        // 🔹 Cek apakah role pegawai valid di database
+        Role pegawaiRole = roleRepository.findByName(role)
+                .orElseThrow(() -> new CustomException("Role pegawai tidak ditemukan", HttpStatus.NOT_FOUND));
+
+        // 🔹 Autogenerate password sementara (8 karakter alfanumerik)
+        String generatedPassword = RandomStringUtils.randomAlphanumeric(8);
+
+        // 🔹 Buat akun pegawai baru
+        User pegawai = User.builder()
+                .name(name)
+                .email(email)
+                .password(passwordEncoder.encode(generatedPassword)) // Simpan password terenkripsi
+                .role(pegawaiRole)
+                .userType(UserType.PEGAWAI)
+                .build();
+        userRepository.save(pegawai);
+
+        // 🔹 Buat PegawaiDetails baru
+        PegawaiDetails pegawaiDetails = PegawaiDetails.builder()
+                .nip(nip)
+                .branch(branch)
+                .statusPegawai(StatusPegawai.valueOf(statusPegawai.name())) // Simpan status pegawai sebagai String
+                .user(pegawai)
+                .build();
+        pegawaiRepository.save(pegawaiDetails);
+
+        // 🔹 Kirim password ke email pegawai
+        emailService.sendInitialPasswordEmail(email, generatedPassword);
+
+        return pegawai;
+    }
 
     public List<UserWithPegawaiResponse> getAllPegawai() {
         try {

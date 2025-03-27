@@ -29,13 +29,14 @@ public class BranchController {
         this.branchService = branchService;
         this.branchRepository = branchRepository;
     }
-    // 🔹 CREATE
-    @PostMapping
+
+    @Secured("BRANCHES_ACCESS")
+    @PostMapping("/add")
     public ResponseEntity<Branch> createBranch(@RequestBody Branch branch) {
         return branchService.createBranch(branch);
     }
 
-    // 🔹 READ ALL
+    @Secured("BRANCHES_ACCESS")
     @GetMapping("/all")
     public List<Branch> getAllBranches() {
         return branchService.getAllBranches();

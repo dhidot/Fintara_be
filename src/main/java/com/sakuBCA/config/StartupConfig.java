@@ -68,7 +68,7 @@ public class StartupConfig {
     }
 
     private void initFeatures(FeatureRepository featureRepository, RoleRepository roleRepository, RoleFeatureRepository roleFeatureRepository) {
-        List<String> featureNames = List.of("CREATE_USER", "APPROVE_LOAN", "VIEW_REPORTS", "GET_FEATURES");
+        List<String> featureNames = List.of("EMPLOYEE_ACCESS", "ROLE_ACCESS", "FEATURES_ACCESS", "BRANCHES_ACCESS", "CUSTOMER_ACCESS", "ROLE_FEATURE_ACCESS", "USER_ACCESS");
 
         for (String featureName : featureNames) {
             Optional<Feature> existingFeature = featureRepository.findByName(featureName);
@@ -80,12 +80,8 @@ public class StartupConfig {
                 featureRepository.flush();
 
                 // Assign fitur ke role hanya setelah role dijamin ada
-                if (featureName.equals("CREATE_USER") || featureName.equals("GET_FEATURES")) {
+                if (featureName.equals("EMPLOYEE_ACCESS") || featureName.equals("ROLE_ACCESS") || featureName.equals("FEATURES_ACCESS") || featureName.equals("BRANCHES_ACCESS") || featureName.equals("CUSTOMER_ACCESS") || featureName.equals("ROLE_FEATURE_ACCESS") || featureName.equals("USER_ACCESS")) {
                     assignFeatureToRole(newFeature, "SUPER_ADMIN", roleRepository, roleFeatureRepository);
-                } else if (featureName.equals("APPROVE_LOAN")) {
-                    assignFeatureToRole(newFeature, "BACK_OFFICE", roleRepository, roleFeatureRepository);
-                } else if (featureName.equals("VIEW_REPORTS")) {
-                    assignFeatureToRole(newFeature, "BRANCH_MANAGER", roleRepository, roleFeatureRepository);
                 }
             }
         }

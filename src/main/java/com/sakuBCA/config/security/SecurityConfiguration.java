@@ -14,6 +14,7 @@ import org.springframework.security.authentication.AuthenticationManager;
 import org.springframework.security.authentication.dao.DaoAuthenticationProvider;
 import org.springframework.security.config.Customizer;
 import org.springframework.security.config.annotation.authentication.configuration.AuthenticationConfiguration;
+import org.springframework.security.config.annotation.method.configuration.EnableGlobalMethodSecurity;
 import org.springframework.security.config.annotation.method.configuration.EnableMethodSecurity;
 import org.springframework.security.config.annotation.web.builders.HttpSecurity;
 import org.springframework.security.config.annotation.web.configuration.EnableWebSecurity;
@@ -32,7 +33,7 @@ import org.springframework.web.servlet.config.annotation.WebMvcConfigurer;
 import java.util.Arrays;
 
 @Configuration
-@EnableMethodSecurity
+@EnableGlobalMethodSecurity(securedEnabled = true)
 public class SecurityConfiguration implements WebMvcConfigurer {
 
     final AuthEntryPointJwt authEntryPointJwt;
@@ -60,7 +61,7 @@ public class SecurityConfiguration implements WebMvcConfigurer {
                                         "/api/v1/home/",
                                         "/swagger-ui.html","/swagger-ui/**",
                                         "/v3/api-docs/**","/api-docs/**").permitAll()
-                                .requestMatchers("/loginoauth").permitAll()
+                                .requestMatchers("/api/v1/auth/register/customer").permitAll()
                                 .requestMatchers("/api/v1/auth/login/**", "/api/v1/auth/login", "/register").permitAll()
                                 .anyRequest().authenticated()
                 )

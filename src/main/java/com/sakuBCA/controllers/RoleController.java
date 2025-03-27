@@ -7,6 +7,7 @@ import com.sakuBCA.services.RoleFeatureService;
 import com.sakuBCA.services.RoleService;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.ResponseEntity;
+import org.springframework.security.access.annotation.Secured;
 import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.web.bind.annotation.*;
 
@@ -33,7 +34,7 @@ public class RoleController {
         this.roleFeatureService = roleFeatureService;
     }
 
-    // Mendapatkan semua role
+    @Secured("ROLE_ACCESS")
     @GetMapping("/all")
     public ResponseEntity<List<RoleDTO>> getAllRoles() {
         List<Role> roles = roleService.getAllRoles();
@@ -41,28 +42,25 @@ public class RoleController {
         return ResponseEntity.ok(roleDTOs);
     }
 
+    @Secured("ROLE_ACCESS")
     @PostMapping("/create")
     public ResponseEntity<Role> createRole(@RequestBody Role role) {
         System.out.println("Menerima request POST: " + role.getName());
         return roleService.createRole(role);
     }
 
+    @Secured("ROLE_ACCESS")
     @PutMapping("/edit/{id}")
     public ResponseEntity<String> editRole(@PathVariable UUID id, @RequestBody Role role) {
         System.out.println("Menerima request PUT: " + role.getName());
         return roleService.editRole(id, role);
     }
 
+    @Secured("ROLE_ACCESS")
     @DeleteMapping("/delete/{id}")
     public ResponseEntity<String> deleteRole(@PathVariable UUID id) {
         System.out.println("Menerima request DELETE: " + id);
         return roleService.deleteRole(id);
-    }
-
-    @GetMapping("/{roleId}/features")
-    public ResponseEntity<List<String>> getFeatures(@PathVariable UUID roleId) {
-        List<String> features = roleFeatureService.getFeaturesByRole(roleId);
-        return ResponseEntity.ok(features);
     }
 
 }

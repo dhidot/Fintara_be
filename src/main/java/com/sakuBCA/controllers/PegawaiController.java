@@ -20,38 +20,40 @@ import java.util.UUID;
 public class PegawaiController {
     private final PegawaiService pegawaiService;
 
-//    @PostMapping("/register")
-//    public ResponseEntity<User> registerPegawai(
-//            @RequestHeader("Authorization") String token,
-//            @RequestBody RegisterPegawaiRequest request) {
-//
-//        User pegawai = pegawaiService.registerPegawai(
-//                request.getName(),
-//                request.getEmail(),
-//                request.getRole(), // Tetap String
-//                request.getNip(),
-//                request.getBranchId(),
-//                request.getStatusPegawai(),
-//                token.replace("Bearer ", "")
-//        );
-//
-//        return ResponseEntity.ok(pegawai);
-//    }
+    @Secured("FEATURE_EMPLOYEE_ACCESS")
+    @PostMapping("/register")
+    public ResponseEntity<User> registerPegawai(
+            @RequestHeader("Authorization") String token,
+            @RequestBody RegisterPegawaiRequest request) {
 
+        User pegawai = pegawaiService.registerPegawai(
+                request.getName(),
+                request.getEmail(),
+                request.getRole(), // Tetap String
+                request.getNip(),
+                request.getBranchId(),
+                request.getStatusPegawai(),
+                token.replace("Bearer ", "")
+        );
+
+        return ResponseEntity.ok(pegawai);
+    }
+
+    @Secured("FEATURE_EMPLOYEE_ACCESS")
     @GetMapping
     public ResponseEntity<List<UserWithPegawaiResponse>> getAllPegawai() {
         List<UserWithPegawaiResponse> pegawai = pegawaiService.getAllPegawai();
         return ResponseEntity.ok(pegawaiService.getAllPegawai());
     }
 
- // Hanya bisa diakses oleh Super Admin
+    @Secured("FEATURE_EMPLOYEE_ACCESS")
     @GetMapping("/{id}")
     public ResponseEntity<UserWithPegawaiResponse> getPegawaiById(@PathVariable UUID id) {
         UserWithPegawaiResponse pegawai = pegawaiService.getPegawaiById(id);
         return ResponseEntity.ok(pegawai);
     }
 
-    // Hanya bisa diakses oleh Super Admin
+    @Secured("FEATURE_EMPLOYEE_ACCESS")
     @PutMapping("/{id}")
     public ResponseEntity<UserWithPegawaiResponse> updatePegawai(
             @PathVariable UUID id,
@@ -62,6 +64,7 @@ public class PegawaiController {
         return ResponseEntity.ok(updatedPegawai);
     }
 
+    @Secured("FEATURE_EMPLOYEE_ACCESS")
     @DeleteMapping("/{id}")
     public ResponseEntity<String> deletePegawai(@PathVariable UUID id) {
         pegawaiService.deletePegawai(id);

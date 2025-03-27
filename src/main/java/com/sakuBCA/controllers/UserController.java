@@ -2,6 +2,7 @@ package com.sakuBCA.controllers;
 
 import com.sakuBCA.dtos.superAdminDTO.UserResponseDTO;
 import com.sakuBCA.services.UserService;
+import org.springframework.security.access.annotation.Secured;
 import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.web.bind.annotation.*;
 
@@ -17,6 +18,7 @@ public class UserController {
         this.userService = userService;
     }
 
+    @Secured("USER_ACCESS")
     @GetMapping("/all")
     public List<UserResponseDTO> getAllUsers() {
         return userService.getAllUsers();

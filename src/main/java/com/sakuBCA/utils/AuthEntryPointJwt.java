@@ -1,6 +1,7 @@
 package com.sakuBCA.utils;
 
 import com.fasterxml.jackson.databind.ObjectMapper;
+import com.sakuBCA.config.exceptions.ErrorResponse;
 import jakarta.servlet.http.HttpServletRequest;
 import jakarta.servlet.http.HttpServletResponse;
 import org.slf4j.Logger;
@@ -11,8 +12,7 @@ import org.springframework.security.web.AuthenticationEntryPoint;
 import org.springframework.stereotype.Component;
 
 import java.io.IOException;
-import java.util.HashMap;
-import java.util.Map;
+import java.time.LocalDateTime;
 
 @Component
 public class AuthEntryPointJwt implements AuthenticationEntryPoint {
@@ -23,17 +23,21 @@ public class AuthEntryPointJwt implements AuthenticationEntryPoint {
     public void commence(HttpServletRequest request, HttpServletResponse response,
                          AuthenticationException authException) throws IOException {
 
-        logger.error("Unauthorized error:{}", authException.getMessage());
+        logger.error("Unauthorized error: {}", authException.getMessage());
 
         response.setContentType(MediaType.APPLICATION_JSON_VALUE);
         response.setStatus(HttpServletResponse.SC_UNAUTHORIZED);
 
-        final Map<String, Object> body = new HashMap<>();
+        // Gunakan ErrorResponse agar format responsnya seragam
+        ErrorResponse errorResponse = new ErrorResponse(
+                HttpServletResponse.SC_UNAUTHORIZED,
+                request.getMethod(), // Menjadikan HTTP Method sebagai error (sesuai format yang kamu inginkan)
+                "Terjadi kesalahan: " + authException.getMessage(),
+                request.getRequestURI()
+        );
 
-        body.put("status", HttpServletResponse.SC_UNAUTHORIZED);
-        body.put("message", authException.getMessage());
-
+        // Konversi ke JSON dan kirim respons
         final ObjectMapper objectMapper = new ObjectMapper();
-        objectMapper.writeValue(response.getOutputStream(), body);
+        objectMapper.writeValue(response.getOutputStream(), errorResponse);
     }
 }
