@@ -1,9 +1,12 @@
 package com.sakuBCA.models;
 
+import com.fasterxml.jackson.annotation.JsonIgnore;
 import jakarta.persistence.*;
 import lombok.*;
 import org.springframework.security.core.GrantedAuthority;
 
+import java.util.ArrayList;
+import java.util.List;
 import java.util.UUID;
 
 @Entity
@@ -14,7 +17,7 @@ import java.util.UUID;
 @Builder
 public class Role implements GrantedAuthority {
     @Id
-    @GeneratedValue(generator = "UUID", strategy = GenerationType.AUTO)
+    @GeneratedValue(strategy = GenerationType.UUID)
     private UUID id;
 
     @Getter
@@ -24,6 +27,14 @@ public class Role implements GrantedAuthority {
     @Override
     public String getAuthority() {
         return name;
+    }
+
+    @OneToMany(mappedBy = "role", fetch = FetchType.EAGER, cascade = CascadeType.ALL)
+    private List<RoleFeature> roleFeatures = new ArrayList<>();
+
+    // Constructor hanya dengan name
+    public Role(String name) {
+        this.name = name;
     }
 }
 

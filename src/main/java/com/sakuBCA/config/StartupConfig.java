@@ -2,14 +2,8 @@ package com.sakuBCA.config;
 
 import com.sakuBCA.enums.StatusPegawai;
 import com.sakuBCA.enums.UserType;
-import com.sakuBCA.models.Branch;
-import com.sakuBCA.models.PegawaiDetails;
-import com.sakuBCA.models.Role;
-import com.sakuBCA.models.User;
-import com.sakuBCA.repositories.BranchRepository;
-import com.sakuBCA.repositories.PegawaiDetailsRepository;
-import com.sakuBCA.repositories.RoleRepository;
-import com.sakuBCA.repositories.UserRepository;
+import com.sakuBCA.models.*;
+import com.sakuBCA.repositories.*;
 import jakarta.transaction.Transactional;
 import org.springframework.boot.CommandLineRunner;
 import org.springframework.context.annotation.Bean;
@@ -25,17 +19,16 @@ public class StartupConfig {
     @Bean
     CommandLineRunner initRoles(RoleRepository roleRepository) {
         return args -> {
-            List<String> roles = List.of("Super Admin", "Back Office", "Branch Manager", "Marketing", "Customer");
+            List<String> roles = List.of("SUPER_ADMIN", "BACK_OFFICE", "BRANCH_MANAGER", "MARKETING", "CUSTOMER");
 
             for (String roleName : roles) {
                 if (roleRepository.findByName(roleName).isEmpty()) {
-                    roleRepository.save(new Role(null, roleName));
+                    roleRepository.save(new Role(roleName));
                 }
             }
         };
     }
 
-    @Transactional
     @Bean
     CommandLineRunner initBranches(BranchRepository branchRepository) {
         return args -> {
@@ -55,14 +48,75 @@ public class StartupConfig {
         };
     }
 
+    @Transactional
+    @Bean
+    CommandLineRunner initRolesAndFeatures(RoleRepository roleRepository, FeatureRepository featureRepository, RoleFeatureRepository roleFeatureRepository) {
+        return args -> {
+            List<String> roleNames = List.of("SUPER_ADMIN", "BACK_OFFICE", "BRANCH_MANAGER");
+
+            // Pastikan semua role sudah ada di database
+            for (String roleName : roleNames) {
+                if (roleRepository.findByName(roleName).isEmpty()) {
+                    Role newRole = Role.builder().name(roleName).build();
+                    roleRepository.save(newRole);
+                }
+            }
+
+            // Setelah role ada, baru kita assign fitur
+            initFeatures(featureRepository, roleRepository, roleFeatureRepository);
+        };
+    }
+
+    private void initFeatures(FeatureRepository featureRepository, RoleRepository roleRepository, RoleFeatureRepository roleFeatureRepository) {
+        List<String> featureNames = List.of("CREATE_USER", "APPROVE_LOAN", "VIEW_REPORTS", "GET_FEATURES");
+
+        for (String featureName : featureNames) {
+            Optional<Feature> existingFeature = featureRepository.findByName(featureName);
+            if (existingFeature.isEmpty()) {
+                Feature newFeature = Feature.builder()
+                        .name(featureName)
+                        .build();
+                featureRepository.save(newFeature);
+                featureRepository.flush();
+
+                // Assign fitur ke role hanya setelah role dijamin ada
+                if (featureName.equals("CREATE_USER") || featureName.equals("GET_FEATURES")) {
+                    assignFeatureToRole(newFeature, "SUPER_ADMIN", roleRepository, roleFeatureRepository);
+                } else if (featureName.equals("APPROVE_LOAN")) {
+                    assignFeatureToRole(newFeature, "BACK_OFFICE", roleRepository, roleFeatureRepository);
+                } else if (featureName.equals("VIEW_REPORTS")) {
+                    assignFeatureToRole(newFeature, "BRANCH_MANAGER", roleRepository, roleFeatureRepository);
+                }
+            }
+        }
+
+        System.out.println("✅ Fitur-fitur berhasil diinisialisasi dan diberikan ke role yang sesuai!");
+    }
+
+    @Transactional
+    private void assignFeatureToRole(Feature feature, String roleName, RoleRepository roleRepository, RoleFeatureRepository roleFeatureRepository) {
+        Optional<Role> roleOpt = roleRepository.findByName(roleName);
+        if (roleOpt.isPresent()) {
+            Role role = roleOpt.get();
+            RoleFeature roleFeature = RoleFeature.builder()
+                    .role(role)
+                    .feature(feature)
+                    .featureName(feature.getName())
+                    .build();
+            roleFeatureRepository.save(roleFeature);
+            System.out.println("✅ Fitur " + feature.getName() + " diberikan ke role " + roleName);
+        }
+    }
+
+
     @Bean
     CommandLineRunner initSuperAdmin(UserRepository userRepository, PegawaiDetailsRepository pegawaiDetailsRepository,
                                      RoleRepository roleRepository, PasswordEncoder passwordEncoder, BranchRepository branchRepository) {
         return args -> {
             // **1. Cek Role "Super Admin"**
-            Role superAdminRole = roleRepository.findByName("Super Admin")
+            Role superAdminRole = roleRepository.findByName("SUPER_ADMIN")
                     .orElseGet(() -> {
-                        Role newRole = new Role(null, "Super Admin");
+                        Role newRole = new Role("SUPER_ADMIN");
                         return roleRepository.save(newRole);
                     });
 

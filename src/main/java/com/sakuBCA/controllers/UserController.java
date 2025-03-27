@@ -17,7 +17,6 @@ public class UserController {
         this.userService = userService;
     }
 
-    @PreAuthorize("hasRole('Super Admin')") // Hanya SUPERADMIN yang boleh
     @GetMapping("/all")
     public List<UserResponseDTO> getAllUsers() {
         return userService.getAllUsers();

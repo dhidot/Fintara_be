@@ -18,7 +18,6 @@ import java.util.List;
 public class CustomerController {
     private final CustomerService customerService;
 
-    @PreAuthorize("hasAuthority('Super Admin')") // Hanya bisa diakses oleh Super Admin
     @GetMapping
     public ResponseEntity<List<UserWithCustomerResponse>> getAllCustomer(){
         List<UserWithCustomerResponse> customer = customerService.getAllCustomer();

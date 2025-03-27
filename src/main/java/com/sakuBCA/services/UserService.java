@@ -10,8 +10,6 @@ import com.sakuBCA.repositories.PasswordResetTokenRepository;
 import com.sakuBCA.repositories.RoleRepository;
 import com.sakuBCA.repositories.UserRepository;
 import org.springframework.http.HttpStatus;
-import org.springframework.mail.javamail.JavaMailSender;
-import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.security.crypto.bcrypt.BCryptPasswordEncoder;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.security.core.userdetails.UserDetails;
@@ -35,7 +33,6 @@ public class UserService implements UserDetailsService {
 
     private static final Logger logger = LoggerFactory.getLogger(UserService.class);
 
-    @Autowired
     public UserService(UserRepository userRepository, RoleRepository roleRepository,
                        PasswordEncoder passwordEncoder, PasswordResetTokenRepository tokenRepository,
                        EmailService emailservice) {

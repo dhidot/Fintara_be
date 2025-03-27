@@ -8,6 +8,7 @@ import com.sakuBCA.services.BranchService;
 import lombok.RequiredArgsConstructor;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.ResponseEntity;
+import org.springframework.security.access.annotation.Secured;
 import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.web.bind.annotation.*;
 
@@ -35,7 +36,6 @@ public class BranchController {
     }
 
     // 🔹 READ ALL
-    @PreAuthorize("hasAuthority('Super Admin')")
     @GetMapping("/all")
     public List<Branch> getAllBranches() {
         return branchService.getAllBranches();

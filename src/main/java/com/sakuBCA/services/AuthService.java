@@ -1,14 +1,16 @@
 package com.sakuBCA.services;
 
+import com.sakuBCA.utils.UserDetailsImpl;
 import com.sakuBCA.enums.UserType;
 import com.sakuBCA.config.exceptions.CustomException;
 import com.sakuBCA.models.BlacklistedToken;
 import com.sakuBCA.models.Role;
 import com.sakuBCA.models.User;
 import com.sakuBCA.repositories.BlacklistedTokenRepository;
+import com.sakuBCA.repositories.RoleFeatureRepository;
 import com.sakuBCA.repositories.RoleRepository;
 import com.sakuBCA.repositories.UserRepository;
-import com.sakuBCA.utils.JwtUtil;
+import com.sakuBCA.utils.JwtUtils;
 import jakarta.transaction.Transactional;
 import lombok.RequiredArgsConstructor;
 import org.springframework.http.HttpStatus;
@@ -22,23 +24,28 @@ import java.util.List;
 public class AuthService {
     private final BlacklistedTokenRepository blacklistedTokenRepository;
     private final UserRepository userRepository;
+    private final RoleFeatureRepository roleFeatureRepository;
     private final PasswordEncoder passwordEncoder;
     private final RoleRepository roleRepository;
-    private final JwtUtil jwtUtil;
+    private final JwtUtils jwtUtils;
 
-    public String login(String email, String password) {
-        User user = userRepository.findByEmail(email)
-                .orElseThrow(() -> new CustomException("User tidak ditemukan", HttpStatus.NOT_FOUND));
-
-        if (!passwordEncoder.matches(password, user.getPassword())) {
-            throw new CustomException("Email atau password salah", HttpStatus.NOT_FOUND);
-        }
-
-        // Ambil authorities dari user
-        List<String> authorities = List.of(user.getRole().getName());
-
-        return jwtUtil.generateToken(user.getEmail(), authorities);
-    }
+//    public String login(String email, String password) {
+//        User user = userRepository.findByEmail(email)
+//                .orElseThrow(() -> new CustomException("User tidak ditemukan", HttpStatus.NOT_FOUND));
+//
+//        if (!passwordEncoder.matches(password, user.getPassword())) {
+//            throw new CustomException("Email atau password salah", HttpStatus.UNAUTHORIZED);
+//        }
+//
+//        // Ambil fitur dari role
+//        List<String> features = roleFeatureRepository.findFeaturesByRoleId(user.getRole().getId());
+//
+//        // Buat objek UserDetailsImpl
+//        UserDetailsImpl userDetails = new UserDetailsImpl(user.getEmail(), user.getPassword(), features);
+//
+//        // Panggil generateToken dengan userDetails
+//        return jwtUtils.generateToken(userDetails);
+//    }
 
     @Transactional
     public User registerCustomer(String name, String email, String password) {
