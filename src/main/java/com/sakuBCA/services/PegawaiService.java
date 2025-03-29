@@ -10,15 +10,12 @@ import com.sakuBCA.models.Branch;
 import com.sakuBCA.models.PegawaiDetails;
 import com.sakuBCA.models.Role;
 import com.sakuBCA.models.User;
-import com.sakuBCA.repositories.PegawaiRepository;
-import com.sakuBCA.repositories.RoleRepository;
-import com.sakuBCA.repositories.UserRepository;
-import com.sakuBCA.utils.JwtUtils;
+import com.sakuBCA.repositories.*;
+import com.sakuBCA.config.security.JwtUtils;
 import jakarta.transaction.Transactional;
 import lombok.RequiredArgsConstructor;
 import org.apache.commons.lang3.RandomStringUtils;
 import org.springframework.http.HttpStatus;
-import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Service;
 
@@ -30,60 +27,55 @@ import java.util.stream.Collectors;
 @RequiredArgsConstructor
 public class PegawaiService {
     private final PasswordEncoder passwordEncoder;
-    private final UserRepository userRepository;
-    private final RoleRepository roleRepository;
     private final PegawaiRepository pegawaiRepository;
+    private final PegawaiDetailsRepository pegawaiDetailsRepository;
+    private final BranchService branchService;
+    private final RoleService roleService;
+    private final UserService userService;
     private final EmailService emailService;
     private final JwtUtils jwtUtils;
+    
 
-//    @Transactional
-//    public User registerPegawai(String name, String email, String role,
-//                                String nip, Branch branch, StatusPegawai statusPegawai, String token) {
-//        // 🔹 Ambil user yang sedang login dari token
-//        String userEmail = jwtUtils.extractUsername(token);
-//        User loggedInUser = userRepository.findByEmail(userEmail)
-//                .orElseThrow(() -> new CustomException("Anda tidak memiliki akses untuk mendaftarkan pegawai", HttpStatus.FORBIDDEN));
-//
-//        // 🔹 Pastikan user yang login adalah Super Admin
-//        if (!"Super Admin".equals(loggedInUser.getRole().getName())) {
-//            throw new CustomException("Anda tidak memiliki izin untuk mendaftarkan pegawai", HttpStatus.FORBIDDEN);
-//        }
-//
-//        // 🔹 Cek apakah role pegawai valid di database
-//        Role pegawaiRole = roleRepository.findByName(role)
-//                .orElseThrow(() -> new CustomException("Role pegawai tidak ditemukan", HttpStatus.NOT_FOUND));
-//
-//        // 🔹 Autogenerate password sementara (8 karakter alfanumerik)
-//        String generatedPassword = RandomStringUtils.randomAlphanumeric(8);
-//
-//        // 🔹 Buat akun pegawai baru
-//        User pegawai = User.builder()
-//                .name(name)
-//                .email(email)
-//                .password(passwordEncoder.encode(generatedPassword)) // Simpan password terenkripsi
-//                .role(pegawaiRole)
-//                .userType(UserType.PEGAWAI)
-//                .build();
-//        userRepository.save(pegawai);
-//
-//        // 🔹 Buat PegawaiDetails baru
-//        PegawaiDetails pegawaiDetails = PegawaiDetails.builder()
-//                .nip(nip)
-//                .branch(branch)
-//                .statusPegawai(StatusPegawai.valueOf(statusPegawai.name())) // Simpan status pegawai sebagai String
-//                .user(pegawai)
-//                .build();
-//        pegawaiRepository.save(pegawaiDetails);
-//
-//        // 🔹 Kirim password ke email pegawai
-//        emailService.sendInitialPasswordEmail(email, generatedPassword);
-//
-//        return pegawai;
-//    }
+    @Transactional
+    public User registerPegawai(String name, String email, String role,
+                                String nip, UUID branchId, StatusPegawai statusPegawai) {
+        // 🔹 Cek apakah ada branch dengan ID yang diberikan
+        Branch existingBranch = branchService.findBranchById(branchId);
+
+        // 🔹 Cek apakah role pegawai valid di database
+        Role pegawaiRole = roleService.getRoleByName(role);
+
+        // 🔹 Autogenerate password sementara (8 karakter alfanumerik)
+        String generatedPassword = RandomStringUtils.randomAlphanumeric(8);
+
+        // 🔹 Buat akun pegawai baru
+        User pegawai = User.builder()
+                .name(name)
+                .email(email)
+                .password(passwordEncoder.encode(generatedPassword)) // Simpan password terenkripsi
+                .role(pegawaiRole)
+                .userType(UserType.PEGAWAI)
+                .build();
+        userService.saveUser(pegawai);
+
+        // 🔹 Buat PegawaiDetails baru
+        PegawaiDetails pegawaiDetails = PegawaiDetails.builder()
+                .nip(nip)
+                .branch(existingBranch)
+                .statusPegawai(StatusPegawai.valueOf(statusPegawai.name())) // Simpan status pegawai sebagai String
+                .user(pegawai)
+                .build();
+        pegawaiRepository.save(pegawaiDetails);
+
+        // 🔹 Kirim password ke email pegawai
+        emailService.sendInitialPasswordEmail(email, generatedPassword);
+
+        return pegawai;
+    }
 
     public List<UserWithPegawaiResponse> getAllPegawai() {
         try {
-            List<User> users = userRepository.findAllWithPegawai(); // Ambil User + PegawaiDetails
+            List<User> users = userService.getAllPegawai(); // Ambil User + PegawaiDetails
 
             if (users.isEmpty()) {
                 throw new CustomException("Tidak ada data pegawai yang ditemukan", HttpStatus.NOT_FOUND);
@@ -120,8 +112,7 @@ public class PegawaiService {
 
 
     public UserWithPegawaiResponse getPegawaiById(UUID userId) {
-        User user = userRepository.findByIdWithPegawai(userId)
-                .orElseThrow(() -> new CustomException("User dengan ID " + userId + " tidak ditemukan", HttpStatus.NOT_FOUND));
+        User user = userService.getPegawaiUserById(userId);
 
         UserWithPegawaiResponse response = new UserWithPegawaiResponse();
         response.setId(user.getId());
@@ -138,8 +129,7 @@ public class PegawaiService {
 
     //Edit Data Pegawai
     public UserWithPegawaiResponse updatePegawai(UUID userId, UpdatePegawaiRequest request) {
-        User user = userRepository.findByIdWithPegawai(userId)
-                .orElseThrow(() -> new CustomException("User dengan ID " + userId + " tidak ditemukan", HttpStatus.BAD_REQUEST));
+        User user = userService.getPegawaiUserById(userId);
 
         // Update data User
         user.setName(request.getName());
@@ -154,7 +144,7 @@ public class PegawaiService {
             pegawaiRepository.save(pegawai);
         }
 
-        userRepository.save(user); // Simpan perubahan
+        userService.saveUser(user); // Simpan perubahan
 
         // Konversi ke response DTO
         UserWithPegawaiResponse response = new UserWithPegawaiResponse();
@@ -168,9 +158,7 @@ public class PegawaiService {
     }
 
     public void deletePegawai(UUID id) {
-        User user = userRepository.findById(id)
-                .orElseThrow(() -> new CustomException("User dengan ID " + id + " tidak ditemukan", HttpStatus.BAD_REQUEST));
-
-        userRepository.delete(user);
+        User user = userService.getPegawaiUserById(id);
+        userService.deleteUserById(user.getId());
     }
 }

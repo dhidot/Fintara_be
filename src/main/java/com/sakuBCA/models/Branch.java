@@ -1,5 +1,6 @@
 package com.sakuBCA.models;
 
+import com.fasterxml.jackson.annotation.JsonBackReference;
 import com.fasterxml.jackson.annotation.JsonIgnore;
 import jakarta.persistence.*;
         import lombok.*;
@@ -23,5 +24,6 @@ public class Branch {
 
     @OneToMany(mappedBy = "branch", cascade = CascadeType.ALL, fetch = FetchType.LAZY)
     @JsonIgnore
+    @JsonBackReference
     private List<PegawaiDetails> pegawaiList;
 }

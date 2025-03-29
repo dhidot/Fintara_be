@@ -10,4 +10,5 @@ import java.util.UUID;
 public interface BranchRepository extends JpaRepository<Branch, UUID> {
     boolean existsByName(String name);
     Optional<Branch> findByName(String name);
+    Optional<Branch> findById(UUID id);
 }

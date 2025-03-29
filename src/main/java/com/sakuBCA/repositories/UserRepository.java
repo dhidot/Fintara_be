@@ -10,7 +10,7 @@ import java.util.Optional;
 import java.util.UUID;
 
 public interface UserRepository extends JpaRepository<User, UUID> {
-    @Query("SELECT u FROM User u WHERE u.customerDetails IS NOT NULL")
+    @Query("SELECT u FROM User u WHERE u.role.name = 'CUSTOMER'")
     List<User> findAllWithCustomer();
 
     @Query("SELECT u FROM User u WHERE u.pegawaiDetails IS NOT NULL")
@@ -20,4 +20,6 @@ public interface UserRepository extends JpaRepository<User, UUID> {
     Optional<User> findByIdWithPegawai(@Param("userId") UUID userId);
 
     Optional<User> findByEmail(String email);
+
+    boolean existsByEmail(String email);
 }

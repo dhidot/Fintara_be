@@ -1,16 +1,18 @@
 package com.sakuBCA.dtos.superAdminDTO;
 
 import com.sakuBCA.models.CustomerDetails;
+import com.sakuBCA.models.PlafondPackage;
 import lombok.Getter;
 import lombok.Setter;
 
 import java.math.BigDecimal;
 import java.time.LocalDate;
+import java.util.UUID;
 
 @Getter
 @Setter
 public class CustomerDetailsDTO {
-    private Integer id;
+    private UUID id;
     private LocalDate ttl;
     private String alamat;
     private String noTelp;
@@ -20,7 +22,7 @@ public class CustomerDetailsDTO {
     private BigDecimal gaji;
     private String noRek;
     private String statusRumah;
-    private BigDecimal plafond;
+    private PlafondPackage plafond;
 
     public CustomerDetailsDTO(CustomerDetails customerDetails) {
         this.id = customerDetails.getId();
@@ -33,6 +35,6 @@ public class CustomerDetailsDTO {
         this.gaji = customerDetails.getGaji();
         this.noRek = customerDetails.getNoRek();
         this.statusRumah = customerDetails.getStatusRumah();
-        this.plafond = customerDetails.getPlafond();
+        this.plafond = customerDetails.getPlafondPackage();
     }
 }

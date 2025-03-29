@@ -1,4 +1,4 @@
-package com.sakuBCA.utils;
+package com.sakuBCA.config.security;
 
 import com.sakuBCA.models.BlacklistedToken;
 import com.sakuBCA.repositories.BlacklistedTokenRepository;

@@ -56,19 +56,12 @@ public class EmailService {
     }
 
     // 🔹 Kirim token reset password ke email user
-    public void sendResetPasswordToken(String to, String resetToken) {
-        if (resetToken == null || resetToken.isEmpty()) {
-            logger.error("Gagal mengirim email: token reset tidak boleh kosong.");
-            throw new IllegalArgumentException("Token reset tidak boleh kosong.");
-        }
-
-        String subject = "Reset Password - SakuBCA";
-        String body = "Anda telah meminta reset password.\n\n"
-                + "Gunakan token berikut untuk mengatur ulang password Anda:\n"
-                + resetToken + "\n\n"
-                + "Token ini berlaku selama 15 menit.\n\n"
-                + "Jika Anda tidak meminta reset password, abaikan email ini.";
-
-        sendEmail(to, subject, body);
+    public void sendResetPasswordEmail(String email, String resetLink) {
+        String subject = "Reset Password Anda";
+        String message = "<p>Klik link berikut untuk mengatur ulang password Anda:</p>"
+                + "<p><a href=\"" + resetLink + "\">Reset Password</a></p>"
+                + "<p>Jika Anda tidak meminta reset password, abaikan email ini.</p>";
+        sendEmail(email, subject, message);
     }
+
 }

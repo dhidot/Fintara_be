@@ -17,8 +17,8 @@ import java.time.LocalDate;
 @Builder
 public class CustomerDetails {
     @Id
-    @GeneratedValue(strategy = GenerationType.IDENTITY)
-    private Integer id;
+    @GeneratedValue(strategy = GenerationType.UUID)
+    private UUID id;
 
     @OneToOne
     @JoinColumn(name = "user_id", nullable = false)
@@ -33,5 +33,8 @@ public class CustomerDetails {
     private BigDecimal gaji;
     private String noRek;
     private String statusRumah;
-    private BigDecimal plafond;
+
+    @ManyToOne
+    @JoinColumn(name = "plafond_package_id")
+    private PlafondPackage plafondPackage;
 }

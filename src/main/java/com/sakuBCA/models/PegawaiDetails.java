@@ -23,6 +23,8 @@ public class PegawaiDetails {
     @JoinColumn(name = "user_id", nullable = false)
     private User user;
 
+    //unique
+    @Column(unique = true, nullable = false)
     private String nip;
 
     @ManyToOne // ✅ Relasi dengan Branch

@@ -1,22 +1,15 @@
-package com.sakuBCA.utils;
+package com.sakuBCA.config.security;
 
-import com.sakuBCA.models.Feature;
-import com.sakuBCA.repositories.FeatureRepository;
 import io.jsonwebtoken.Jwts;
 import io.jsonwebtoken.io.Decoders;
 import io.jsonwebtoken.security.Keys;
-import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.security.core.Authentication;
-import org.springframework.security.core.GrantedAuthority;
 import org.springframework.stereotype.Component;
 
 import javax.crypto.SecretKey;
 import java.util.Calendar;
 import java.util.Date;
-import java.util.List;
-import java.util.UUID;
-import java.util.stream.Collectors;
 
 @Component
 public class JwtUtils {
@@ -62,9 +55,19 @@ public class JwtUtils {
     }
 
     public String extractToken(String bearerToken) {
-        if (bearerToken == null || !bearerToken.startsWith("Bearer ")) {
+        if (bearerToken == null || !bearerToken.startsWith("Bearer ") || bearerToken.length() <= 7) {
             throw new IllegalArgumentException("Invalid Bearer token format");
         }
         return bearerToken.substring(7).trim(); // Remove "Bearer " and trim any extraneous spaces
     }
+
+    public Date getExpirationDateFromToken(String token) {
+        return Jwts.parser()
+                .verifyWith(getSignKey())
+                .build()
+                .parseSignedClaims(token)
+                .getPayload()
+                .getExpiration();
+    }
+
 }
