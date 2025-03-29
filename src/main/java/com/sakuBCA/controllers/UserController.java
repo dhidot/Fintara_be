@@ -18,7 +18,7 @@ public class UserController {
         this.userService = userService;
     }
 
-    @Secured("USER_ACCESS")
+    @Secured("FEATURE_USER_ACCESS")
     @GetMapping("/all")
     public List<UserResponseDTO> getAllUsers() {
         return userService.getAllUsers();

@@ -5,7 +5,10 @@ import com.sakuBCA.dtos.superAdminDTO.UpdatePegawaiRequest;
 import com.sakuBCA.dtos.superAdminDTO.UserWithPegawaiResponse;
 import com.sakuBCA.models.User;
 import com.sakuBCA.services.PegawaiService;
+import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.access.annotation.Secured;
 import org.springframework.security.access.prepost.PreAuthorize;
@@ -22,18 +25,18 @@ public class PegawaiController {
 
     @Secured("FEATURE_EMPLOYEE_ACCESS")
     @PostMapping("/register")
-    public ResponseEntity<User> registerPegawai(
-            @RequestHeader("Authorization") String token,
-            @RequestBody RegisterPegawaiRequest request) {
+    public ResponseEntity<User> registerPegawai(@RequestHeader("Authorization") String token, @Valid @RequestBody RegisterPegawaiRequest request) {
+        Logger logger = LoggerFactory.getLogger(PegawaiController.class);
 
+        // Log token yang diterima
+        logger.info("Received token: {}", token);
         User pegawai = pegawaiService.registerPegawai(
                 request.getName(),
                 request.getEmail(),
-                request.getRole(), // Tetap String
+                request.getRole(),
                 request.getNip(),
                 request.getBranchId(),
-                request.getStatusPegawai(),
-                token.replace("Bearer ", "")
+                request.getStatusPegawai()
         );
 
         return ResponseEntity.ok(pegawai);

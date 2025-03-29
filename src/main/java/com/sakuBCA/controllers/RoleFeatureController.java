@@ -15,14 +15,14 @@ public class RoleFeatureController {
     @Autowired
     private RoleFeatureService roleFeatureService;
 
-    @Secured("ROLE_FEATURE_ACCESS")
+    @Secured("FEATURE_ROLE_FEATURE_ACCESS")
     @PostMapping("/assign")
     public String assignFeatureToRole(@RequestParam UUID roleId, @RequestParam UUID featureId) {
         roleFeatureService.assignFeatureToRole(roleId, featureId);
         return "Feature assigned to role successfully!";
     }
 
-    @Secured("ROLE_FEATURE_ACCESS")
+    @Secured("FEATURE_ROLE_FEATURE_ACCESS")
     @PostMapping("/{roleId}/{featureId}")
     public ResponseEntity<String> assignFeature(@PathVariable UUID roleId, @PathVariable UUID featureId) {
         roleFeatureService.assignFeatureToRole(roleId, featureId);

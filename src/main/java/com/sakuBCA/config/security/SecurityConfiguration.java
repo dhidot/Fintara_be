@@ -1,23 +1,15 @@
 package com.sakuBCA.config.security;
 
-import com.sakuBCA.services.UserService;
-import com.sakuBCA.utils.AuthEntryPointJwt;
-import com.sakuBCA.utils.JwtAuthenticationFilter;
-import com.sakuBCA.utils.JwtUtils;
-import com.sakuBCA.utils.UserDetailsServiceImpl;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
-import org.springframework.context.annotation.Lazy;
 import org.springframework.http.MediaType;
 import org.springframework.security.authentication.AuthenticationManager;
 import org.springframework.security.authentication.dao.DaoAuthenticationProvider;
 import org.springframework.security.config.Customizer;
 import org.springframework.security.config.annotation.authentication.configuration.AuthenticationConfiguration;
-import org.springframework.security.config.annotation.method.configuration.EnableGlobalMethodSecurity;
 import org.springframework.security.config.annotation.method.configuration.EnableMethodSecurity;
 import org.springframework.security.config.annotation.web.builders.HttpSecurity;
-import org.springframework.security.config.annotation.web.configuration.EnableWebSecurity;
 import org.springframework.security.config.annotation.web.configurers.AbstractHttpConfigurer;
 import org.springframework.security.config.http.SessionCreationPolicy;
 import org.springframework.security.crypto.bcrypt.BCryptPasswordEncoder;
@@ -33,7 +25,7 @@ import org.springframework.web.servlet.config.annotation.WebMvcConfigurer;
 import java.util.Arrays;
 
 @Configuration
-@EnableGlobalMethodSecurity(securedEnabled = true)
+@EnableMethodSecurity(securedEnabled = true)
 public class SecurityConfiguration implements WebMvcConfigurer {
 
     final AuthEntryPointJwt authEntryPointJwt;
@@ -48,11 +40,16 @@ public class SecurityConfiguration implements WebMvcConfigurer {
     }
 
     @Bean
-    public SecurityFilterChain filterChain (HttpSecurity http) throws Exception {
+    public SecurityFilterChain securityFilterChain(HttpSecurity http,
+                                                   AuthEntryPointJwt authEntryPointJwt
+                                                  ) throws Exception {
         http
                 .csrf(AbstractHttpConfigurer::disable)
                 .cors(Customizer.withDefaults())
-                .exceptionHandling(exception -> exception.authenticationEntryPoint(authEntryPointJwt))
+                .exceptionHandling(exceptionHandling ->
+                        exceptionHandling
+                                .authenticationEntryPoint(authEntryPointJwt) // Untuk 401 Unauthorized
+                )
                 .sessionManagement(session -> session.sessionCreationPolicy(SessionCreationPolicy.STATELESS))
                 .authorizeHttpRequests(auth ->
                         auth
@@ -61,8 +58,7 @@ public class SecurityConfiguration implements WebMvcConfigurer {
                                         "/api/v1/home/",
                                         "/swagger-ui.html","/swagger-ui/**",
                                         "/v3/api-docs/**","/api-docs/**").permitAll()
-                                .requestMatchers("/api/v1/auth/register/customer").permitAll()
-                                .requestMatchers("/api/v1/auth/login/**", "/api/v1/auth/login", "/register").permitAll()
+                                .requestMatchers("/api/v1/auth/**").permitAll()
                                 .anyRequest().authenticated()
                 )
                 .authenticationProvider(authenticationProvider())

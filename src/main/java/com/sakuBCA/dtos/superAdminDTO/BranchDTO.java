@@ -7,7 +7,8 @@ import java.util.UUID;
 
 @Getter
 @Setter
-public class BranchDetailsResponse {
-    private UUID id;
+public class BranchDTO {
     private String name;
+    private String address;
 }
+

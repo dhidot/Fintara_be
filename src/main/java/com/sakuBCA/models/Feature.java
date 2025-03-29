@@ -26,9 +26,5 @@ public class Feature {
     @OneToMany(mappedBy = "feature", fetch = FetchType.LAZY, cascade = CascadeType.ALL)
     @JsonIgnore
     private Set<RoleFeature> roleFeatures;
-
-    @ManyToOne
-    @JoinColumn(name = "feature_group_id")
-    private FeatureGroup featureGroup;
 }
 

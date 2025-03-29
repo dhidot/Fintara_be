@@ -17,16 +17,11 @@ import java.util.stream.Collectors;
 @Service
 @RequiredArgsConstructor
 public class CustomerService {
-    private final CustomerDetailsRepository customerDetailsRepository;
-    private final UserRepository userRepository;
-
-    public CustomerDetails saveCustomerDetails(CustomerDetails customerDetails) {
-        return customerDetailsRepository.save(customerDetails);
-    }
+    private final UserService userService;
 
     public List<UserWithCustomerResponse> getAllCustomer() {
         try {
-            List<User> users = userRepository.findAllWithCustomer();
+            List<User> users = userService.getAllCustomers();
 
             if (users.isEmpty()) {
                 throw new CustomException("Tidak ada data customer yang ditemukan", HttpStatus.NOT_FOUND);

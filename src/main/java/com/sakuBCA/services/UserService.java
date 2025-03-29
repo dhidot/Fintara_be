@@ -1,20 +1,20 @@
 package com.sakuBCA.services;
 
+import com.sakuBCA.dtos.authDTO.ResetPasswordRequest;
 import com.sakuBCA.dtos.superAdminDTO.CustomerDetailsDTO;
 import com.sakuBCA.dtos.superAdminDTO.PegawaiDetailsDTO;
 import com.sakuBCA.dtos.superAdminDTO.UserResponseDTO;
 import com.sakuBCA.config.exceptions.CustomException;
 import com.sakuBCA.models.PasswordResetToken;
 import com.sakuBCA.models.User;
-import com.sakuBCA.repositories.PasswordResetTokenRepository;
-import com.sakuBCA.repositories.RoleRepository;
+import com.sakuBCA.models.Role;
 import com.sakuBCA.repositories.UserRepository;
+import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.HttpStatus;
-import org.springframework.security.crypto.bcrypt.BCryptPasswordEncoder;
-import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.security.core.userdetails.UserDetails;
 import org.springframework.security.core.userdetails.UserDetailsService;
 import org.springframework.security.core.userdetails.UsernameNotFoundException;
+import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Service;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -25,23 +25,43 @@ import java.util.stream.Collectors;
 
 @Service
 public class UserService implements UserDetailsService {
-    private final UserRepository userRepository;
-    private final PasswordEncoder passwordEncoder;
-    private final PasswordResetTokenRepository tokenRepository;
-    private final RoleRepository roleRepository;
-    private final EmailService emailService;
+    @Autowired
+    private UserRepository userRepository;
+    @Autowired
+    private TokenService tokenService;
+    @Autowired
+    private EmailService emailService;
+    @Autowired
+    private PasswordEncoder passwordEncoder;
+    @Autowired
+    private RoleService roleService;
+
 
     private static final Logger logger = LoggerFactory.getLogger(UserService.class);
 
-    public UserService(UserRepository userRepository, RoleRepository roleRepository,
-                       PasswordEncoder passwordEncoder, PasswordResetTokenRepository tokenRepository,
-                       EmailService emailservice) {
-        this.userRepository = userRepository;
-        this.passwordEncoder = passwordEncoder;
-        this.roleRepository = roleRepository;
-        this.tokenRepository = tokenRepository;
-        this.emailService = emailservice;
+
+    // save
+    public User saveUser(User user) {
+        try {
+            return userRepository.save(user);
+        } catch (Exception e) {
+            logger.error("Error saat menyimpan pengguna: {}", e.getMessage(), e);
+            throw new CustomException("Gagal menyimpan pengguna", HttpStatus.INTERNAL_SERVER_ERROR);
+        }
     }
+
+    // Delete user by id
+    public void deleteUserById(UUID userId) {
+        try {
+            User user = userRepository.findById(userId)
+                    .orElseThrow(() -> new CustomException("User dengan ID " + userId + " tidak ditemukan", HttpStatus.NOT_FOUND));
+            userRepository.delete(user);
+        } catch (Exception e) {
+            logger.error("Error saat menghapus pengguna: {}", e.getMessage(), e);
+            throw new CustomException("Gagal menghapus pengguna", HttpStatus.INTERNAL_SERVER_ERROR);
+        }
+    }
+
 
     public List<UserResponseDTO> getAllUsers() {
         try {
@@ -63,6 +83,75 @@ public class UserService implements UserDetailsService {
             throw new CustomException("Gagal mengambil daftar pengguna", HttpStatus.INTERNAL_SERVER_ERROR);
         }
     }
+
+    /********** SERVICE PEGWAWAI **********/
+    //    Get user with usertype pegawai by id (use UserWithPegawaiResponse)
+    public User getPegawaiUserById(UUID userId) {
+        try {
+            return userRepository.findByIdWithPegawai(userId)
+                    .orElseThrow(() -> new CustomException("User dengan ID " + userId + " tidak ditemukan", HttpStatus.NOT_FOUND));
+        } catch (Exception e) {
+            logger.error("Error saat mengambil pengguna dengan ID {}: {}", userId, e.getMessage(), e);
+            throw new CustomException("Gagal mengambil pengguna", HttpStatus.INTERNAL_SERVER_ERROR);
+        }
+    }
+
+    // Get all pegawai (use UserWithPegawaiResponse)
+    public List<User> getAllPegawai() {
+        try {
+            List<User> users = userRepository.findAllWithPegawai();
+            if (users.isEmpty()) {
+                logger.info("Tidak ada pengguna dengan role PEGAWAI ditemukan.");
+            } else {
+                logger.info("Pengguna dengan role PEGAWAI ditemukan: {}", users.size());
+            }
+            return users;
+        } catch (Exception e) {
+            logger.error("Error saat mengambil daftar pengguna: {}", e.getMessage(), e);
+            throw new CustomException("Gagal mengambil daftar pengguna", HttpStatus.INTERNAL_SERVER_ERROR);
+        }
+    }
+
+    public User getPegawaiByEmail(String email) {
+        try {
+            return userRepository.findByEmail(email)
+                    .orElseThrow(() -> new CustomException("User dengan email " + email + " tidak ditemukan", HttpStatus.NOT_FOUND));
+        } catch (Exception e) {
+            logger.error("Error saat mengambil pengguna dengan email {}: {}", email, e.getMessage(), e);
+            throw new CustomException("Gagal mengambil pengguna", HttpStatus.INTERNAL_SERVER_ERROR);
+        }
+    }
+
+    public Role getRole(UUID userId) {
+        User user = userRepository.findById(userId)
+                .orElseThrow(() -> new CustomException("User not found", HttpStatus.NOT_FOUND));
+        return user.getRole(); // Pastikan User memiliki getRole()
+    }
+
+    // Get Role
+    public boolean hasRole(UUID userId, String roleName) {
+        Role role = getRole(userId);
+        return role != null && role.getName().equalsIgnoreCase(roleName);
+    }
+    /********** SERVICE CUSTOMER **********/
+    // get all customer to be used at customerService
+    public List<User> getAllCustomers() {
+        try {
+            List<User> users = userRepository.findAllWithCustomer();
+            if (users.isEmpty()) {
+                logger.info("Tidak ada pengguna dengan role CUSTOMER ditemukan.");
+            } else {
+                logger.info("Pengguna dengan role CUSTOMER ditemukan: {}", users.size());
+            }
+            return users;
+        } catch (Exception e) {
+            logger.error("Error saat mengambil daftar pengguna: {}", e.getMessage(), e);
+            throw new CustomException("Gagal mengambil daftar pengguna", HttpStatus.INTERNAL_SERVER_ERROR);
+        }
+    }
+
+
+
 
     @Override
     public UserDetails loadUserByUsername(String username) throws UsernameNotFoundException {
@@ -86,13 +175,15 @@ public class UserService implements UserDetailsService {
             User user = userRepository.findByEmail(email)
                     .orElseThrow(() -> new CustomException("User tidak ditemukan", HttpStatus.NOT_FOUND));
 
-            // Generate token unik
-            String token = UUID.randomUUID().toString();
-            PasswordResetToken passwordResetToken = new PasswordResetToken(token, user);
-            tokenRepository.save(passwordResetToken);
+            // 🔹 Generate token menggunakan TokenService
+            String token = tokenService.generateToken(user);
 
-            // 🔹 Kirim email token reset password
-            emailService.sendResetPasswordToken(email, token);
+            // 🔹 Buat link reset password
+            String baseUrl = "https://yourfrontend.com/reset-password";
+            String resetLink = baseUrl + "?token=" + token;
+
+            // 🔹 Kirim email dengan link reset password
+            emailService.sendResetPasswordEmail(email, resetLink);
 
         } catch (CustomException e) {
             logger.error("Kesalahan bisnis: {}", e.getMessage());
@@ -103,16 +194,25 @@ public class UserService implements UserDetailsService {
         }
     }
 
-    public void resetPassword(String token, String newPassword) {
+    public void resetPassword(ResetPasswordRequest request) {
         try {
-            PasswordResetToken resetToken = tokenRepository.findByToken(token)
-                    .orElseThrow(() -> new CustomException("Token tidak valid atau sudah kedaluwarsa", HttpStatus.BAD_REQUEST));
+            // 1️⃣ Validasi password baru dan konfirmasi
+            if (!request.getNewPassword().equals(request.getConfirmPassword())) {
+                throw new CustomException("Password baru dan konfirmasi tidak cocok", HttpStatus.BAD_REQUEST);
+            }
 
+            // 2️⃣ Validasi token menggunakan TokenService
+            PasswordResetToken resetToken = tokenService.validateToken(request.getToken());
+
+            // 3️⃣ Update password user
             User user = resetToken.getUser();
-            user.setPassword(new BCryptPasswordEncoder().encode(newPassword));
+            user.setPassword(passwordEncoder.encode(request.getNewPassword()));
             userRepository.save(user);
 
-            tokenRepository.delete(resetToken); // Hapus token setelah digunakan
+            // 4️⃣ Hapus token setelah digunakan
+            tokenService.deleteToken(resetToken);
+
+            logger.info("Password berhasil diubah untuk user: {}", user.getEmail());
 
         } catch (CustomException e) {
             logger.error("Kesalahan bisnis: {}", e.getMessage());
@@ -123,3 +223,4 @@ public class UserService implements UserDetailsService {
         }
     }
 }
+

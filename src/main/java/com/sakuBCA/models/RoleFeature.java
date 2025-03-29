@@ -19,9 +19,6 @@ public class RoleFeature {
     @GeneratedValue(strategy = GenerationType.UUID)
     private UUID id;
 
-    @Column(name = "feature_name")
-    private String featureName;  // Tambahkan kolom untuk menyimpan nama fitur
-
     @ManyToOne
     @JoinColumn(name = "role_id", nullable = false)
     private Role role;

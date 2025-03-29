@@ -9,7 +9,9 @@ import org.hibernate.annotations.GenericGenerator;
 import java.util.UUID;
 
 @Entity
-@Table(name = "users")
+@Table(name = "users", uniqueConstraints = {
+        @UniqueConstraint(columnNames = "email") // ⬅️ Email harus unik di database
+})
 @Data
 @Setter
 @Getter
@@ -22,8 +24,9 @@ public class User {
     @Column(name = "id", updatable = false, nullable = false, columnDefinition = "BINARY(16)")
     private UUID id;
 
-    private String name;
+    @Column(nullable = false, unique = true)
     private String email;
+    private String name;
     private String password;
 
     @ManyToOne

@@ -1,4 +1,4 @@
-package com.sakuBCA.dtos;
+package com.sakuBCA.dtos.superAdminDTO;
 
 import com.sakuBCA.models.Role;
 import com.sakuBCA.models.RoleFeature;

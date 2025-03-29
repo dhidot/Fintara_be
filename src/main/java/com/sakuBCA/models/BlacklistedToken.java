@@ -3,8 +3,13 @@ package com.sakuBCA.models;
 import jakarta.persistence.Entity;
 import jakarta.persistence.Id;
 import jakarta.persistence.Table;
+import lombok.Getter;
+import lombok.Setter;
+
 import java.time.LocalDateTime;
 
+@Setter
+@Getter
 @Entity
 @Table(name = "blacklisted_tokens")
 public class BlacklistedToken {
@@ -20,23 +25,6 @@ public class BlacklistedToken {
     // Constructor yang Sesuai dengan Parameter (String, LocalDateTime)
     public BlacklistedToken(String token, LocalDateTime expiryDate) {
         this.token = token;
-        this.expiryDate = expiryDate;
-    }
-
-    // Getter dan Setter
-    public String getToken() {
-        return token;
-    }
-
-    public void setToken(String token) {
-        this.token = token;
-    }
-
-    public LocalDateTime getExpiryDate() {
-        return expiryDate;
-    }
-
-    public void setExpiryDate(LocalDateTime expiryDate) {
-        this.expiryDate = expiryDate;
+        this.expiryDate = expiryDate.plusDays(1);
     }
 }

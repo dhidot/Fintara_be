@@ -19,7 +19,7 @@ import java.util.List;
 public class CustomerController {
     private final CustomerService customerService;
 
-    @Secured("CUSTOMERS_ACCESS")
+    @Secured("FEATURE_CUSTOMER_ACCESS")
     @GetMapping
     public ResponseEntity<List<UserWithCustomerResponse>> getAllCustomer(){
         List<UserWithCustomerResponse> customer = customerService.getAllCustomer();

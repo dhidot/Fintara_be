@@ -15,12 +15,13 @@ import java.util.UUID;
 @NoArgsConstructor
 @AllArgsConstructor
 @Builder
+@Setter
+@Getter
 public class Role implements GrantedAuthority {
     @Id
     @GeneratedValue(strategy = GenerationType.UUID)
     private UUID id;
 
-    @Getter
     @Column(name = "name", nullable = false, unique = true)
     private String name;
 

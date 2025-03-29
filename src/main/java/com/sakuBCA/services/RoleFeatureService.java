@@ -20,30 +20,25 @@ public class RoleFeatureService {
     private RoleFeatureRepository roleFeatureRepository;
 
     @Autowired
-    private RoleRepository roleRepository;
+    private RoleService roleService;
 
     @Autowired
-    private FeatureRepository featureRepository;
+    private FeatureService featureService;
 
     public void assignFeatureToRole(UUID roleId, UUID featureId) {
-        Role role = roleRepository.findById(roleId)
-                .orElseThrow(() -> new RuntimeException("Role not found"));
-
-        Feature feature = featureRepository.findById(featureId)
-                .orElseThrow(() -> new RuntimeException("Feature not found"));
+        Role role = roleService.getRoleById(roleId);
+        Feature feature = featureService.getFeatureById(featureId);
 
         RoleFeature roleFeature = RoleFeature.builder()
                 .role(role)
                 .feature(feature)
-                .featureName(feature.getName())
                 .build();
 
         roleFeatureRepository.save(roleFeature);
     }
 
     public List<String> getFeaturesByRole(UUID roleId) {
-        Role role = roleRepository.findById(roleId)
-                .orElseThrow(() -> new RuntimeException("Role tidak ditemukan"));
+        Role role = roleService.getRoleById(roleId);
 
         List<RoleFeature> roleFeatures = roleFeatureRepository.findByRole(role);
         return roleFeatures.stream().map(rf -> rf.getFeature().getName()).collect(Collectors.toList());
