@@ -7,7 +7,7 @@ import java.util.UUID;
 
 @Getter
 @Setter
-public class UserWithPegawaiResponse {
+public class UserWithPegawaiResponseDTO {
     private UUID id;
     private String name;
     private String email;

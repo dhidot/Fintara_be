@@ -1,6 +1,6 @@
 package com.sakuBCA.controllers;
 
-import com.sakuBCA.dtos.superAdminDTO.PegawaiDetailsRequest;
+import com.sakuBCA.dtos.superAdminDTO.PegawaiDetailsRequestDTO;
 import com.sakuBCA.services.PegawaiDetailsService;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.ResponseEntity;
@@ -20,7 +20,7 @@ public class PegawaiDetailsController {
     public ResponseEntity<String> updatePegawaiDetails(
             @RequestHeader("Authorization") String token,
             @PathVariable("idPegawai") UUID idPegawai,
-            @RequestBody PegawaiDetailsRequest request) {
+            @RequestBody PegawaiDetailsRequestDTO request) {
         return ResponseEntity.ok(pegawaiDetailsService.updatePegawaiDetails(token, idPegawai, request));
     }
 }

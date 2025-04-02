@@ -1,0 +1,15 @@
+package com.sakuBCA.repositories;
+
+import com.sakuBCA.models.LoanApproval;
+import com.sakuBCA.models.LoanRequest;
+import org.springframework.data.jpa.repository.JpaRepository;
+import org.springframework.stereotype.Repository;
+
+import java.util.List;
+import java.util.UUID;
+
+@Repository
+public interface LoanApprovalRepository extends JpaRepository<LoanApproval, UUID> {
+    List<LoanApproval> findByLoanRequest(LoanRequest loanRequest);
+}
+

@@ -1,8 +1,8 @@
 package com.sakuBCA.services;
 
 import com.sakuBCA.dtos.superAdminDTO.PegawaiDetailsDTO;
-import com.sakuBCA.dtos.superAdminDTO.UpdatePegawaiRequest;
-import com.sakuBCA.dtos.superAdminDTO.UserWithPegawaiResponse;
+import com.sakuBCA.dtos.superAdminDTO.UpdatePegawaiRequestDTO;
+import com.sakuBCA.dtos.superAdminDTO.UserWithPegawaiResponseDTO;
 import com.sakuBCA.enums.StatusPegawai;
 import com.sakuBCA.enums.UserType;
 import com.sakuBCA.config.exceptions.CustomException;
@@ -73,7 +73,7 @@ public class PegawaiService {
         return pegawai;
     }
 
-    public List<UserWithPegawaiResponse> getAllPegawai() {
+    public List<UserWithPegawaiResponseDTO> getAllPegawai() {
         try {
             List<User> users = userService.getAllPegawai(); // Ambil User + PegawaiDetails
 
@@ -82,7 +82,7 @@ public class PegawaiService {
             }
 
             return users.stream().map(user -> {
-                UserWithPegawaiResponse response = new UserWithPegawaiResponse();
+                UserWithPegawaiResponseDTO response = new UserWithPegawaiResponseDTO();
 
                 response.setId(user.getId());
                 response.setName(user.getName());
@@ -111,10 +111,10 @@ public class PegawaiService {
     }
 
 
-    public UserWithPegawaiResponse getPegawaiById(UUID userId) {
+    public UserWithPegawaiResponseDTO getPegawaiById(UUID userId) {
         User user = userService.getPegawaiUserById(userId);
 
-        UserWithPegawaiResponse response = new UserWithPegawaiResponse();
+        UserWithPegawaiResponseDTO response = new UserWithPegawaiResponseDTO();
         response.setId(user.getId());
         response.setName(user.getName());
         response.setEmail(user.getEmail());
@@ -128,7 +128,7 @@ public class PegawaiService {
     }
 
     //Edit Data Pegawai
-    public UserWithPegawaiResponse updatePegawai(UUID userId, UpdatePegawaiRequest request) {
+    public UserWithPegawaiResponseDTO updatePegawai(UUID userId, UpdatePegawaiRequestDTO request) {
         User user = userService.getPegawaiUserById(userId);
 
         // Update data User
@@ -147,7 +147,7 @@ public class PegawaiService {
         userService.saveUser(user); // Simpan perubahan
 
         // Konversi ke response DTO
-        UserWithPegawaiResponse response = new UserWithPegawaiResponse();
+        UserWithPegawaiResponseDTO response = new UserWithPegawaiResponseDTO();
         response.setId(user.getId());
         response.setName(user.getName());
         response.setEmail(user.getEmail());

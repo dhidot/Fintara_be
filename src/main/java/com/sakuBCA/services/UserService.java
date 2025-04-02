@@ -18,6 +18,8 @@ import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Service;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
+import org.springframework.security.core.Authentication;
+import org.springframework.security.core.context.SecurityContextHolder;
 
 import java.util.List;
 import java.util.UUID;
@@ -36,9 +38,18 @@ public class UserService implements UserDetailsService {
     @Autowired
     private RoleService roleService;
 
-
     private static final Logger logger = LoggerFactory.getLogger(UserService.class);
 
+    // Get marketing by branch
+    public List<User> getMarketingByBranch(UUID branchId) {
+        return userRepository.findMarketingByBranch(branchId);
+    }
+
+    // Find user byID
+    public User findById(UUID id) {
+        return userRepository.findById(id)
+                .orElseThrow(() -> new CustomException("User tidak ditemukan!", HttpStatus.NOT_FOUND));
+    }
 
     // save
     public User saveUser(User user) {
@@ -133,6 +144,29 @@ public class UserService implements UserDetailsService {
         Role role = getRole(userId);
         return role != null && role.getName().equalsIgnoreCase(roleName);
     }
+
+    public User getAuthenticatedUser() {
+        Authentication authentication = SecurityContextHolder.getContext().getAuthentication();
+        String username = authentication.getName();  // Get the username of the authenticated user
+        return userRepository.findByEmail(username)  // Assuming email is used as the username
+                .orElseThrow(() -> new CustomException("User not found", HttpStatus.UNAUTHORIZED));
+    }
+
+    public UUID getBranchIdByUserId(UUID userId) {
+        // Cari user berdasarkan ID
+        User user = userRepository.findById(userId)
+                .orElseThrow(() -> new CustomException("User tidak ditemukan", HttpStatus.NOT_FOUND));
+
+        // Cek apakah user memiliki relasi dengan pegawai details (di mana branch ID tersimpan)
+        if (user.getPegawaiDetails() == null || user.getPegawaiDetails().getBranch() == null) {
+            throw new CustomException("User tidak terkait dengan cabang manapun", HttpStatus.BAD_REQUEST);
+        }
+
+        // Kembalikan branch ID
+        return user.getPegawaiDetails().getBranch().getId();
+    }
+
+
     /********** SERVICE CUSTOMER **********/
     // get all customer to be used at customerService
     public List<User> getAllCustomers() {
@@ -149,9 +183,6 @@ public class UserService implements UserDetailsService {
             throw new CustomException("Gagal mengambil daftar pengguna", HttpStatus.INTERNAL_SERVER_ERROR);
         }
     }
-
-
-
 
     @Override
     public UserDetails loadUserByUsername(String username) throws UsernameNotFoundException {

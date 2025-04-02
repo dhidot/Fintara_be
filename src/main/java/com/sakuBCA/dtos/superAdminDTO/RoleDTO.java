@@ -20,7 +20,7 @@ public class RoleDTO {
         this.id = role.getId();
         this.name = role.getName();
         this.features = role.getRoleFeatures().stream()
-                .map(RoleFeature::getFeatureName) // Ambil langsung dari featureName
+                .map(roleFeature -> roleFeature.getFeature().getName()) // Ambil nama dari entitas Feature
                 .collect(Collectors.toList());
     }
 }

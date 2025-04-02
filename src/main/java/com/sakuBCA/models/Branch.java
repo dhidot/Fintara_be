@@ -21,6 +21,8 @@ public class Branch {
 
     private String name;
     private String address;
+    private Double latitude;
+    private Double longitude;
 
     @OneToMany(mappedBy = "branch", cascade = CascadeType.ALL, fetch = FetchType.LAZY)
     @JsonIgnore

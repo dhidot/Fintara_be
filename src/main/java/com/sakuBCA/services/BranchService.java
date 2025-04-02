@@ -109,4 +109,15 @@ public class BranchService {
 
         branchRepository.delete(branch);
     }
+
+    // Nearest Branch to customer
+    public UUID findNearestBranch(double latitude, double longitude) {
+        return branchRepository.findNearestBranch(latitude, longitude);
+    }
+
+    // Find By ID
+    public Branch findById(UUID id) {
+        return branchRepository.findById(id)
+                .orElseThrow(() -> new CustomException("Branch dengan ID ini tidak ditemukan", HttpStatus.NOT_FOUND));
+    }
 }

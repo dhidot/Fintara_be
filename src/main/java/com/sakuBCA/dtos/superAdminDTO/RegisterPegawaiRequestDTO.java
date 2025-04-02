@@ -1,6 +1,5 @@
 package com.sakuBCA.dtos.superAdminDTO;
 
-import com.sakuBCA.models.Branch;
 import jakarta.validation.constraints.NotBlank;
 import jakarta.validation.constraints.NotNull;
 import jakarta.validation.constraints.Pattern;
@@ -12,7 +11,7 @@ import java.util.UUID;
 
 @Getter
 @Setter
-public class RegisterPegawaiRequest {
+public class RegisterPegawaiRequestDTO {
     @NotBlank(message = "Nama harus diisi")
     private String name;
     @NotBlank(message = "Email harus diisi")
