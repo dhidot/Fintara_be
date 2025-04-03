@@ -1,7 +1,7 @@
 package com.sakuBCA.services;
 
 import com.sakuBCA.config.exceptions.CustomException;
-import com.sakuBCA.dtos.customerDTO.LoanRequestApprovalDTO;
+import com.sakuBCA.dtos.loanRequestDTO.LoanRequestApprovalDTO;
 import com.sakuBCA.models.*;
 import com.sakuBCA.repositories.LoanRequestRepository;
 import jakarta.transaction.Transactional;

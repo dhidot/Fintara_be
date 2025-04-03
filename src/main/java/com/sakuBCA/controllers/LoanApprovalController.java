@@ -1,6 +1,6 @@
 package com.sakuBCA.controllers;
 
-import com.sakuBCA.dtos.customerDTO.LoanApprovalDTO;
+import com.sakuBCA.dtos.loanRequestDTO.LoanApprovalDTO;
 import com.sakuBCA.models.LoanApproval;
 import com.sakuBCA.services.LoanApprovalService;
 import lombok.RequiredArgsConstructor;

@@ -1,4 +1,4 @@
-package com.sakuBCA.dtos.customerDTO;
+package com.sakuBCA.dtos.loanRequestDTO;
 
 
 import lombok.Data;

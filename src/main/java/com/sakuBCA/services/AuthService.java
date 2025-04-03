@@ -51,10 +51,20 @@ public class AuthService {
     private CustomerDetailsService customerDetailsService;
 
 
+    @Autowired
+    private RedisService redisService;
+
     public Map<String, Object> authenticate(LoginRequest loginRequestDto) {
+        String email = loginRequestDto.getEmail();
+
+        // Cek apakah user sudah login
+        if (redisService.isUserLoggedIn(email)) {
+            throw new RuntimeException("User sudah login!");
+        }
+
         Authentication authentication = authenticationManager.authenticate(
                 new UsernamePasswordAuthenticationToken(
-                        loginRequestDto.getEmail(),
+                        email,
                         loginRequestDto.getPassword()
                 ));
 
@@ -66,10 +76,10 @@ public class AuthService {
                 .map(GrantedAuthority::getAuthority)
                 .toList();
 
-        // Buat JWT response
-        JwtResponse jwtResponse = new JwtResponse(jwt, userDetails.getUsername(), role, features);
+        // Simpan session login di Redis
+        redisService.saveSession(email);
 
-        // Format response
+        JwtResponse jwtResponse = new JwtResponse(jwt, userDetails.getUsername(), role, features);
         Map<String, Object> response = new HashMap<>();
         response.put("status", "success");
 
@@ -79,6 +89,7 @@ public class AuthService {
 
         return response;
     }
+
 
 
     @Transactional
@@ -127,13 +138,18 @@ public class AuthService {
             throw new CustomException("Token sudah tidak valid", HttpStatus.BAD_REQUEST);
         }
 
+        // Ambil email dari token JWT
+        String email = jwtUtils.getUsername(token);
+
         // Ambil expiry date dari token JWT
         Date expiryDate = jwtUtils.getExpirationDateFromToken(token);
 
         // Tambahkan token ke blacklist dengan expiry date yang sesuai
         tokenService.blacklistToken(token, LocalDateTime.now().plusSeconds(expiryDate.getTime() / 1000));
 
+        // Hapus sesi login dari Redis agar user bisa login lagi
+        redisService.removeSession(email);
+
         System.out.println("Berhasil Logout");
     }
-
 }

@@ -1,11 +1,9 @@
 package com.sakuBCA.controllers;
 
-import com.sakuBCA.config.exceptions.CustomException;
-import com.sakuBCA.dtos.customerDTO.LoanRequestApprovalDTO;
-import com.sakuBCA.dtos.customerDTO.LoanRequestDTO;
+import com.sakuBCA.dtos.loanRequestDTO.LoanRequestApprovalDTO;
+import com.sakuBCA.dtos.loanRequestDTO.LoanRequestDTO;
 import com.sakuBCA.dtos.superAdminDTO.LoanReviewDTO;
 import com.sakuBCA.models.LoanRequest;
-import com.sakuBCA.models.LoanStatus;
 import com.sakuBCA.models.User;
 import com.sakuBCA.services.LoanRequestService;
 import com.sakuBCA.services.LoanStatusService;
@@ -17,7 +15,6 @@ import org.springframework.http.ResponseEntity;
 import org.springframework.security.access.annotation.Secured;
 import org.springframework.web.bind.annotation.*;
 
-import java.time.LocalDateTime;
 import java.util.List;
 import java.util.UUID;
 
