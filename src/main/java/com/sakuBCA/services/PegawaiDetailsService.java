@@ -2,7 +2,7 @@ package com.sakuBCA.services;
 
 import com.sakuBCA.config.exceptions.CustomException;
 import com.sakuBCA.config.security.JwtUtils;
-import com.sakuBCA.dtos.superAdminDTO.PegawaiDetailsRequestDTO;
+import com.sakuBCA.dtos.pegawaiDTO.PegawaiDetailsRequestDTO;
 import com.sakuBCA.enums.StatusPegawai;
 import com.sakuBCA.models.Branch;
 import com.sakuBCA.models.PegawaiDetails;

@@ -15,8 +15,12 @@ import java.util.List;
 import java.util.Map;
 import java.util.Optional;
 
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
+
 @Configuration
 public class StartupConfig {
+    private static final Logger logger = LoggerFactory.getLogger(StartupConfig.class);
 
     @Bean
     CommandLineRunner initRoles(RoleRepository roleRepository) {
@@ -48,7 +52,7 @@ public class StartupConfig {
                 }
             }
 
-            System.out.println("✅ Branches berhasil diinisialisasi!");
+            logger.info("✅ Branches berhasil diinisialisasi!");
         };
     }
 
@@ -73,7 +77,6 @@ public class StartupConfig {
         List<Map<String, String>> featureRoles = List.of(
                 Map.of("name", "BRANCHES_ACCESS", "role", "SUPER_ADMIN"),
                 Map.of("name", "CUSTOMER_ACCESS", "role", "SUPER_ADMIN"),
-                Map.of("name", "CUSTOMER_PROFILE", "role", "SUPER_ADMIN"),
                 Map.of("name", "FEATURES_ACCESS", "role", "SUPER_ADMIN"),
                 Map.of("name", "EMPLOYEE_ACCESS", "role", "SUPER_ADMIN"),
                 Map.of("name", "PEGAWAI_PROFILE", "role", "SUPER_ADMIN"),
@@ -81,10 +84,18 @@ public class StartupConfig {
                 Map.of("name", "ROLE_FEATURE_ACCESS", "role", "SUPER_ADMIN"),
                 Map.of("name", "USER_ACCESS", "role", "SUPER_ADMIN"),
                 Map.of("name", "PLAFOND_ACCESS", "role", "SUPER_ADMIN"),
+                Map.of("name", "LOAN_STATUS", "role", "SUPER_ADMIN"),
                 Map.of("name", "CREATE_LOAN_REQUEST", "role", "CUSTOMER"),
                 Map.of("name", "APPROVAL_MARKETING", "role", "MARKETING"),
                 Map.of("name", "APPROVAL_BM", "role", "BRANCH_MANAGER"),
-                Map.of("name", "DISBURSE", "role", "BACK_OFFICE")
+                Map.of("name", "DISBURSE", "role", "BACK_OFFICE"),
+                Map.of("name", "GET_CUSTOMER_PROFILE", "role", "SUPER_ADMIN"),
+                Map.of("name", "GET_CUSTOMER_PROFILE", "role", "CUSTOMER"),
+                Map.of("name", "UPDATE_CUSTOMER_PROFILE", "role", "SUPER_ADMIN"),
+                Map.of("name", "UPDATE_CUSTOMER_PROFILE", "role", "CUSTOMER"),
+                Map.of("name", "UPDATE_PEGAWAI_PROFILE", "role", "SUPER_ADMIN"),
+                Map.of("name", "UPDATE_PEGAWAI_PROFILE", "role", "MARKETING"),
+                Map.of("name", "UPDATE_PEGAWAI_PROFILE", "role", "BRANCH_MANAGER")
         );
 
         for (Map<String, String> featureRole : featureRoles) {
@@ -106,7 +117,7 @@ public class StartupConfig {
             }
         }
 
-        System.out.println("✅ Semua fitur berhasil diinisialisasi dan diberikan ke peran yang sesuai!");
+        logger.info("✅ Semua fitur berhasil diinisialisasi dan diberikan ke peran yang sesuai!");
     }
 
 
@@ -117,7 +128,7 @@ public class StartupConfig {
             Role role = roleOpt.get();
             RoleFeature roleFeature = RoleFeature.builder().role(role).feature(feature).build();
             roleFeatureRepository.save(roleFeature);
-            System.out.println("✅ Fitur " + feature.getName() + " diberikan ke role " + roleName);
+            logger.info("✅ Fitur " + feature.getName() + " diberikan ke role " + roleName);
         }
     }
 
@@ -136,6 +147,7 @@ public class StartupConfig {
                         .password(passwordEncoder.encode("superadmin123"))
                         .role(superAdminRole)
                         .userType(UserType.PEGAWAI)
+                        .isFirstLogin(false)
                         .build();
 
                 Branch pusatBranch = branchRepository.findByName("Pusat")
@@ -151,9 +163,9 @@ public class StartupConfig {
                 userRepository.save(superAdmin);
                 pegawaiDetailsRepository.save(details);
 
-                System.out.println("✅ Super Admin berhasil dibuat!");
+                logger.info("✅ Super Admin berhasil dibuat!");
             } else {
-                System.out.println("⚠️ Super Admin sudah ada, tidak perlu membuat ulang.");
+                logger.warn("⚠️ Super Admin sudah ada, tidak perlu membuat ulang.");
             }
         };
     }
@@ -188,8 +200,6 @@ public class StartupConfig {
         };
     }
 
-
-
     private void createTestUser(String email, String name, String roleName, String nip, String branchName,
                                 UserRepository userRepository, PegawaiDetailsRepository pegawaiDetailsRepository,
                                 RoleRepository roleRepository, PasswordEncoder passwordEncoder, BranchRepository branchRepository) {
@@ -200,12 +210,12 @@ public class StartupConfig {
             User user = User.builder()
                     .name(name)
                     .email(email)
-                    .password(passwordEncoder.encode("test1234"))
+                    .password(passwordEncoder.encode("test1234")) // 🔹 Password awal
                     .role(role)
                     .userType(UserType.PEGAWAI)
+                    .isFirstLogin(true) // 🔹 Set flag agar pegawai wajib ganti password saat login pertama
                     .build();
 
-            // 🔹 Cek apakah branch sudah ada, kalau belum buat baru
             Branch assignedBranch = branchRepository.findByName(branchName)
                     .orElseGet(() -> branchRepository.save(new Branch(null, branchName, "Alamat " + branchName, -6.2088, 106.8456, null)));
 
@@ -213,17 +223,19 @@ public class StartupConfig {
                     .nip(nip)
                     .statusPegawai(StatusPegawai.ACTIVE)
                     .user(user)
-                    .branch(assignedBranch) // ⬅️ Branch sekarang bisa berbeda
+                    .branch(assignedBranch)
                     .build();
 
             userRepository.save(user);
             pegawaiDetailsRepository.save(details);
 
-            System.out.println("✅ " + roleName + " berhasil dibuat di cabang " + branchName + " dengan email " + email);
+            logger.info("✅ {} berhasil dibuat di cabang {} dengan email {}", roleName, branchName, email);
         } else {
-            System.out.println("⚠️ " + roleName + " dengan email " + email + " sudah ada, tidak perlu membuat ulang.");
+            logger.warn("⚠️ {} dengan email {} sudah ada, tidak perlu membuat ulang.", roleName, email);
         }
     }
+
+
 
     @Bean
     CommandLineRunner initPlafonds(PlafondRepository plafondRepository) {
@@ -243,7 +255,7 @@ public class StartupConfig {
                 }
             }
 
-            System.out.println("✅ Semua data Plafond berhasil diinisialisasi!");
+            logger.info("✅ Semua data Plafond berhasil diinisialisasi!");
         };
     }
 

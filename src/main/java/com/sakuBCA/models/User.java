@@ -31,13 +31,16 @@ public class User {
     private String name;
     private String password;
 
+    @Column(name = "is_first_login", nullable = false)
+    private boolean isFirstLogin = true; // Default true untuk pegawai baru
+
     @ManyToOne
     @JsonIgnore
     @JoinColumn(name = "role_id", nullable = false)
     private Role role;
 
     @JsonManagedReference
-    @OneToOne(mappedBy = "user", cascade = CascadeType.ALL)
+    @OneToOne(mappedBy = "user", cascade = CascadeType.ALL, fetch = FetchType.EAGER)
     private PegawaiDetails pegawaiDetails;
 
     @JsonManagedReference

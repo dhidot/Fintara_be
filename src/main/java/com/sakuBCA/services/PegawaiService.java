@@ -1,7 +1,9 @@
 package com.sakuBCA.services;
 
-import com.sakuBCA.dtos.superAdminDTO.PegawaiDetailsDTO;
-import com.sakuBCA.dtos.superAdminDTO.UpdatePegawaiRequestDTO;
+import com.sakuBCA.dtos.pegawaiDTO.PegawaiDetailsDTO;
+import com.sakuBCA.dtos.pegawaiDTO.RegisterPegawaiRequestDTO;
+import com.sakuBCA.dtos.pegawaiDTO.RegisterPegawaiResponseDTO;
+import com.sakuBCA.dtos.pegawaiDTO.UpdatePegawaiRequestDTO;
 import com.sakuBCA.dtos.superAdminDTO.UserWithPegawaiResponseDTO;
 import com.sakuBCA.enums.StatusPegawai;
 import com.sakuBCA.enums.UserType;
@@ -12,9 +14,12 @@ import com.sakuBCA.models.Role;
 import com.sakuBCA.models.User;
 import com.sakuBCA.repositories.*;
 import com.sakuBCA.config.security.JwtUtils;
+import jakarta.persistence.EntityManager;
+import jakarta.persistence.PersistenceContext;
 import jakarta.transaction.Transactional;
 import lombok.RequiredArgsConstructor;
 import org.apache.commons.lang3.RandomStringUtils;
+import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.HttpStatus;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Service;
@@ -26,51 +31,54 @@ import java.util.stream.Collectors;
 @Service
 @RequiredArgsConstructor
 public class PegawaiService {
-    private final PasswordEncoder passwordEncoder;
-    private final PegawaiRepository pegawaiRepository;
-    private final PegawaiDetailsRepository pegawaiDetailsRepository;
-    private final BranchService branchService;
-    private final RoleService roleService;
-    private final UserService userService;
-    private final EmailService emailService;
-    private final JwtUtils jwtUtils;
-    
+    @Autowired
+    private PasswordEncoder passwordEncoder;
+    @Autowired
+    private PegawaiRepository pegawaiRepository;
+    @Autowired
+    private BranchService branchService;
+    @Autowired
+    private RoleService roleService;
+    @Autowired
+    private UserService userService;
+    @Autowired
+    private EmailService emailService;
+    @Autowired
+    private JwtUtils jwtUtils;
+    @PersistenceContext
+    private EntityManager entityManager;
 
     @Transactional
-    public User registerPegawai(String name, String email, String role,
-                                String nip, UUID branchId, StatusPegawai statusPegawai) {
-        // 🔹 Cek apakah ada branch dengan ID yang diberikan
-        Branch existingBranch = branchService.findBranchById(branchId);
-
-        // 🔹 Cek apakah role pegawai valid di database
-        Role pegawaiRole = roleService.getRoleByName(role);
-
-        // 🔹 Autogenerate password sementara (8 karakter alfanumerik)
+    public RegisterPegawaiResponseDTO registerPegawai(RegisterPegawaiRequestDTO request) {
+        Branch existingBranch = branchService.findBranchByName(request.getBranchName());
+        Role pegawaiRole = roleService.getRoleByName(request.getRole());
         String generatedPassword = RandomStringUtils.randomAlphanumeric(8);
 
-        // 🔹 Buat akun pegawai baru
         User pegawai = User.builder()
-                .name(name)
-                .email(email)
-                .password(passwordEncoder.encode(generatedPassword)) // Simpan password terenkripsi
+                .name(request.getName())
+                .email(request.getEmail())
+                .password(passwordEncoder.encode(generatedPassword))
                 .role(pegawaiRole)
                 .userType(UserType.PEGAWAI)
+                .isFirstLogin(true)  // ✅ Set isFirstLogin saat registrasi
                 .build();
         userService.saveUser(pegawai);
 
-        // 🔹 Buat PegawaiDetails baru
         PegawaiDetails pegawaiDetails = PegawaiDetails.builder()
-                .nip(nip)
+                .nip(request.getNip())
                 .branch(existingBranch)
-                .statusPegawai(StatusPegawai.valueOf(statusPegawai.name())) // Simpan status pegawai sebagai String
+                .statusPegawai(request.getStatusPegawai())
                 .user(pegawai)
                 .build();
         pegawaiRepository.save(pegawaiDetails);
 
-        // 🔹 Kirim password ke email pegawai
-        emailService.sendInitialPasswordEmail(email, generatedPassword);
+        emailService.sendInitialPasswordEmail(request.getEmail(), generatedPassword);
 
-        return pegawai;
+        // 🔹 Return response minimal
+        return new RegisterPegawaiResponseDTO(
+                pegawai.getEmail(),
+                "Akun pegawai berhasil dibuat. Silakan cek email untuk password. dan segera login untuk mengubah password."
+        );
     }
 
     public List<UserWithPegawaiResponseDTO> getAllPegawai() {
@@ -110,7 +118,6 @@ public class PegawaiService {
         }
     }
 
-
     public UserWithPegawaiResponseDTO getPegawaiById(UUID userId) {
         User user = userService.getPegawaiUserById(userId);
 
@@ -128,34 +135,59 @@ public class PegawaiService {
     }
 
     //Edit Data Pegawai
-    public UserWithPegawaiResponseDTO updatePegawai(UUID userId, UpdatePegawaiRequestDTO request) {
-        User user = userService.getPegawaiUserById(userId);
+    @Transactional
+    public UserWithPegawaiResponseDTO updatePegawai(UUID userId, UpdatePegawaiRequestDTO request, String token) {
+        // 🔍 Ambil email user yang sedang login dari token JWT
+        String extractToken = jwtUtils.extractToken(token);
+        String email = jwtUtils.getUsername(extractToken);
 
-        // Update data User
-        user.setName(request.getName());
-        user.setEmail(request.getEmail());
+        // 🔍 Cari user yang sedang login
+        User loggedInUser = userService.findByEmail(email);
 
-        // Update data PegawaiDetails jika ada
-        if (user.getPegawaiDetails() != null) {
-            PegawaiDetails pegawai = user.getPegawaiDetails();
+        // 🔍 Cari user yang ingin diperbarui
+        User targetUser = userService.getPegawaiUserById(userId);
+
+        // ✅ Validasi: Hanya user itu sendiri atau super admin yang bisa mengupdate
+        if (!loggedInUser.getId().equals(targetUser.getId()) &&
+                !loggedInUser.getRole().getName().equalsIgnoreCase("SUPER_ADMIN")) {
+            throw new CustomException("Anda tidak memiliki izin untuk mengedit data ini", HttpStatus.FORBIDDEN);
+        }
+
+        // 🔄 Update data User
+        targetUser.setName(request.getName());
+        targetUser.setEmail(request.getEmail());
+
+        // 🔄 Update data PegawaiDetails jika ada
+        if (targetUser.getPegawaiDetails() != null) {
+            PegawaiDetails pegawai = targetUser.getPegawaiDetails();
             pegawai.setNip(request.getNip());
-//            pegawai.setBranchId(Integer.valueOf(request.getBranchId()));
+
+            // 🔍 Cari Branch berdasarkan nama
+            Branch branch = branchService.findBranchByName(request.getBranch());
+            pegawai.setBranch(branch);
+
             pegawai.setStatusPegawai(StatusPegawai.valueOf(request.getStatusPegawai()));
             pegawaiRepository.save(pegawai);
         }
 
-        userService.saveUser(user); // Simpan perubahan
+        // Simpan perubahan user
+        userService.saveUser(targetUser);
 
-        // Konversi ke response DTO
+        // 🔄 Konversi ke response DTO tanpa constructor
         UserWithPegawaiResponseDTO response = new UserWithPegawaiResponseDTO();
-        response.setId(user.getId());
-        response.setName(user.getName());
-        response.setEmail(user.getEmail());
-        response.setRole(user.getRole().getName());
-        response.setPegawaiDetails(new PegawaiDetailsDTO(user.getPegawaiDetails()));
+        response.setId(targetUser.getId());
+        response.setName(targetUser.getName());
+        response.setEmail(targetUser.getEmail());
+        response.setRole(targetUser.getRole().getName());
+
+        if (targetUser.getPegawaiDetails() != null) {
+            response.setPegawaiDetails(new PegawaiDetailsDTO(targetUser.getPegawaiDetails()));
+        }
 
         return response;
     }
+
+
 
     public void deletePegawai(UUID id) {
         User user = userService.getPegawaiUserById(id);

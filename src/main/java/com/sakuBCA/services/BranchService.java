@@ -26,7 +26,7 @@ public class BranchService {
 
     private final BranchRepository branchRepository;
 
-    // 🔹 CREATE Branch
+    // Create Branch
     public ResponseEntity<Branch> createBranch(@RequestBody Branch branch) {
         if (branchRepository.existsByName(branch.getName())) {
             throw new CustomException("Branch sudah ada!", HttpStatus.BAD_REQUEST);
@@ -35,7 +35,7 @@ public class BranchService {
         return ResponseEntity.ok(branchRepository.save(branch));
     }
 
-    // READ Semua Branch
+    // Get All Branch
     public Map<UUID, String> getAllBranches() {
         try {
             List<Branch> branches = branchRepository.findAll();
@@ -52,7 +52,7 @@ public class BranchService {
         }
     }
 
-    // 🔹 READ Branch by ID
+    // Get Branch by ID
     public BranchDTO getBranchById(UUID id) {
         Branch branch = branchRepository.findById(id)
                 .orElseThrow(() -> new CustomException("Branch dengan ID " + id + " tidak ditemukan", HttpStatus.NOT_FOUND));
@@ -65,13 +65,23 @@ public class BranchService {
         return branchDTO;
     }
 
-    //find branch by id
+    // find branch by id
     public Branch findBranchById(UUID id) {
         return branchRepository.findById(id)
                 .orElseThrow(() -> new CustomException("Branch dengan ID ini tidak ditemukan", HttpStatus.NOT_FOUND));
     }
 
-    // 🔹 UPDATE Branch
+    // find branch by name
+    public Branch findBranchByName(String branchName) {
+        return branchRepository.findByName(branchName)
+                .orElseThrow(() -> new CustomException("Branch tidak ditemukan", HttpStatus.NOT_FOUND));
+    }
+    // Nearest Branch to customer
+    public UUID findNearestBranch(double latitude, double longitude) {
+        return branchRepository.findNearestBranch(latitude, longitude);
+    }
+
+    // Update Branch
     private BranchDTO mapToDTO(Branch branch) {
         BranchDTO dto = new BranchDTO();
         dto.setName(branch.getName());
@@ -101,8 +111,7 @@ public class BranchService {
         return mapToDTO(branch);
     }
 
-
-    // 🔹 DELETE Branch
+    // Delete Branch
     public void deleteBranch(UUID id) {
         Branch branch = branchRepository.findById(id)
                 .orElseThrow(() -> new CustomException("Branch dengan ID ini tidak ditemukan", HttpStatus.NOT_FOUND));
@@ -110,14 +119,4 @@ public class BranchService {
         branchRepository.delete(branch);
     }
 
-    // Nearest Branch to customer
-    public UUID findNearestBranch(double latitude, double longitude) {
-        return branchRepository.findNearestBranch(latitude, longitude);
-    }
-
-    // Find By ID
-    public Branch findById(UUID id) {
-        return branchRepository.findById(id)
-                .orElseThrow(() -> new CustomException("Branch dengan ID ini tidak ditemukan", HttpStatus.NOT_FOUND));
-    }
 }

@@ -1,6 +1,6 @@
 package com.sakuBCA.controllers;
 
-import com.sakuBCA.dtos.superAdminDTO.PegawaiDetailsRequestDTO;
+import com.sakuBCA.dtos.pegawaiDTO.PegawaiDetailsRequestDTO;
 import com.sakuBCA.services.PegawaiDetailsService;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.ResponseEntity;
@@ -15,7 +15,7 @@ public class PegawaiDetailsController {
     @Autowired
     private PegawaiDetailsService pegawaiDetailsService;
 
-    @Secured("FEATURE_PEGAWAI_PROFILE")
+    @Secured("FEATURE_UPDATE_PEGAWAI_PROFILE")
     @PostMapping("/update/{idPegawai}")
     public ResponseEntity<String> updatePegawaiDetails(
             @RequestHeader("Authorization") String token,

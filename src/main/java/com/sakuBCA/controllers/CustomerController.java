@@ -1,7 +1,7 @@
 package com.sakuBCA.controllers;
 
 
-import com.sakuBCA.dtos.superAdminDTO.UserWithCustomerResponseDTO;
+import com.sakuBCA.dtos.customerDTO.UserWithCustomerResponseDTO;
 import com.sakuBCA.services.CustomerService;
 import lombok.RequiredArgsConstructor;
 import org.springframework.http.ResponseEntity;

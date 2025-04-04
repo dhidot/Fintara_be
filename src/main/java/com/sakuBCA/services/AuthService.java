@@ -2,9 +2,10 @@ package com.sakuBCA.services;
 
 import com.sakuBCA.config.security.JwtResponse;
 import com.sakuBCA.config.security.UserDetailsImpl;
+import com.sakuBCA.dtos.authDTO.ChangePasswordRequest;
 import com.sakuBCA.dtos.authDTO.LoginRequest;
 import com.sakuBCA.dtos.customerDTO.RegisterCustomerRequestDTO;
-import com.sakuBCA.dtos.superAdminDTO.CustomerResponseDTO;
+import com.sakuBCA.dtos.customerDTO.CustomerResponseDTO;
 import com.sakuBCA.enums.UserType;
 import com.sakuBCA.config.exceptions.CustomException;
 import com.sakuBCA.models.*;
@@ -21,12 +22,11 @@ import org.springframework.security.core.GrantedAuthority;
 import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Service;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 import java.time.LocalDateTime;
-import java.util.Date;
-import java.util.HashMap;
-import java.util.List;
-import java.util.Map;
+import java.util.*;
 
 @Service
 @RequiredArgsConstructor
@@ -57,44 +57,41 @@ public class AuthService {
     public Map<String, Object> authenticate(LoginRequest loginRequestDto) {
         String email = loginRequestDto.getEmail();
 
-        // Cek apakah user sudah login
         if (redisService.isUserLoggedIn(email)) {
             throw new RuntimeException("User sudah login!");
         }
 
         Authentication authentication = authenticationManager.authenticate(
-                new UsernamePasswordAuthenticationToken(
-                        email,
-                        loginRequestDto.getPassword()
-                ));
+                new UsernamePasswordAuthenticationToken(email, loginRequestDto.getPassword())
+        );
 
         SecurityContextHolder.getContext().setAuthentication(authentication);
         String jwt = jwtUtils.generateToken(authentication);
         UserDetailsImpl userDetails = (UserDetailsImpl) authentication.getPrincipal();
-        String role = String.valueOf(userDetails.getUser().getRole().getName());
-        List<String> features = userDetails.getAuthorities().stream()
-                .map(GrantedAuthority::getAuthority)
-                .toList();
+        User user = userDetails.getUser();
 
-        // Simpan session login di Redis
-        redisService.saveSession(email);
+        // ✅ Cek apakah user adalah Pegawai dan first login
+        boolean isFirstLogin = user.isFirstLogin() && user.getUserType() == UserType.PEGAWAI;
 
-        JwtResponse jwtResponse = new JwtResponse(jwt, userDetails.getUsername(), role, features);
+        // ✅ Simpan status first login hanya jika user adalah pegawai
+        redisService.setFirstLoginStatus(user.getId().toString(), isFirstLogin);
+
+        JwtResponse jwtResponse = new JwtResponse(jwt, user.getEmail(), user.getRole().getName(), userDetails.getFeatures());
         Map<String, Object> response = new HashMap<>();
         response.put("status", "success");
 
         Map<String, Object> data = new HashMap<>();
         data.put("jwt", jwtResponse);
+        data.put("isFirstLogin", isFirstLogin);  // ✅ Kirim ke frontend
         response.put("data", data);
 
         return response;
     }
 
 
-
     @Transactional
     public CustomerResponseDTO registerCustomer(RegisterCustomerRequestDTO request) {
-        // ⬇️ Cek apakah email sudah digunakan
+        // Cek apakah email sudah pernah didaftarkan
         if (userRepository.existsByEmail(request.getEmail())) {
             throw new CustomException("Email sudah terdaftar!", HttpStatus.BAD_REQUEST);
         }
@@ -131,25 +128,44 @@ public class AuthService {
 
     @Transactional
     public void logout(String token) {
-        token = token.replace("Bearer ", ""); // Hapus prefix "Bearer "
+        Logger logger = LoggerFactory.getLogger(AuthService.class);
+
+        String extractedToken = jwtUtils.extractToken(token); // Hapus prefix "Bearer "
 
         // Cek apakah token sudah di-blacklist
-        if (tokenService.isTokenBlacklisted(token)) {
+        if (tokenService.isTokenBlacklisted(extractedToken)) {
             throw new CustomException("Token sudah tidak valid", HttpStatus.BAD_REQUEST);
         }
 
         // Ambil email dari token JWT
-        String email = jwtUtils.getUsername(token);
+        String email = jwtUtils.getUsername(extractedToken);
 
         // Ambil expiry date dari token JWT
-        Date expiryDate = jwtUtils.getExpirationDateFromToken(token);
+        Date expiryDate = jwtUtils.getExpirationDateFromToken(extractedToken);
 
         // Tambahkan token ke blacklist dengan expiry date yang sesuai
-        tokenService.blacklistToken(token, LocalDateTime.now().plusSeconds(expiryDate.getTime() / 1000));
+        tokenService.blacklistToken(extractedToken, LocalDateTime.now().plusSeconds(expiryDate.getTime() / 1000));
 
         // Hapus sesi login dari Redis agar user bisa login lagi
         redisService.removeSession(email);
 
-        System.out.println("Berhasil Logout");
+        logger.info("User dengan email {} berhasil logout", email);
     }
+
+    @Transactional
+    public void changePassword(ChangePasswordRequest request) {
+        User user = userService.findByEmail(request.getEmail());
+
+        if (!passwordEncoder.matches(request.getOldPassword(), user.getPassword())) {
+            throw new CustomException("Password lama tidak cocok", HttpStatus.BAD_REQUEST);
+        }
+
+        user.setPassword(passwordEncoder.encode(request.getNewPassword()));
+        user.setFirstLogin(false);  // ✅ Setelah ganti password, set isFirstLogin = false
+        userRepository.save(user);
+
+        // ✅ Hapus status first login di Redis
+        redisService.removeFirstLoginStatus(user.getId().toString());
+    }
+
 }

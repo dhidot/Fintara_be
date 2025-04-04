@@ -1,7 +1,8 @@
 package com.sakuBCA.controllers;
 
-import com.sakuBCA.dtos.superAdminDTO.RegisterPegawaiRequestDTO;
-import com.sakuBCA.dtos.superAdminDTO.UpdatePegawaiRequestDTO;
+import com.sakuBCA.dtos.pegawaiDTO.RegisterPegawaiRequestDTO;
+import com.sakuBCA.dtos.pegawaiDTO.RegisterPegawaiResponseDTO;
+import com.sakuBCA.dtos.pegawaiDTO.UpdatePegawaiRequestDTO;
 import com.sakuBCA.dtos.superAdminDTO.UserWithPegawaiResponseDTO;
 import com.sakuBCA.models.User;
 import com.sakuBCA.services.PegawaiService;
@@ -24,21 +25,11 @@ public class PegawaiController {
 
     @Secured("FEATURE_EMPLOYEE_ACCESS")
     @PostMapping("/register")
-    public ResponseEntity<User> registerPegawai(@RequestHeader("Authorization") String token, @Valid @RequestBody RegisterPegawaiRequestDTO request) {
-        Logger logger = LoggerFactory.getLogger(PegawaiController.class);
-
-        // Log token yang diterima
-        logger.info("Received token: {}", token);
-        User pegawai = pegawaiService.registerPegawai(
-                request.getName(),
-                request.getEmail(),
-                request.getRole(),
-                request.getNip(),
-                request.getBranchId(),
-                request.getStatusPegawai()
-        );
-
-        return ResponseEntity.ok(pegawai);
+    public ResponseEntity<RegisterPegawaiResponseDTO> registerPegawai(
+            @RequestHeader("Authorization") String token,
+            @Valid @RequestBody RegisterPegawaiRequestDTO request) {
+        RegisterPegawaiResponseDTO response = pegawaiService.registerPegawai(request);
+        return ResponseEntity.ok(response);
     }
 
     @Secured("FEATURE_EMPLOYEE_ACCESS")
@@ -53,17 +44,6 @@ public class PegawaiController {
     public ResponseEntity<UserWithPegawaiResponseDTO> getPegawaiById(@PathVariable UUID id) {
         UserWithPegawaiResponseDTO pegawai = pegawaiService.getPegawaiById(id);
         return ResponseEntity.ok(pegawai);
-    }
-
-    @Secured("FEATURE_EMPLOYEE_ACCESS")
-    @PutMapping("/{id}")
-    public ResponseEntity<UserWithPegawaiResponseDTO> updatePegawai(
-            @PathVariable UUID id,
-            @RequestBody UpdatePegawaiRequestDTO request,
-            @RequestHeader("Authorization") String token) {
-
-        UserWithPegawaiResponseDTO updatedPegawai = pegawaiService.updatePegawai(id, request);
-        return ResponseEntity.ok(updatedPegawai);
     }
 
     @Secured("FEATURE_EMPLOYEE_ACCESS")

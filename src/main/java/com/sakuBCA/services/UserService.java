@@ -1,8 +1,8 @@
 package com.sakuBCA.services;
 
 import com.sakuBCA.dtos.authDTO.ResetPasswordRequest;
-import com.sakuBCA.dtos.superAdminDTO.CustomerDetailsDTO;
-import com.sakuBCA.dtos.superAdminDTO.PegawaiDetailsDTO;
+import com.sakuBCA.dtos.customerDTO.CustomerDetailsDTO;
+import com.sakuBCA.dtos.pegawaiDTO.PegawaiDetailsDTO;
 import com.sakuBCA.dtos.superAdminDTO.UserResponseDTO;
 import com.sakuBCA.config.exceptions.CustomException;
 import com.sakuBCA.models.PasswordResetToken;
@@ -49,6 +49,12 @@ public class UserService implements UserDetailsService {
     public User findById(UUID id) {
         return userRepository.findById(id)
                 .orElseThrow(() -> new CustomException("User tidak ditemukan!", HttpStatus.NOT_FOUND));
+    }
+
+    // Find user by Email
+    public User findByEmail(String email) {
+        return userRepository.findByEmail(email)
+                .orElseThrow(() -> new CustomException("User dengan email " + email + " tidak ditemukan", HttpStatus.NOT_FOUND));
     }
 
     // save
@@ -252,6 +258,11 @@ public class UserService implements UserDetailsService {
             logger.error("Error saat mereset password: {}", e.getMessage(), e);
             throw new CustomException("Gagal mereset password", HttpStatus.INTERNAL_SERVER_ERROR);
         }
+    }
+
+    public User getUserWithPegawaiDetails(UUID userId) {
+        return userRepository.findUserWithPegawaiDetailsById(userId)
+                .orElseThrow(() -> new CustomException("User not found", HttpStatus.NOT_FOUND));
     }
 }
 

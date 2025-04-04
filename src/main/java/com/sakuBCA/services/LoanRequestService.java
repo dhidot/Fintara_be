@@ -84,7 +84,7 @@ public class LoanRequestService {
                 .customer(customerDetails)
                 .amount(amount)
                 .tenor(tenor)
-                .branch(branchService.findById(branchId))
+                .branch(branchService.findBranchById(branchId))
                 .marketing(assignedMarketing)
                 .requestDate(LocalDateTime.now())
                 .status(pendingStatus)
@@ -252,7 +252,6 @@ public class LoanRequestService {
                 .map(this::convertToDTO)
                 .collect(Collectors.toList());
     }
-
 
     @Transactional
     public void disburseLoanRequest(UUID loanRequestId, UUID backOfficeId) {

@@ -2,7 +2,8 @@ package com.sakuBCA.services;
 
 import com.sakuBCA.config.exceptions.CustomException;
 import com.sakuBCA.config.security.JwtUtils;
-import com.sakuBCA.dtos.customerDTO.UpdateCustomerDetailsDTO;
+import com.sakuBCA.dtos.customerDTO.CustomerProfileResponseDTO;
+import com.sakuBCA.dtos.customerDTO.CustomerProfileUpdateDTO;
 import com.sakuBCA.models.CustomerDetails;
 import com.sakuBCA.models.User;
 import com.sakuBCA.repositories.CustomerDetailsRepository;
@@ -10,6 +11,8 @@ import jakarta.transaction.Transactional;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.HttpStatus;
 import org.springframework.stereotype.Service;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 import java.math.BigDecimal;
 import java.time.LocalDate;
@@ -28,6 +31,7 @@ public class CustomerDetailsService {
     @Autowired
     private JwtUtils jwtUtils;
 
+    private static final Logger logger = LoggerFactory.getLogger(CustomerDetailsService.class);
 
     // find customer details by user
     public CustomerDetails getCustomerDetailsByUser(User user) {
@@ -41,6 +45,47 @@ public class CustomerDetailsService {
                 .orElseThrow(() -> new CustomException("Customer details not found", HttpStatus.NOT_FOUND));
     }
 
+    @Transactional
+    public CustomerProfileResponseDTO getCustomerProfile(String token, UUID id) {
+        // Ambil email dari token
+        String extractedToken = jwtUtils.extractToken(token);
+        String email = jwtUtils.getUsername(extractedToken);
+
+        // Cari user dari email token
+        User requester = userService.findByEmail(email);
+
+        // Cari user yang ingin dilihat profilnya
+        User targetUser = userService.getPegawaiUserById(id); // atau getUserById(id)
+
+        // Cek apakah yang akses adalah super admin atau dirinya sendiri
+        boolean isSuperAdmin = requester.getRole().getName().equalsIgnoreCase("SUPER_ADMIN");
+        boolean isOwner = requester.getId().equals(targetUser.getId());
+
+        if (!isSuperAdmin && !isOwner) {
+            throw new CustomException("Anda tidak memiliki akses untuk melihat data ini", HttpStatus.FORBIDDEN);
+        }
+
+        // Ambil data customerDetails
+        CustomerDetails customerDetails = customerDetailsRepository.findByUser(targetUser)
+                .orElseThrow(() -> new CustomException("Customer tidak ditemukan", HttpStatus.NOT_FOUND));
+
+        // Build response DTO secara manual
+        CustomerProfileResponseDTO response = new CustomerProfileResponseDTO();
+        response.setName(targetUser.getName());
+        response.setEmail(targetUser.getEmail());
+        response.setTtl(customerDetails.getTtl());
+        response.setAlamat(customerDetails.getAlamat());
+        response.setNoTelp(customerDetails.getNoTelp());
+        response.setNik(customerDetails.getNik());
+        response.setNamaIbuKandung(customerDetails.getNamaIbuKandung());
+        response.setPekerjaan(customerDetails.getPekerjaan());
+        response.setGaji(customerDetails.getGaji());
+        response.setNoRek(customerDetails.getNoRek());
+        response.setStatusRumah(customerDetails.getStatusRumah());
+
+        return response;
+    }
+
     // Save customer details
     @Transactional
     public CustomerDetails saveCustomerDetails(CustomerDetails customerDetails) {
@@ -48,7 +93,7 @@ public class CustomerDetailsService {
     }
 
     // Metode untuk mengisi data dari DTO ke entitas
-    private void updateCustomerDetailsFromDTO(CustomerDetails customerDetails, UpdateCustomerDetailsDTO dto) {
+    private void updateCustomerDetailsFromDTO(CustomerDetails customerDetails, CustomerProfileUpdateDTO dto) {
         customerDetails.setTtl(LocalDate.parse(dto.getTtl()));
         customerDetails.setAlamat(dto.getAlamat());
         customerDetails.setNoTelp(dto.getNoTelp());
@@ -61,29 +106,45 @@ public class CustomerDetailsService {
     }
 
     @Transactional
-    public String updateCustomerDetails(String token, UpdateCustomerDetailsDTO dto) {
-        // Ambil email dari token
-        String email = jwtUtils.getUsername(token.replace("Bearer ", ""));
-        User user = userService.getPegawaiByEmail(email);
+    public String updateCustomerDetails(UUID id, String token, CustomerProfileUpdateDTO dto) {
+        logger.info("Memulai proses update data customer untuk ID: {}", id);
+        String extractedToken = jwtUtils.extractToken(token);
+        String email = jwtUtils.getUsername(extractedToken);
 
-        // Pastikan hanya pengguna yang login yang bisa mengubah datanya
-        if (user == null) {
-            throw new CustomException("User tidak ditemukan atau tidak memiliki akses", HttpStatus.FORBIDDEN);
+        logger.debug("Email dari token JWT: {}", email);
+
+        User loggedInUser = userService.findByEmail(email);
+        if (loggedInUser == null) {
+            logger.warn("User dengan email {} tidak ditemukan", email);
+            throw new CustomException("User tidak ditemukan", HttpStatus.UNAUTHORIZED);
         }
 
-        // Cek apakah user sudah punya detail customer
-        CustomerDetails customerDetails = getCustomerDetailsByUser(user);
+        User targetUser = userService.findById(id);
+        if (targetUser == null) {
+            logger.warn("Customer dengan ID {} tidak ditemukan", id);
+            throw new CustomException("Data customer tidak ditemukan", HttpStatus.NOT_FOUND);
+        }
 
+        boolean isSameUser = loggedInUser.getId().equals(targetUser.getId());
+        boolean isSuperAdmin = loggedInUser.getRole().getName().equalsIgnoreCase("SUPER_ADMIN");
+
+        if (!isSameUser && !isSuperAdmin) {
+            logger.warn("User {} mencoba mengakses data milik {} tanpa izin", loggedInUser.getId(), targetUser.getId());
+            throw new CustomException("Anda tidak memiliki izin untuk mengubah data ini", HttpStatus.FORBIDDEN);
+        }
+
+        CustomerDetails customerDetails = getCustomerDetailsByUser(targetUser);
         if (customerDetails == null) {
             customerDetails = new CustomerDetails();
-            customerDetails.setUser(user);
+            customerDetails.setUser(targetUser);
+            logger.debug("CustomerDetails baru dibuat untuk user ID: {}", targetUser.getId());
         }
 
-        // Menggunakan DTO untuk mengisi data
         updateCustomerDetailsFromDTO(customerDetails, dto);
-
-        // Simpan ke database
         saveCustomerDetails(customerDetails);
+
+        logger.info("Data customer berhasil diupdate untuk ID: {}", id);
         return "Customer details updated successfully!";
     }
+
 }

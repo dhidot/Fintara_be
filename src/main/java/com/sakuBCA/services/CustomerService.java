@@ -1,8 +1,8 @@
 package com.sakuBCA.services;
 
 import com.sakuBCA.config.exceptions.CustomException;
-import com.sakuBCA.dtos.superAdminDTO.CustomerDetailsDTO;
-import com.sakuBCA.dtos.superAdminDTO.UserWithCustomerResponseDTO;
+import com.sakuBCA.dtos.customerDTO.CustomerDetailsDTO;
+import com.sakuBCA.dtos.customerDTO.UserWithCustomerResponseDTO;
 import com.sakuBCA.models.User;
 import lombok.RequiredArgsConstructor;
 import org.springframework.http.HttpStatus;

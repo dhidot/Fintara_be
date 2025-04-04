@@ -1,7 +1,6 @@
-package com.sakuBCA.dtos.superAdminDTO;
+package com.sakuBCA.dtos.customerDTO;
 
 import com.sakuBCA.models.CustomerDetails;
-import com.sakuBCA.models.RoleFeature;
 import com.sakuBCA.models.User;
 import lombok.AllArgsConstructor;
 import lombok.Getter;

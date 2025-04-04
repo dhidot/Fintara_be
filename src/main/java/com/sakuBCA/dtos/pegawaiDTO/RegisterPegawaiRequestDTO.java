@@ -1,4 +1,4 @@
-package com.sakuBCA.dtos.superAdminDTO;
+package com.sakuBCA.dtos.pegawaiDTO;
 
 import jakarta.validation.constraints.NotBlank;
 import jakarta.validation.constraints.NotNull;
@@ -25,7 +25,7 @@ public class RegisterPegawaiRequestDTO {
     @NotBlank(message = "NIP harus diisi")
     private String nip;
     @NotNull(message = "Branch harus diisi")
-    private UUID branchId;
+    private String branchName;
     @NotNull(message = "Status Pegawai harus diisi")
     private StatusPegawai statusPegawai; // Menggunakan Enum
 }

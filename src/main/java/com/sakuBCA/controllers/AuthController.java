@@ -1,10 +1,10 @@
 package com.sakuBCA.controllers;
 
+import com.sakuBCA.dtos.authDTO.ChangePasswordRequest;
 import com.sakuBCA.dtos.authDTO.LoginRequest;
 import com.sakuBCA.dtos.customerDTO.RegisterCustomerRequestDTO;
 import com.sakuBCA.dtos.authDTO.ResetPasswordRequest;
-import com.sakuBCA.dtos.superAdminDTO.CustomerResponseDTO;
-import com.sakuBCA.models.CustomerDetails;
+import com.sakuBCA.dtos.customerDTO.CustomerResponseDTO;
 import com.sakuBCA.models.User;
 import com.sakuBCA.services.AuthService;
 import com.sakuBCA.services.CustomerDetailsService;
@@ -16,6 +16,7 @@ import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 
 import java.util.Collections;
+import java.util.HashMap;
 import java.util.Map;
 
 @RestController
@@ -62,6 +63,12 @@ public class AuthController {
     public ResponseEntity<?> resetPassword(@RequestBody ResetPasswordRequest request) {
         userService.resetPassword(request);
         return ResponseEntity.ok(Collections.singletonMap("message", "Password berhasil diubah"));
+    }
+
+    @PutMapping("/change-password")
+    public ResponseEntity<?> changePassword(@RequestBody ChangePasswordRequest request) {
+        authService.changePassword(request);
+        return ResponseEntity.ok(Collections.singletonMap("message", "Password berhasil diperbarui"));
     }
 }
 

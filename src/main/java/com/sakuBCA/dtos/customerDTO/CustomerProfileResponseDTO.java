@@ -1,18 +1,23 @@
 package com.sakuBCA.dtos.customerDTO;
 
-import lombok.Getter;
-import lombok.Setter;
+import lombok.Data;
 
-@Setter
-@Getter
-public class UpdateCustomerDetailsDTO {
-    private String ttl;
+import java.math.BigDecimal;
+import java.time.LocalDate;
+
+@Data
+public class CustomerProfileResponseDTO {
+    private String name;
+    private String email;
+
+    private LocalDate ttl;
     private String alamat;
     private String noTelp;
     private String nik;
     private String namaIbuKandung;
     private String pekerjaan;
-    private Double gaji;
+    private BigDecimal gaji;
     private String noRek;
     private String statusRumah;
+
 }

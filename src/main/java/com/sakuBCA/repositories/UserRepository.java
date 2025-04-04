@@ -30,6 +30,9 @@ public interface UserRepository extends JpaRepository<User, UUID> {
     @Query("SELECT u FROM User u WHERE u.email = :email")
     Optional<User> findByEmailWithDetails(@Param("email") String email);
 
+    @Query("SELECT u FROM User u LEFT JOIN FETCH u.pegawaiDetails WHERE u.id = :id")
+    Optional<User> findUserWithPegawaiDetailsById(@Param("id") UUID id);
+
     Optional<User> findByEmail(String email);
 
     boolean existsByEmail(String email);

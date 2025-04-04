@@ -1,4 +1,4 @@
-package com.sakuBCA.dtos.superAdminDTO;
+package com.sakuBCA.dtos.customerDTO;
 
 import lombok.Getter;
 import lombok.Setter;

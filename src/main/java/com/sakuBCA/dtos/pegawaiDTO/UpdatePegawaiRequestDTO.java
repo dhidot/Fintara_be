@@ -1,4 +1,4 @@
-package com.sakuBCA.dtos.superAdminDTO;
+package com.sakuBCA.dtos.pegawaiDTO;
 
 import lombok.Data;
 
@@ -7,6 +7,6 @@ public class UpdatePegawaiRequestDTO {
     private String name;
     private String email;
     private String nip;
-    private String branchId;
+    private String branch;
     private String statusPegawai;
 }
