@@ -1,12 +1,10 @@
 package com.sakuBCA.models;
 
-import com.sakuBCA.enums.LoanStatus;
 import jakarta.persistence.*;
 import lombok.*;
 
 import java.math.BigDecimal;
 import java.time.LocalDateTime;
-import java.util.List;
 import java.util.UUID;
 
 @Entity
@@ -15,6 +13,8 @@ import java.util.UUID;
 @NoArgsConstructor
 @AllArgsConstructor
 @Builder
+@Setter
+@Getter
 public class LoanRequest {
     @Id
     @GeneratedValue(strategy = GenerationType.UUID)
@@ -22,11 +22,25 @@ public class LoanRequest {
 
     @ManyToOne
     @JoinColumn(name = "customer_id", nullable = false)
-    private User customer;
+    private CustomerDetails customer;
 
-    private BigDecimal amount;
-    private Integer tenor;
+    @ManyToOne
+    @JoinColumn(name = "branch_id", nullable = false)
+    private Branch branch;
 
-    @Enumerated(EnumType.STRING)
+    @ManyToOne
+    @JoinColumn(name = "status_id", nullable = false)
     private LoanStatus status;
+
+    @ManyToOne
+    @JoinColumn(name = "marketing_id", nullable = false)
+    private User marketing;
+
+    private BigDecimal amount;  // Jumlah pinjaman
+    private Integer tenor;  // Lama cicilan dalam bulan
+
+    private LocalDateTime requestDate;
+    private LocalDateTime approvalMarketingAt;  // Waktu approval oleh Marketing
+    private LocalDateTime approvalBMAt;         // Waktu approval oleh Branch Manager
+    private LocalDateTime disbursedAt;          // Waktu pencairan oleh Back Office
 }

@@ -2,11 +2,8 @@ package com.sakuBCA.services;
 
 import com.sakuBCA.config.exceptions.CustomException;
 import com.sakuBCA.dtos.superAdminDTO.CustomerDetailsDTO;
-import com.sakuBCA.dtos.superAdminDTO.UserWithCustomerResponse;
-import com.sakuBCA.models.CustomerDetails;
+import com.sakuBCA.dtos.superAdminDTO.UserWithCustomerResponseDTO;
 import com.sakuBCA.models.User;
-import com.sakuBCA.repositories.CustomerDetailsRepository;
-import com.sakuBCA.repositories.UserRepository;
 import lombok.RequiredArgsConstructor;
 import org.springframework.http.HttpStatus;
 import org.springframework.stereotype.Service;
@@ -19,7 +16,7 @@ import java.util.stream.Collectors;
 public class CustomerService {
     private final UserService userService;
 
-    public List<UserWithCustomerResponse> getAllCustomer() {
+    public List<UserWithCustomerResponseDTO> getAllCustomer() {
         try {
             List<User> users = userService.getAllCustomers();
 
@@ -28,7 +25,7 @@ public class CustomerService {
             }
 
             return users.stream().map(user -> {
-                UserWithCustomerResponse response = new UserWithCustomerResponse();
+                UserWithCustomerResponseDTO response = new UserWithCustomerResponseDTO();
                 response.setId(user.getId());
                 response.setName(user.getName());
                 response.setEmail(user.getEmail());

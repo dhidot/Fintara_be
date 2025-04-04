@@ -3,7 +3,7 @@ package com.sakuBCA.dtos.superAdminDTO;
 import lombok.Data;
 
 @Data
-public class UpdatePegawaiRequest {
+public class UpdatePegawaiRequestDTO {
     private String name;
     private String email;
     private String nip;

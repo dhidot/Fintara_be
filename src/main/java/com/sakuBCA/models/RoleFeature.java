@@ -28,6 +28,6 @@ public class RoleFeature {
     private Feature feature;
 
     public String getFeatureName() {
-        return feature.getName(); // Pastikan Feature memiliki method getName()
+        return feature != null ? feature.getName() : null;
     }
 }

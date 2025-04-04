@@ -13,6 +13,7 @@ import org.springframework.stereotype.Service;
 
 import java.math.BigDecimal;
 import java.time.LocalDate;
+import java.util.UUID;
 
 @Service
 public class CustomerDetailsService {
@@ -31,6 +32,12 @@ public class CustomerDetailsService {
     // find customer details by user
     public CustomerDetails getCustomerDetailsByUser(User user) {
         return customerDetailsRepository.findByUser(user)
+                .orElseThrow(() -> new CustomException("Customer details not found", HttpStatus.NOT_FOUND));
+    }
+
+    // find customer details by id
+    public CustomerDetails getCustomerDetailsById(UUID id) {
+        return customerDetailsRepository.findById(id)
                 .orElseThrow(() -> new CustomException("Customer details not found", HttpStatus.NOT_FOUND));
     }
 

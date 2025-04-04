@@ -1,6 +1,5 @@
 package com.sakuBCA.models;
 
-import com.sakuBCA.enums.LoanStatus;
 import jakarta.persistence.*;
 import lombok.*;
 
@@ -24,10 +23,12 @@ public class LoanApproval {
 
     @ManyToOne
     @JoinColumn(name = "approved_by", nullable = false)
-    private User approvedBy;
+    private User approvedBy; // User yang menyetujui (Marketing/BM/Back Office)
 
-    @Enumerated(EnumType.STRING)
+    @ManyToOne
+    @JoinColumn(name = "status_id", nullable = false)
     private LoanStatus status;
 
+    private String notes;
     private LocalDateTime approvedAt;
 }

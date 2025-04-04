@@ -1,10 +1,12 @@
 package com.sakuBCA.models;
 
+import com.fasterxml.jackson.annotation.JsonIdentityInfo;
+import com.fasterxml.jackson.annotation.JsonIgnore;
 import com.fasterxml.jackson.annotation.JsonManagedReference;
+import com.fasterxml.jackson.annotation.ObjectIdGenerators;
 import com.sakuBCA.enums.UserType;
 import jakarta.persistence.*;
 import lombok.*;
-import org.hibernate.annotations.GenericGenerator;
 
 import java.util.UUID;
 
@@ -30,6 +32,7 @@ public class User {
     private String password;
 
     @ManyToOne
+    @JsonIgnore
     @JoinColumn(name = "role_id", nullable = false)
     private Role role;
 

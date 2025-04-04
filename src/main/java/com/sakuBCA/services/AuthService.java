@@ -3,17 +3,14 @@ package com.sakuBCA.services;
 import com.sakuBCA.config.security.JwtResponse;
 import com.sakuBCA.config.security.UserDetailsImpl;
 import com.sakuBCA.dtos.authDTO.LoginRequest;
-import com.sakuBCA.dtos.customerDTO.RegisterCustomerRequest;
+import com.sakuBCA.dtos.customerDTO.RegisterCustomerRequestDTO;
+import com.sakuBCA.dtos.superAdminDTO.CustomerResponseDTO;
 import com.sakuBCA.enums.UserType;
 import com.sakuBCA.config.exceptions.CustomException;
-import com.sakuBCA.models.BlacklistedToken;
-import com.sakuBCA.models.Role;
-import com.sakuBCA.models.User;
-import com.sakuBCA.repositories.BlacklistedTokenRepository;
+import com.sakuBCA.models.*;
 import com.sakuBCA.repositories.UserRepository;
 import com.sakuBCA.config.security.JwtUtils;
 import jakarta.transaction.Transactional;
-import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.HttpStatus;
@@ -24,7 +21,6 @@ import org.springframework.security.core.GrantedAuthority;
 import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Service;
-import org.springframework.web.bind.annotation.RequestBody;
 
 import java.time.LocalDateTime;
 import java.util.Date;
@@ -49,12 +45,26 @@ public class AuthService {
     private JwtUtils jwtUtils;
     @Autowired
     private AuthenticationManager authenticationManager;
+    @Autowired
+    private PlafondService plafondService;
+    @Autowired
+    private CustomerDetailsService customerDetailsService;
 
+
+    @Autowired
+    private RedisService redisService;
 
     public Map<String, Object> authenticate(LoginRequest loginRequestDto) {
+        String email = loginRequestDto.getEmail();
+
+        // Cek apakah user sudah login
+        if (redisService.isUserLoggedIn(email)) {
+            throw new RuntimeException("User sudah login!");
+        }
+
         Authentication authentication = authenticationManager.authenticate(
                 new UsernamePasswordAuthenticationToken(
-                        loginRequestDto.getEmail(),
+                        email,
                         loginRequestDto.getPassword()
                 ));
 
@@ -66,10 +76,10 @@ public class AuthService {
                 .map(GrantedAuthority::getAuthority)
                 .toList();
 
-        // Buat JWT response
-        JwtResponse jwtResponse = new JwtResponse(jwt, userDetails.getUsername(), role, features);
+        // Simpan session login di Redis
+        redisService.saveSession(email);
 
-        // Format response
+        JwtResponse jwtResponse = new JwtResponse(jwt, userDetails.getUsername(), role, features);
         Map<String, Object> response = new HashMap<>();
         response.put("status", "success");
 
@@ -81,8 +91,9 @@ public class AuthService {
     }
 
 
+
     @Transactional
-    public User registerCustomer(RegisterCustomerRequest request) {
+    public CustomerResponseDTO registerCustomer(RegisterCustomerRequestDTO request) {
         // ⬇️ Cek apakah email sudah digunakan
         if (userRepository.existsByEmail(request.getEmail())) {
             throw new CustomException("Email sudah terdaftar!", HttpStatus.BAD_REQUEST);
@@ -98,8 +109,25 @@ public class AuthService {
                 .role(customerRole)
                 .build();
 
-        return userRepository.save(customer);
+        // ⬇️ Simpan User dulu
+        userRepository.save(customer);
+
+        // ⬇️ Ambil Plafond default (Bronze)
+        Plafond bronzePlafond = plafondService.getPlafondByName("Bronze");
+
+        // ⬇️ Buat CustomerDetails dengan Plafond default
+        CustomerDetails customerDetails = CustomerDetails.builder()
+                .user(customer)
+                .plafond(bronzePlafond)
+                .build();
+
+        // ⬇️ Simpan CustomerDetails
+        customerDetailsService.saveCustomerDetails(customerDetails);
+
+        // 🔹 Langsung kembalikan CustomerResponseDTO
+        return CustomerResponseDTO.fromUser(customer, customerDetails);
     }
+
 
     @Transactional
     public void logout(String token) {
@@ -110,13 +138,18 @@ public class AuthService {
             throw new CustomException("Token sudah tidak valid", HttpStatus.BAD_REQUEST);
         }
 
+        // Ambil email dari token JWT
+        String email = jwtUtils.getUsername(token);
+
         // Ambil expiry date dari token JWT
         Date expiryDate = jwtUtils.getExpirationDateFromToken(token);
 
         // Tambahkan token ke blacklist dengan expiry date yang sesuai
         tokenService.blacklistToken(token, LocalDateTime.now().plusSeconds(expiryDate.getTime() / 1000));
 
+        // Hapus sesi login dari Redis agar user bisa login lagi
+        redisService.removeSession(email);
+
         System.out.println("Berhasil Logout");
     }
-
 }

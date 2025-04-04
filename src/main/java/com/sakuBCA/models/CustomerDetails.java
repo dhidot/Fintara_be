@@ -1,5 +1,6 @@
 package com.sakuBCA.models;
 
+import com.fasterxml.jackson.annotation.JsonBackReference;
 import jakarta.persistence.*;
 import lombok.*;
 
@@ -21,6 +22,7 @@ public class CustomerDetails {
     private UUID id;
 
     @OneToOne
+    @JsonBackReference
     @JoinColumn(name = "user_id", nullable = false)
     private User user;
 
@@ -34,7 +36,7 @@ public class CustomerDetails {
     private String noRek;
     private String statusRumah;
 
-    @ManyToOne
-    @JoinColumn(name = "plafond_package_id")
-    private PlafondPackage plafondPackage;
+    @ManyToOne(fetch = FetchType.EAGER)
+    @JoinColumn(name = "plafond_id", nullable = false)
+    private Plafond plafond;
 }
