@@ -1,5 +1,6 @@
 package com.sakuBCA.models;
 
+import com.fasterxml.jackson.annotation.JsonBackReference;
 import jakarta.persistence.*;
 import lombok.*;
 
@@ -17,10 +18,11 @@ import java.time.LocalDate;
 @Builder
 public class CustomerDetails {
     @Id
-    @GeneratedValue(strategy = GenerationType.IDENTITY)
-    private Integer id;
+    @GeneratedValue(strategy = GenerationType.UUID)
+    private UUID id;
 
     @OneToOne
+    @JsonBackReference
     @JoinColumn(name = "user_id", nullable = false)
     private User user;
 
@@ -33,5 +35,8 @@ public class CustomerDetails {
     private BigDecimal gaji;
     private String noRek;
     private String statusRumah;
-    private BigDecimal plafond;
+
+    @ManyToOne(fetch = FetchType.EAGER)
+    @JoinColumn(name = "plafond_id", nullable = false)
+    private Plafond plafond;
 }

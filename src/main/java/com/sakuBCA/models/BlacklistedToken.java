@@ -1,18 +1,30 @@
 package com.sakuBCA.models;
 
-import jakarta.persistence.*;
-import lombok.*;
+import jakarta.persistence.Entity;
+import jakarta.persistence.Id;
+import jakarta.persistence.Table;
+import lombok.Getter;
+import lombok.Setter;
 
-@Entity
-@Getter
+import java.time.LocalDateTime;
+
 @Setter
-@NoArgsConstructor
-@AllArgsConstructor
+@Getter
+@Entity
+@Table(name = "blacklisted_tokens")
 public class BlacklistedToken {
-    @Id
-    @GeneratedValue(strategy = GenerationType.IDENTITY)
-    private Long id;
 
-    @Column(unique = true, nullable = false)
+    @Id
     private String token;
+    private LocalDateTime expiryDate;
+
+    // Constructor Default (wajib untuk JPA)
+    public BlacklistedToken() {
+    }
+
+    // Constructor yang Sesuai dengan Parameter (String, LocalDateTime)
+    public BlacklistedToken(String token, LocalDateTime expiryDate) {
+        this.token = token;
+        this.expiryDate = expiryDate.plusDays(1);
+    }
 }

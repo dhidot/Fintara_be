@@ -1,56 +1,43 @@
 package com.sakuBCA.controllers;
 
-import com.sakuBCA.dtos.LoginRequest;
-import com.sakuBCA.dtos.RegisterCustomerRequest;
-import com.sakuBCA.dtos.RegisterPegawaiRequest;
-import com.sakuBCA.dtos.ResetPasswordRequest;
-import com.sakuBCA.models.BlacklistedToken;
+import com.sakuBCA.dtos.authDTO.LoginRequest;
+import com.sakuBCA.dtos.customerDTO.RegisterCustomerRequestDTO;
+import com.sakuBCA.dtos.authDTO.ResetPasswordRequest;
+import com.sakuBCA.dtos.superAdminDTO.CustomerResponseDTO;
+import com.sakuBCA.models.CustomerDetails;
 import com.sakuBCA.models.User;
-import com.sakuBCA.repositories.BlacklistedTokenRepository;
 import com.sakuBCA.services.AuthService;
+import com.sakuBCA.services.CustomerDetailsService;
 import com.sakuBCA.services.UserService;
-import com.sakuBCA.utils.JwtUtil;
-import jakarta.servlet.http.HttpServletRequest;
+import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
+import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.ResponseEntity;
-import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.web.bind.annotation.*;
 
+import java.util.Collections;
 import java.util.Map;
 
 @RestController
-@RequestMapping("/api/auth")
+@RequestMapping("/api/v1/auth")
 @RequiredArgsConstructor
 public class AuthController {
-    private final AuthService authService;
-    private final UserService userService;
-    private final JwtUtil jwtUtil;
-
-    @PostMapping("/register/customer")
-    public ResponseEntity<User> registerCustomer(@RequestBody RegisterCustomerRequest request) {
-        return ResponseEntity.ok(authService.registerCustomer(request.getName(), request.getEmail(), request.getPassword()));
-    }
-
-    @PreAuthorize("hasAuthority('Super Admin')")
-    @PostMapping("/register/pegawai")
-    public ResponseEntity<User> registerPegawai(
-            @RequestHeader("Authorization") String token,
-            @RequestBody RegisterPegawaiRequest request) {
-
-        User pegawai = authService.registerPegawai(
-                request.getName(),
-                request.getEmail(),
-                request.getPassword(),
-                request.getRole(),
-                token.replace("Bearer ", "")
-        );
-        return ResponseEntity.ok(pegawai);
-    }
+    @Autowired
+    private AuthService authService;
+    @Autowired
+    private UserService userService;
+    @Autowired
+    private CustomerDetailsService customerDetailsService;
 
     @PostMapping("/login")
-    public ResponseEntity<String> login(@RequestBody LoginRequest request) {
-        String token = authService.login(request.getEmail(), request.getPassword());
-        return ResponseEntity.ok(token);
+    public ResponseEntity<Map<String, Object>> authenticate(@Valid @RequestBody LoginRequest loginRequestDto) {
+        Map<String, Object> response = authService.authenticate(loginRequestDto);
+        return ResponseEntity.ok(response);
+    }
+
+    @PostMapping("/register/customer")
+    public ResponseEntity<CustomerResponseDTO> registerCustomer(@Valid @RequestBody RegisterCustomerRequestDTO request) {
+        return ResponseEntity.ok(authService.registerCustomer(request));
     }
 
     @PostMapping("/logout")
@@ -72,10 +59,9 @@ public class AuthController {
     }
 
     @PostMapping("/reset-password")
-    public ResponseEntity<String> resetPassword(@RequestBody ResetPasswordRequest request) {
-        userService.resetPassword(request.getToken(), request.getNewPassword());
-        return ResponseEntity.ok("Password berhasil direset.");
+    public ResponseEntity<?> resetPassword(@RequestBody ResetPasswordRequest request) {
+        userService.resetPassword(request);
+        return ResponseEntity.ok(Collections.singletonMap("message", "Password berhasil diubah"));
     }
-
 }
 

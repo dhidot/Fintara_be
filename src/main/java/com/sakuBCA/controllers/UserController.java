@@ -1,10 +1,9 @@
 package com.sakuBCA.controllers;
 
-import com.sakuBCA.dtos.UserResponseDTO;
-import com.sakuBCA.models.User;
+import com.sakuBCA.dtos.superAdminDTO.UserResponseDTO;
 import com.sakuBCA.services.UserService;
-import lombok.RequiredArgsConstructor;
-import org.springframework.http.ResponseEntity;
+import org.springframework.security.access.annotation.Secured;
+import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.web.bind.annotation.*;
 
 import java.util.List;
@@ -19,16 +18,14 @@ public class UserController {
         this.userService = userService;
     }
 
-    // Mendapatkan semua pengguna
+    @Secured("FEATURE_USER_ACCESS")
     @GetMapping("/all")
     public List<UserResponseDTO> getAllUsers() {
         return userService.getAllUsers();
     }
 
-    @PostMapping("/register")
-    public ResponseEntity<User> registerUser(@RequestBody User user){
-        return ResponseEntity.ok(userService.registerUser(user));
-    }
-
-
+//    @PreAuthorize("hasRole('SUPERADMIN') or #id == authentication.principal.id") // SUPERADMIN atau user yang login sendiri
+//    @GetMapping("/{id}")
+//    public ResponseEntity<UserDto> getUserById(@PathVariable Long id) {
+//        return ResponseEntity.ok(userService.getUserById(id));
 }
