@@ -8,6 +8,7 @@ import com.sakuBCA.models.CustomerDetails;
 import com.sakuBCA.models.User;
 import com.sakuBCA.repositories.CustomerDetailsRepository;
 import jakarta.transaction.Transactional;
+import org.modelmapper.ModelMapper;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.HttpStatus;
 import org.springframework.stereotype.Service;
@@ -30,6 +31,8 @@ public class CustomerDetailsService {
     private BranchService branchService;
     @Autowired
     private JwtUtils jwtUtils;
+    @Autowired
+    private ModelMapper modelMapper;
 
     private static final Logger logger = LoggerFactory.getLogger(CustomerDetailsService.class);
 
@@ -45,43 +48,34 @@ public class CustomerDetailsService {
                 .orElseThrow(() -> new CustomException("Customer details not found", HttpStatus.NOT_FOUND));
     }
 
-    @Transactional
-    public CustomerProfileResponseDTO getCustomerProfile(String token, UUID id) {
-        // Ambil email dari token
-        String extractedToken = jwtUtils.extractToken(token);
-        String email = jwtUtils.getUsername(extractedToken);
-
-        // Cari user dari email token
-        User requester = userService.findByEmail(email);
-
-        // Cari user yang ingin dilihat profilnya
-        User targetUser = userService.getPegawaiUserById(id); // atau getUserById(id)
-
-        // Cek apakah yang akses adalah super admin atau dirinya sendiri
+    private void validateAccessToProfile(User requester, User targetUser) {
         boolean isSuperAdmin = requester.getRole().getName().equalsIgnoreCase("SUPER_ADMIN");
         boolean isOwner = requester.getId().equals(targetUser.getId());
 
         if (!isSuperAdmin && !isOwner) {
             throw new CustomException("Anda tidak memiliki akses untuk melihat data ini", HttpStatus.FORBIDDEN);
         }
+    }
 
-        // Ambil data customerDetails
+    @Transactional
+    public CustomerProfileResponseDTO getCustomerProfile(String token, UUID id) {
+        String extractedToken = jwtUtils.extractToken(token);
+        String requesterEmail = jwtUtils.getUsername(extractedToken);
+
+        User requester = userService.findByEmail(requesterEmail);
+        User targetUser = userService.getPegawaiUserById(id); // bisa disesuaikan jadi getUserById jika lebih generik
+
+        validateAccessToProfile(requester, targetUser);
+
         CustomerDetails customerDetails = customerDetailsRepository.findByUser(targetUser)
                 .orElseThrow(() -> new CustomException("Customer tidak ditemukan", HttpStatus.NOT_FOUND));
 
-        // Build response DTO secara manual
-        CustomerProfileResponseDTO response = new CustomerProfileResponseDTO();
+        // Mapping otomatis dari entity ke DTO
+        CustomerProfileResponseDTO response = modelMapper.map(customerDetails, CustomerProfileResponseDTO.class);
+
+        // Set atribut yang berasal dari entitas `User`
         response.setName(targetUser.getName());
         response.setEmail(targetUser.getEmail());
-        response.setTtl(customerDetails.getTtl());
-        response.setAlamat(customerDetails.getAlamat());
-        response.setNoTelp(customerDetails.getNoTelp());
-        response.setNik(customerDetails.getNik());
-        response.setNamaIbuKandung(customerDetails.getNamaIbuKandung());
-        response.setPekerjaan(customerDetails.getPekerjaan());
-        response.setGaji(customerDetails.getGaji());
-        response.setNoRek(customerDetails.getNoRek());
-        response.setStatusRumah(customerDetails.getStatusRumah());
 
         return response;
     }

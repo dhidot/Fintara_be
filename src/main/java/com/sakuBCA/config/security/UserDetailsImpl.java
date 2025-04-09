@@ -27,7 +27,7 @@ public class UserDetailsImpl implements UserDetails {
     public static UserDetails build(User user) {
         List<GrantedAuthority> grantedAuthorities = user.getRole() != null
                 ? user.getRole().getRoleFeatures().stream()
-                .map(roleFeature -> new SimpleGrantedAuthority("FEATURE_" + roleFeature.getFeature().getName()))
+                .map(roleFeature -> new SimpleGrantedAuthority(roleFeature.getFeature().getName()))
                 .collect(Collectors.toList())
                 : List.of();
 
@@ -42,7 +42,7 @@ public class UserDetailsImpl implements UserDetails {
     public List<String> getFeatures() {
         return authorities.stream()
                 .map(GrantedAuthority::getAuthority)
-                .filter(auth -> auth.startsWith("FEATURE_"))
+//                .filter(auth -> auth.startsWith("FEATURE_"))
                 .collect(Collectors.toList());
     }
 

@@ -11,6 +11,9 @@ import org.springframework.http.HttpStatus;
 import org.springframework.scheduling.annotation.Scheduled;
 import org.springframework.stereotype.Service;
 
+import java.security.MessageDigest;
+import java.security.NoSuchAlgorithmException;
+
 import java.time.LocalDateTime;
 import java.util.UUID;
 
@@ -21,9 +24,20 @@ public class TokenService {
     @Autowired
     private BlacklistedTokenRepository blacklistedTokenRepository;
 
-    public TokenService(PasswordResetTokenRepository tokenRepository, BlacklistedTokenRepository blacklistedTokenRepository) {
-        this.tokenRepository = tokenRepository;
-        this.blacklistedTokenRepository = blacklistedTokenRepository;
+    private String hashToken(String token) {
+        try {
+            MessageDigest digest = MessageDigest.getInstance("SHA-256");
+            byte[] encodedHash = digest.digest(token.getBytes());
+            StringBuilder hexString = new StringBuilder();
+            for (byte b : encodedHash) {
+                String hex = Integer.toHexString(0xff & b);
+                if (hex.length() == 1) hexString.append('0');
+                hexString.append(hex);
+            }
+            return hexString.toString();
+        } catch (NoSuchAlgorithmException e) {
+            throw new RuntimeException("Error hashing token", e);
+        }
     }
 
     public String generateToken(User user) {
@@ -43,21 +57,24 @@ public class TokenService {
     }
 
     public boolean tokenExist(String token) {
-        return blacklistedTokenRepository.existsByToken(token);
+        return blacklistedTokenRepository.existsByToken(hashToken(token));
     }
 
     public void blacklistToken(String token, LocalDateTime expiryDate) {
-        if (blacklistedTokenRepository.existsByToken(token)) {
+        String hashedToken = hashToken(token);
+        if (blacklistedTokenRepository.existsByToken(hashedToken)) {
             throw new CustomException("Token sudah diblacklist", HttpStatus.BAD_REQUEST);
         }
-        blacklistedTokenRepository.save(new BlacklistedToken(token, expiryDate));
+        blacklistedTokenRepository.save(new BlacklistedToken(hashedToken, expiryDate));
     }
 
     public boolean isTokenBlacklisted(String token) {
-        return blacklistedTokenRepository.findById(token)
+        String hashedToken = hashToken(token);
+        return blacklistedTokenRepository.findById(hashedToken)
                 .map(blacklisted -> blacklisted.getExpiryDate().isAfter(LocalDateTime.now()))
                 .orElse(false);
     }
+
 
     @Scheduled(cron = "0 0 * * * ?") // Jalankan setiap jam
     public void cleanupExpiredTokens() {

@@ -1,9 +1,7 @@
 package com.sakuBCA.controllers;
 
-import com.sakuBCA.dtos.authDTO.ChangePasswordRequest;
-import com.sakuBCA.dtos.authDTO.LoginRequest;
+import com.sakuBCA.dtos.authDTO.*;
 import com.sakuBCA.dtos.customerDTO.RegisterCustomerRequestDTO;
-import com.sakuBCA.dtos.authDTO.ResetPasswordRequest;
 import com.sakuBCA.dtos.customerDTO.CustomerResponseDTO;
 import com.sakuBCA.models.User;
 import com.sakuBCA.services.AuthService;
@@ -30,9 +28,15 @@ public class AuthController {
     @Autowired
     private CustomerDetailsService customerDetailsService;
 
-    @PostMapping("/login")
-    public ResponseEntity<Map<String, Object>> authenticate(@Valid @RequestBody LoginRequest loginRequestDto) {
-        Map<String, Object> response = authService.authenticate(loginRequestDto);
+    @PostMapping("/login-customer")
+    public ResponseEntity<?> loginCustomer(@RequestBody LoginRequestCustomer request) {
+        Map<String, Object> response = authService.loginCustomer(request);
+        return ResponseEntity.ok(response);
+    }
+
+    @PostMapping("/login-pegawai")
+    public ResponseEntity<?> loginPegawai(@RequestBody LoginRequestPegawai request) {
+        Map<String, Object> response = authService.loginPegawai(request);
         return ResponseEntity.ok(response);
     }
 

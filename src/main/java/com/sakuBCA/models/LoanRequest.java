@@ -13,8 +13,6 @@ import java.util.UUID;
 @NoArgsConstructor
 @AllArgsConstructor
 @Builder
-@Setter
-@Getter
 public class LoanRequest {
     @Id
     @GeneratedValue(strategy = GenerationType.UUID)
@@ -36,11 +34,17 @@ public class LoanRequest {
     @JoinColumn(name = "marketing_id", nullable = false)
     private User marketing;
 
-    private BigDecimal amount;  // Jumlah pinjaman
-    private Integer tenor;  // Lama cicilan dalam bulan
+    @ManyToOne
+    @JoinColumn(name = "plafond_id", nullable = false)
+    private Plafond plafond;
+
+    private BigDecimal amount;
+    private Integer tenor;
 
     private LocalDateTime requestDate;
-    private LocalDateTime approvalMarketingAt;  // Waktu approval oleh Marketing
-    private LocalDateTime approvalBMAt;         // Waktu approval oleh Branch Manager
-    private LocalDateTime disbursedAt;          // Waktu pencairan oleh Back Office
+    private LocalDateTime approvalMarketingAt;
+    private LocalDateTime approvalBMAt;
+    private LocalDateTime disbursedAt;
+
+    // ❌ removed: repaymentStatus, remainingAmount, monthlyInstallment, dueDate, paidOffDate
 }

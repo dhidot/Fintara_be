@@ -7,6 +7,7 @@ import lombok.Getter;
 import lombok.NoArgsConstructor;
 import lombok.Setter;
 
+import java.math.BigDecimal;
 import java.util.List;
 import java.util.UUID;
 import java.util.stream.Collectors;
@@ -23,6 +24,7 @@ public class CustomerResponseDTO {
     private String userType;
     private List<String> roleFeatures;
     private String plafond; // Tambahkan informasi plafond
+    private BigDecimal remainingPlafond;
 
     // 🔹 Static method untuk konversi dari User ke CustomerResponseDTO
     public static CustomerResponseDTO fromUser(User user, CustomerDetails customerDetails) {
@@ -36,7 +38,8 @@ public class CustomerResponseDTO {
                 user.getRole().getName(),
                 user.getUserType().name(),
                 featureNames,  // Pastikan role memiliki roleFeatures
-                customerDetails.getPlafond().getName() // Ambil nama plafond dari CustomerDetails
+                customerDetails.getPlafond().getName(), // Ambil nama plafond dari CustomerDetails
+                customerDetails.getRemainingPlafond()
         );
     }
 }

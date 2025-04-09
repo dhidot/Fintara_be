@@ -17,9 +17,10 @@ public class UserDetailsServiceImpl implements UserDetailsService {
     }
 
     @Override
-    public UserDetails loadUserByUsername(String username) throws UsernameNotFoundException {
-        User user = userRepository.findByEmail(username)
-                .orElseThrow(()-> new UsernameNotFoundException("Username not found: "+username));
-        return UserDetailsImpl.build(user);
+    public UserDetails loadUserByUsername(String usernameOrNip) throws UsernameNotFoundException {
+        return userRepository.findByEmail(usernameOrNip)
+                .or(() -> userRepository.findByPegawaiDetails_Nip(usernameOrNip)) // Cek berdasarkan NIP
+                .map(UserDetailsImpl::build)
+                .orElseThrow(() -> new UsernameNotFoundException("User tidak ditemukan: " + usernameOrNip));
     }
 }

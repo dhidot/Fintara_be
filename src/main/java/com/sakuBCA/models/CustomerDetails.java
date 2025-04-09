@@ -39,4 +39,7 @@ public class CustomerDetails {
     @ManyToOne(fetch = FetchType.EAGER)
     @JoinColumn(name = "plafond_id", nullable = false)
     private Plafond plafond;
+
+    @Column(name = "remaining_plafond", nullable = false)
+    private BigDecimal remainingPlafond;
 }

@@ -35,5 +35,15 @@ public interface UserRepository extends JpaRepository<User, UUID> {
 
     Optional<User> findByEmail(String email);
 
+    // find by NIP
+    Optional<User> findByPegawaiDetails_Nip(String nip);
+
+    @Query("""
+    SELECT u FROM User u
+    LEFT JOIN u.pegawaiDetails pd
+    WHERE u.email = :username OR pd.nip = :username
+""")
+    Optional<User> findByEmailOrNip(String username);
+
     boolean existsByEmail(String email);
 }

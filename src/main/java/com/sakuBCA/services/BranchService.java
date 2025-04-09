@@ -12,10 +12,7 @@ import org.springframework.http.ResponseEntity;
 import org.springframework.stereotype.Service;
 import org.springframework.web.bind.annotation.RequestBody;
 
-import java.util.Collections;
-import java.util.List;
-import java.util.Map;
-import java.util.UUID;
+import java.util.*;
 import java.util.stream.Collectors;
 
 @Service
@@ -26,7 +23,6 @@ public class BranchService {
 
     private final BranchRepository branchRepository;
 
-    // Create Branch
     public ResponseEntity<Branch> createBranch(@RequestBody Branch branch) {
         if (branchRepository.existsByName(branch.getName())) {
             throw new CustomException("Branch sudah ada!", HttpStatus.BAD_REQUEST);
@@ -35,7 +31,6 @@ public class BranchService {
         return ResponseEntity.ok(branchRepository.save(branch));
     }
 
-    // Get All Branch
     public Map<UUID, String> getAllBranches() {
         try {
             List<Branch> branches = branchRepository.findAll();
@@ -52,7 +47,6 @@ public class BranchService {
         }
     }
 
-    // Get Branch by ID
     public BranchDTO getBranchById(UUID id) {
         Branch branch = branchRepository.findById(id)
                 .orElseThrow(() -> new CustomException("Branch dengan ID " + id + " tidak ditemukan", HttpStatus.NOT_FOUND));
@@ -65,23 +59,40 @@ public class BranchService {
         return branchDTO;
     }
 
-    // find branch by id
     public Branch findBranchById(UUID id) {
         return branchRepository.findById(id)
                 .orElseThrow(() -> new CustomException("Branch dengan ID ini tidak ditemukan", HttpStatus.NOT_FOUND));
     }
 
-    // find branch by name
     public Branch findBranchByName(String branchName) {
         return branchRepository.findByName(branchName)
                 .orElseThrow(() -> new CustomException("Branch tidak ditemukan", HttpStatus.NOT_FOUND));
     }
-    // Nearest Branch to customer
+
     public UUID findNearestBranch(double latitude, double longitude) {
-        return branchRepository.findNearestBranch(latitude, longitude);
+        List<Branch> allBranches = branchRepository.findAll();
+
+        return allBranches.stream()
+                .min(Comparator.comparing(branch -> haversineDistance(
+                        latitude, longitude,
+                        branch.getLatitude(), branch.getLongitude())))
+                .map(Branch::getId)
+                .orElse(null);
     }
 
-    // Update Branch
+    private double haversineDistance(double lat1, double lon1, double lat2, double lon2) {
+        final int R = 6371; // Radius bumi dalam KM
+        double dLat = Math.toRadians(lat2 - lat1);
+        double dLon = Math.toRadians(lon2 - lon1);
+
+        double a = Math.sin(dLat / 2) * Math.sin(dLat / 2)
+                + Math.cos(Math.toRadians(lat1)) * Math.cos(Math.toRadians(lat2))
+                * Math.sin(dLon / 2) * Math.sin(dLon / 2);
+
+        double c = 2 * Math.atan2(Math.sqrt(a), Math.sqrt(1 - a));
+        return R * c;
+    }
+
     private BranchDTO mapToDTO(Branch branch) {
         BranchDTO dto = new BranchDTO();
         dto.setName(branch.getName());
@@ -111,7 +122,6 @@ public class BranchService {
         return mapToDTO(branch);
     }
 
-    // Delete Branch
     public void deleteBranch(UUID id) {
         Branch branch = branchRepository.findById(id)
                 .orElseThrow(() -> new CustomException("Branch dengan ID ini tidak ditemukan", HttpStatus.NOT_FOUND));

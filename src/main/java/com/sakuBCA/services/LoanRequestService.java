@@ -2,6 +2,7 @@ package com.sakuBCA.services;
 
 import com.sakuBCA.config.exceptions.CustomException;
 import com.sakuBCA.dtos.loanRequestDTO.LoanRequestApprovalDTO;
+import com.sakuBCA.enums.RepaymentStatus;
 import com.sakuBCA.models.*;
 import com.sakuBCA.repositories.LoanRequestRepository;
 import jakarta.transaction.Transactional;
@@ -12,6 +13,8 @@ import org.springframework.http.HttpStatus;
 import org.springframework.stereotype.Service;
 
 import java.math.BigDecimal;
+import java.math.RoundingMode;
+import java.time.LocalDate;
 import java.time.LocalDateTime;
 import java.util.Comparator;
 import java.util.List;
@@ -35,6 +38,8 @@ public class LoanRequestService {
     @Autowired
     @Lazy
     private LoanApprovalService loanApprovalService;
+    @Autowired
+    private RepaymentScheduleService repaymentScheduleService;
 
     // Get loan request byID
     public LoanRequest findById(UUID id) {
@@ -51,11 +56,12 @@ public class LoanRequestService {
         }
     }
 
-
     @Transactional
     public LoanRequest createLoanRequest(BigDecimal amount, Integer tenor, double latitude, double longitude) {
         // Ambil user yang sedang terautentikasi
         User currentUser = userService.getAuthenticatedUser();
+
+        validateCustomer(currentUser);
 
         // Ambil customer details terkait dengan user
         CustomerDetails customerDetails = currentUser.getCustomerDetails();
@@ -79,7 +85,8 @@ public class LoanRequestService {
         // Set status awal "REVIEW"
         LoanStatus pendingStatus = loanStatusService.findByName("REVIEW");
 
-        // Simpan loan request baru
+        Plafond customerPlafond = validatePlafond(customerDetails, amount, tenor);
+
         LoanRequest newRequest = LoanRequest.builder()
                 .customer(customerDetails)
                 .amount(amount)
@@ -88,18 +95,26 @@ public class LoanRequestService {
                 .marketing(assignedMarketing)
                 .requestDate(LocalDateTime.now())
                 .status(pendingStatus)
+                .plafond(customerPlafond) // 👈 Ini penting
                 .build();
 
         return loanRequestRepository.save(newRequest);
     }
 
-    // Validasi plafond customer
-    private void validatePlafond(CustomerDetails customerDetails, BigDecimal amount, Integer tenor) {
-        Plafond customerPlafond = customerDetails.getPlafond();
+    private Plafond validatePlafond(CustomerDetails customerDetails, BigDecimal amount, Integer tenor) {
+        Plafond plafond = customerDetails.getPlafond();
 
-        if (amount.compareTo(customerPlafond.getMaxAmount()) > 0 || tenor > customerPlafond.getMaxTenor()) {
-            throw new CustomException("Jumlah pinjaman atau tenor melebihi batas plafond!", HttpStatus.BAD_REQUEST);
+        // Validasi remainingPlafond
+        if (amount.compareTo(customerDetails.getRemainingPlafond()) > 0) {
+            throw new CustomException("Sisa plafond tidak mencukupi!", HttpStatus.BAD_REQUEST);
         }
+
+        // Validasi tenor
+        if (tenor < plafond.getMinTenor() || tenor > plafond.getMaxTenor()) {
+            throw new CustomException("Tenor tidak sesuai dengan batasan plafond!", HttpStatus.BAD_REQUEST);
+        }
+
+        return plafond;
     }
 
     private void validateCustomer(User user) {
@@ -108,15 +123,9 @@ public class LoanRequestService {
         }
     }
 
-    private void validateLoanAmountAndTenor(CustomerDetails customerDetails, BigDecimal amount, Integer tenor) {
-        Plafond plafond = customerDetails.getPlafond();
-        if (amount.compareTo(plafond.getMaxAmount()) > 0 || tenor > plafond.getMaxTenor()) {
-            throw new CustomException("Jumlah pinjaman atau tenor melebihi batas plafond!", HttpStatus.BAD_REQUEST);
-        }
-    }
-
     private User assignMarketing(UUID branchId) {
         List<User> marketingByBranch = userService.getMarketingByBranch(branchId);
+
         if (marketingByBranch.isEmpty()) {
             throw new CustomException("Tidak ada marketing yang tersedia di cabang ini", HttpStatus.BAD_REQUEST);
         }
@@ -129,7 +138,6 @@ public class LoanRequestService {
                 .min(Comparator.comparing(marketing -> marketingLoad.getOrDefault(marketing.getId(), 0L)))
                 .orElse(marketingByBranch.get(0)); // Jika semua marketing punya jumlah tugas yang sama, pilih yang pertama
     }
-
 
     /********** MARKETING APPROVAL **********/
     private LoanRequestApprovalDTO convertToDTO(LoanRequest loanRequest) {
@@ -264,7 +272,7 @@ public class LoanRequestService {
             throw new CustomException("Loan request belum siap untuk dicairkan", HttpStatus.BAD_REQUEST);
         }
 
-        // 3️⃣ Validasi apakah user ini adalah Back Office dan dicabang yang sama dengan branch manager yang approve
+        // 3️⃣ Validasi apakah user ini adalah Back Office dan di cabang yang sama
         UUID branchId = userService.getBranchIdByUserId(backOfficeId);
         if (!loanRequest.getBranch().getId().equals(branchId)) {
             throw new CustomException("Anda tidak berhak mereview loan request ini", HttpStatus.FORBIDDEN);
@@ -275,17 +283,47 @@ public class LoanRequestService {
         loanRequest.setStatus(disbursedStatus);
         loanRequest.setDisbursedAt(LocalDateTime.now());
 
-        // 5️⃣ Simpan record approval oleh BO di loan_approvals
+        // ✅ Hitung repayment schedule
+        Plafond plafond = loanRequest.getPlafond();
+        BigDecimal amount = loanRequest.getAmount(); // pokok pinjaman
+        BigDecimal interestRate = plafond.getInterestRate();
+        int tenor = loanRequest.getTenor();
+
+        BigDecimal totalInterest = amount.multiply(interestRate);
+        BigDecimal totalPayment = amount.add(totalInterest);
+        BigDecimal monthlyInstallment = totalPayment.divide(BigDecimal.valueOf(tenor), 2, RoundingMode.HALF_UP);
+
+        // 🔁 Buat jadwal cicilan dan simpan
+        for (int i = 0; i < tenor; i++) {
+            RepaymentSchedule schedule = RepaymentSchedule.builder()
+                    .loanRequest(loanRequest)
+                    .installmentNumber(i + 1)
+                    .amountToPay(monthlyInstallment)
+                    .amountPaid(BigDecimal.ZERO)
+                    .dueDate(LocalDate.now().plusMonths(i + 1))
+                    .isLate(false)
+                    .penaltyAmount(BigDecimal.ZERO)
+                    .build();
+            repaymentScheduleService.save(schedule); // Pastikan pakai repository
+        }
+
+        // 5️⃣ Simpan record approval oleh BO
         LoanApproval approvalRecord = LoanApproval.builder()
                 .loanRequest(loanRequest)
-                .approvedBy(userService.findById(backOfficeId)) // Back Office yang approve
+                .approvedBy(userService.findById(backOfficeId))
                 .status(disbursedStatus)
                 .notes("Dana telah dicairkan.")
                 .approvedAt(LocalDateTime.now())
                 .build();
         loanApprovalService.save(approvalRecord);
 
-        // 6️⃣ Simpan perubahan ke database
+        // 6️⃣ Kurangi plafond customer
+        CustomerDetails customerDetails = customerDetailsService.getCustomerDetailsByUser(loanRequest.getCustomer().getUser());
+        BigDecimal newRemaining = customerDetails.getRemainingPlafond().subtract(amount);
+        customerDetails.setRemainingPlafond(newRemaining);
+        customerDetailsService.saveCustomerDetails(customerDetails);
+
+        // 7️⃣ Simpan perubahan ke loan request (tanpa monthlyInstallment/dueDate)
         loanRequestRepository.save(loanRequest);
     }
 }

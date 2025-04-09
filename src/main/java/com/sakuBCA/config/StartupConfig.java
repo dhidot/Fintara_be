@@ -75,27 +75,27 @@ public class StartupConfig {
 
     private void initFeatures(FeatureRepository featureRepository, RoleRepository roleRepository, RoleFeatureRepository roleFeatureRepository) {
         List<Map<String, String>> featureRoles = List.of(
-                Map.of("name", "BRANCHES_ACCESS", "role", "SUPER_ADMIN"),
-                Map.of("name", "CUSTOMER_ACCESS", "role", "SUPER_ADMIN"),
-                Map.of("name", "FEATURES_ACCESS", "role", "SUPER_ADMIN"),
-                Map.of("name", "EMPLOYEE_ACCESS", "role", "SUPER_ADMIN"),
-                Map.of("name", "PEGAWAI_PROFILE", "role", "SUPER_ADMIN"),
-                Map.of("name", "ROLE_ACCESS", "role", "SUPER_ADMIN"),
-                Map.of("name", "ROLE_FEATURE_ACCESS", "role", "SUPER_ADMIN"),
-                Map.of("name", "USER_ACCESS", "role", "SUPER_ADMIN"),
-                Map.of("name", "PLAFOND_ACCESS", "role", "SUPER_ADMIN"),
-                Map.of("name", "LOAN_STATUS", "role", "SUPER_ADMIN"),
-                Map.of("name", "CREATE_LOAN_REQUEST", "role", "CUSTOMER"),
-                Map.of("name", "APPROVAL_MARKETING", "role", "MARKETING"),
-                Map.of("name", "APPROVAL_BM", "role", "BRANCH_MANAGER"),
-                Map.of("name", "DISBURSE", "role", "BACK_OFFICE"),
-                Map.of("name", "GET_CUSTOMER_PROFILE", "role", "SUPER_ADMIN"),
-                Map.of("name", "GET_CUSTOMER_PROFILE", "role", "CUSTOMER"),
-                Map.of("name", "UPDATE_CUSTOMER_PROFILE", "role", "SUPER_ADMIN"),
-                Map.of("name", "UPDATE_CUSTOMER_PROFILE", "role", "CUSTOMER"),
-                Map.of("name", "UPDATE_PEGAWAI_PROFILE", "role", "SUPER_ADMIN"),
-                Map.of("name", "UPDATE_PEGAWAI_PROFILE", "role", "MARKETING"),
-                Map.of("name", "UPDATE_PEGAWAI_PROFILE", "role", "BRANCH_MANAGER")
+                Map.of("name", "FEATURE_BRANCHES_ACCESS", "role", "SUPER_ADMIN"),
+                Map.of("name", "FEATURE_CUSTOMER_ACCESS", "role", "SUPER_ADMIN"),
+                Map.of("name", "FEATURE_FEATURES_ACCESS", "role", "SUPER_ADMIN"),
+                Map.of("name", "FEATURE_EMPLOYEE_ACCESS", "role", "SUPER_ADMIN"),
+                Map.of("name", "FEATURE_PEGAWAI_PROFILE", "role", "SUPER_ADMIN"),
+                Map.of("name", "FEATURE_ROLE_ACCESS", "role", "SUPER_ADMIN"),
+                Map.of("name", "FEATURE_ROLE_FEATURE_ACCESS", "role", "SUPER_ADMIN"),
+                Map.of("name", "FEATURE_USER_ACCESS", "role", "SUPER_ADMIN"),
+                Map.of("name", "FEATURE_PLAFOND_ACCESS", "role", "SUPER_ADMIN"),
+                Map.of("name", "FEATURE_LOAN_STATUS", "role", "SUPER_ADMIN"),
+                Map.of("name", "FEATURE_CREATE_LOAN_REQUEST", "role", "CUSTOMER"),
+                Map.of("name", "FEATURE_APPROVAL_MARKETING", "role", "MARKETING"),
+                Map.of("name", "FEATURE_APPROVAL_BM", "role", "BRANCH_MANAGER"),
+                Map.of("name", "FEATURE_DISBURSE", "role", "BACK_OFFICE"),
+                Map.of("name", "FEATURE_GET_CUSTOMER_PROFILE", "role", "SUPER_ADMIN"),
+                Map.of("name", "FEATURE_GET_CUSTOMER_PROFILE", "role", "CUSTOMER"),
+                Map.of("name", "FEATURE_UPDATE_CUSTOMER_PROFILE", "role", "SUPER_ADMIN"),
+                Map.of("name", "FEATURE_UPDATE_CUSTOMER_PROFILE", "role", "CUSTOMER"),
+                Map.of("name", "FEATURE_UPDATE_PEGAWAI_PROFILE", "role", "SUPER_ADMIN"),
+                Map.of("name", "FEATURE_UPDATE_PEGAWAI_PROFILE", "role", "MARKETING"),
+                Map.of("name", "FEATURE_UPDATE_PEGAWAI_PROFILE", "role", "BRANCH_MANAGER")
         );
 
         for (Map<String, String> featureRole : featureRoles) {
@@ -177,6 +177,8 @@ public class StartupConfig {
             // Cabang Pusat
             createTestUser("marketing_pusat@example.com", "Marketing Pusat", "MARKETING", "MKT2024", "Pusat",
                     userRepository, pegawaiDetailsRepository, roleRepository, passwordEncoder, branchRepository);
+            createTestUser("marketing1_pusat@example.com", "Marketing 1 Pusat", "MARKETING", "MKT12024", "Pusat",
+                    userRepository, pegawaiDetailsRepository, roleRepository, passwordEncoder, branchRepository);
             createTestUser("bm_pusat@example.com", "Branch Manager Pusat", "BRANCH_MANAGER", "BM2024", "Pusat",
                     userRepository, pegawaiDetailsRepository, roleRepository, passwordEncoder, branchRepository);
             createTestUser("bo_pusat@example.com", "Back Office Pusat", "BACK_OFFICE", "BO2024", "Pusat",
@@ -184,6 +186,8 @@ public class StartupConfig {
 
             // Cabang Jakarta
             createTestUser("marketing_jakarta@example.com", "Marketing Jakarta", "MARKETING", "MKT2025", "Jakarta",
+                    userRepository, pegawaiDetailsRepository, roleRepository, passwordEncoder, branchRepository);
+            createTestUser("marketing1_jakarta@example.com", "Marketing 1 Jakarta", "MARKETING", "MKT12025", "Jakarta",
                     userRepository, pegawaiDetailsRepository, roleRepository, passwordEncoder, branchRepository);
             createTestUser("bm_jakarta@example.com", "Branch Manager Jakarta", "BRANCH_MANAGER", "BM2025", "Jakarta",
                     userRepository, pegawaiDetailsRepository, roleRepository, passwordEncoder, branchRepository);

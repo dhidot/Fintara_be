@@ -4,6 +4,8 @@ import com.sakuBCA.config.security.JwtResponse;
 import com.sakuBCA.config.security.UserDetailsImpl;
 import com.sakuBCA.dtos.authDTO.ChangePasswordRequest;
 import com.sakuBCA.dtos.authDTO.LoginRequest;
+import com.sakuBCA.dtos.authDTO.LoginRequestCustomer;
+import com.sakuBCA.dtos.authDTO.LoginRequestPegawai;
 import com.sakuBCA.dtos.customerDTO.RegisterCustomerRequestDTO;
 import com.sakuBCA.dtos.customerDTO.CustomerResponseDTO;
 import com.sakuBCA.enums.UserType;
@@ -14,6 +16,7 @@ import com.sakuBCA.config.security.JwtUtils;
 import jakarta.transaction.Transactional;
 import lombok.RequiredArgsConstructor;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.context.annotation.Bean;
 import org.springframework.http.HttpStatus;
 import org.springframework.security.authentication.AuthenticationManager;
 import org.springframework.security.authentication.UsernamePasswordAuthenticationToken;
@@ -26,6 +29,7 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 import java.time.LocalDateTime;
+import java.time.ZoneId;
 import java.util.*;
 
 @Service
@@ -49,45 +53,97 @@ public class AuthService {
     private PlafondService plafondService;
     @Autowired
     private CustomerDetailsService customerDetailsService;
-
-
     @Autowired
     private RedisService redisService;
 
-    public Map<String, Object> authenticate(LoginRequest loginRequestDto) {
-        String email = loginRequestDto.getEmail();
 
-        if (redisService.isUserLoggedIn(email)) {
-            throw new RuntimeException("User sudah login!");
+    @Transactional
+    public Map<String, Object> loginCustomer(LoginRequestCustomer request) {
+        String rawEmail = request.getEmail();
+        String email = rawEmail.toLowerCase().trim();  // Normalisasi email
+
+        // Jika sudah login di perangkat lain, hapus session lama
+        if (redisService.isCustomerLoggedIn(email)) {
+            redisService.removeCustomerSession(email);
         }
 
+        // Autentikasi user
         Authentication authentication = authenticationManager.authenticate(
-                new UsernamePasswordAuthenticationToken(email, loginRequestDto.getPassword())
+                new UsernamePasswordAuthenticationToken(email, request.getPassword())
         );
 
+        // Set auth context
         SecurityContextHolder.getContext().setAuthentication(authentication);
+
+        // Generate JWT baru
         String jwt = jwtUtils.generateToken(authentication);
         UserDetailsImpl userDetails = (UserDetailsImpl) authentication.getPrincipal();
         User user = userDetails.getUser();
 
-        // ✅ Cek apakah user adalah Pegawai dan first login
-        boolean isFirstLogin = user.isFirstLogin() && user.getUserType() == UserType.PEGAWAI;
+        // Validasi tipe user
+        if (user.getUserType() != UserType.CUSTOMER) {
+            throw new CustomException("Akun ini bukan customer!", HttpStatus.UNAUTHORIZED);
+        }
 
-        // ✅ Simpan status first login hanya jika user adalah pegawai
-        redisService.setFirstLoginStatus(user.getId().toString(), isFirstLogin);
+        // ✅ Gunakan helper handleFirstLogin()
+        boolean isFirstLogin = handleFirstLogin(user);
 
+        // Simpan session baru ke Redis
+        redisService.saveCustomerSession(email, jwt);
+
+        // Siapkan response
         JwtResponse jwtResponse = new JwtResponse(jwt, user.getEmail(), user.getRole().getName(), userDetails.getFeatures());
         Map<String, Object> response = new HashMap<>();
         response.put("status", "success");
 
         Map<String, Object> data = new HashMap<>();
         data.put("jwt", jwtResponse);
-        data.put("isFirstLogin", isFirstLogin);  // ✅ Kirim ke frontend
+        data.put("firstLogin", isFirstLogin); // ← ✅ Kirim ke frontend
+
         response.put("data", data);
 
         return response;
     }
 
+    @Transactional
+    public Map<String, Object> loginPegawai(LoginRequestPegawai request) {
+        String nip = request.getNip();
+
+        if (redisService.isPegawaiLoggedIn(nip)) {
+            throw new CustomException("Pegawai sudah login di perangkat lain!", HttpStatus.BAD_REQUEST);
+        }
+
+        Authentication authentication = authenticationManager.authenticate(
+                new UsernamePasswordAuthenticationToken(nip, request.getPassword())
+        );
+
+        SecurityContextHolder.getContext().setAuthentication(authentication);
+        String jwt = jwtUtils.generateToken(authentication);
+
+        UserDetailsImpl userDetails = (UserDetailsImpl) authentication.getPrincipal();
+        User user = userDetails.getUser();
+
+        if (user.getUserType() != UserType.PEGAWAI) {
+            throw new CustomException("Akun ini bukan pegawai!", HttpStatus.UNAUTHORIZED);
+        }
+
+        // ✅ Gunakan helper handleFirstLogin
+        boolean isFirstLogin = handleFirstLogin(user);
+
+        redisService.savePegawaiSession(nip, jwt);
+
+        JwtResponse jwtResponse = new JwtResponse(jwt, user.getEmail(), user.getRole().getName(), userDetails.getFeatures());
+
+        Map<String, Object> data = new HashMap<>();
+        data.put("jwt", jwtResponse);
+        data.put("firstLogin", isFirstLogin);
+
+        Map<String, Object> response = new HashMap<>();
+        response.put("status", "success");
+        response.put("data", data);
+
+        return response;
+    }
 
     @Transactional
     public CustomerResponseDTO registerCustomer(RegisterCustomerRequestDTO request) {
@@ -116,6 +172,7 @@ public class AuthService {
         CustomerDetails customerDetails = CustomerDetails.builder()
                 .user(customer)
                 .plafond(bronzePlafond)
+                .remainingPlafond(bronzePlafond.getMaxAmount())
                 .build();
 
         // ⬇️ Simpan CustomerDetails
@@ -125,36 +182,40 @@ public class AuthService {
         return CustomerResponseDTO.fromUser(customer, customerDetails);
     }
 
-
     @Transactional
     public void logout(String token) {
-        Logger logger = LoggerFactory.getLogger(AuthService.class);
+        String extractedToken = jwtUtils.extractToken(token);
 
-        String extractedToken = jwtUtils.extractToken(token); // Hapus prefix "Bearer "
-
-        // Cek apakah token sudah di-blacklist
+        // Cek apakah token sudah diblacklist
         if (tokenService.isTokenBlacklisted(extractedToken)) {
             throw new CustomException("Token sudah tidak valid", HttpStatus.BAD_REQUEST);
         }
 
-        // Ambil email dari token JWT
-        String email = jwtUtils.getUsername(extractedToken);
+        // Ambil username (email atau NIP) dari JWT
+        String username = jwtUtils.getUsername(extractedToken);
+        User user = userService.getUserByEmailOrNip(username);
 
-        // Ambil expiry date dari token JWT
+        // Cek expiry token dan blacklist jika belum expired
         Date expiryDate = jwtUtils.getExpirationDateFromToken(extractedToken);
+        if (expiryDate.after(new Date())) {
+            tokenService.blacklistToken(
+                    extractedToken,
+                    LocalDateTime.ofInstant(expiryDate.toInstant(), ZoneId.systemDefault())
+            );
+        }
 
-        // Tambahkan token ke blacklist dengan expiry date yang sesuai
-        tokenService.blacklistToken(extractedToken, LocalDateTime.now().plusSeconds(expiryDate.getTime() / 1000));
-
-        // Hapus sesi login dari Redis agar user bisa login lagi
-        redisService.removeSession(email);
-
-        logger.info("User dengan email {} berhasil logout", email);
+        // Hapus session Redis sesuai userType
+        if (user.getUserType() == UserType.PEGAWAI) {
+            redisService.removePegawaiSession(user.getPegawaiDetails().getNip());
+        } else if (user.getUserType() == UserType.CUSTOMER) {
+            String email = user.getEmail().toLowerCase().trim();  // Normalisasi
+            redisService.removeCustomerSession(email);
+        }
     }
 
     @Transactional
     public void changePassword(ChangePasswordRequest request) {
-        User user = userService.findByEmail(request.getEmail());
+        User user = userService.findByNip(request.getNip());
 
         if (!passwordEncoder.matches(request.getOldPassword(), user.getPassword())) {
             throw new CustomException("Password lama tidak cocok", HttpStatus.BAD_REQUEST);
@@ -168,4 +229,28 @@ public class AuthService {
         redisService.removeFirstLoginStatus(user.getId().toString());
     }
 
+    public boolean handleFirstLogin(User user) {
+        String userId = user.getId().toString();
+
+        // Cek Redis dulu
+        Boolean redisStatus = redisService.getFirstLoginStatus(userId);
+        boolean isFirstLogin;
+
+        if (redisStatus != null) {
+            isFirstLogin = redisStatus;
+        } else {
+            // Ambil dari DB
+            isFirstLogin = user.isFirstLogin();
+            redisService.setFirstLoginStatus(userId, isFirstLogin);
+        }
+
+        // Jika firstLogin = true → update ke false
+        if (isFirstLogin) {
+            user.setFirstLogin(false);
+            userRepository.save(user);
+            redisService.setFirstLoginStatus(userId, false);
+        }
+
+        return isFirstLogin;
+    }
 }

@@ -22,6 +22,7 @@ import org.springframework.security.core.Authentication;
 import org.springframework.security.core.context.SecurityContextHolder;
 
 import java.util.List;
+import java.util.Optional;
 import java.util.UUID;
 import java.util.stream.Collectors;
 
@@ -51,10 +52,22 @@ public class UserService implements UserDetailsService {
                 .orElseThrow(() -> new CustomException("User tidak ditemukan!", HttpStatus.NOT_FOUND));
     }
 
+    // Find user by NIP
+    public User findByNip(String nip) {
+        return userRepository.findByPegawaiDetails_Nip(nip)
+                .orElseThrow(() -> new CustomException("User dengan NIP " + nip + " tidak ditemukan", HttpStatus.NOT_FOUND));
+    }
+
     // Find user by Email
     public User findByEmail(String email) {
         return userRepository.findByEmail(email)
                 .orElseThrow(() -> new CustomException("User dengan email " + email + " tidak ditemukan", HttpStatus.NOT_FOUND));
+    }
+
+    // Find user by email or nip
+    public User getUserByEmailOrNip(String username) {
+        return userRepository.findByEmailOrNip(username)
+                .orElseThrow(() -> new CustomException("User tidak ditemukan", HttpStatus.NOT_FOUND));
     }
 
     // save
@@ -135,6 +148,16 @@ public class UserService implements UserDetailsService {
                     .orElseThrow(() -> new CustomException("User dengan email " + email + " tidak ditemukan", HttpStatus.NOT_FOUND));
         } catch (Exception e) {
             logger.error("Error saat mengambil pengguna dengan email {}: {}", email, e.getMessage(), e);
+            throw new CustomException("Gagal mengambil pengguna", HttpStatus.INTERNAL_SERVER_ERROR);
+        }
+    }
+
+    public User getPegawaiByNip(String nip) {
+        try {
+            return userRepository.findByPegawaiDetails_Nip(nip)
+                    .orElseThrow(() -> new CustomException("User dengan NIP " + nip + " tidak ditemukan", HttpStatus.NOT_FOUND));
+        } catch (Exception e) {
+            logger.error("Error saat mengambil pengguna dengan NIP {}: {}", nip, e.getMessage(), e);
             throw new CustomException("Gagal mengambil pengguna", HttpStatus.INTERNAL_SERVER_ERROR);
         }
     }
