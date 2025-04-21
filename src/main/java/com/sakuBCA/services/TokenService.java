@@ -56,10 +56,6 @@ public class TokenService {
         tokenRepository.delete(token);
     }
 
-    public boolean tokenExist(String token) {
-        return blacklistedTokenRepository.existsByToken(hashToken(token));
-    }
-
     public void blacklistToken(String token, LocalDateTime expiryDate) {
         String hashedToken = hashToken(token);
         if (blacklistedTokenRepository.existsByToken(hashedToken)) {

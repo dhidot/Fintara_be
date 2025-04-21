@@ -2,10 +2,7 @@ package com.sakuBCA.services;
 
 import com.sakuBCA.config.security.JwtResponse;
 import com.sakuBCA.config.security.UserDetailsImpl;
-import com.sakuBCA.dtos.authDTO.ChangePasswordRequest;
-import com.sakuBCA.dtos.authDTO.LoginRequest;
-import com.sakuBCA.dtos.authDTO.LoginRequestCustomer;
-import com.sakuBCA.dtos.authDTO.LoginRequestPegawai;
+import com.sakuBCA.dtos.authDTO.*;
 import com.sakuBCA.dtos.customerDTO.RegisterCustomerRequestDTO;
 import com.sakuBCA.dtos.customerDTO.CustomerResponseDTO;
 import com.sakuBCA.enums.UserType;
@@ -17,6 +14,7 @@ import jakarta.transaction.Transactional;
 import lombok.RequiredArgsConstructor;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.context.annotation.Bean;
+import org.springframework.context.annotation.Lazy;
 import org.springframework.http.HttpStatus;
 import org.springframework.security.authentication.AuthenticationManager;
 import org.springframework.security.authentication.UsernamePasswordAuthenticationToken;
@@ -38,11 +36,14 @@ public class AuthService {
     @Autowired
     private UserRepository userRepository;
     @Autowired
+    @Lazy
     private UserService userService;
     @Autowired
     private TokenService tokenService;
     @Autowired
     private RoleService roleService;
+    @Autowired
+    private EmailService emailService;
     @Autowired
     private PasswordEncoder passwordEncoder;
     @Autowired
@@ -56,6 +57,7 @@ public class AuthService {
     @Autowired
     private RedisService redisService;
 
+    private static final Logger logger = LoggerFactory.getLogger(UserService.class);
 
     @Transactional
     public Map<String, Object> loginCustomer(LoginRequestCustomer request) {
@@ -92,7 +94,7 @@ public class AuthService {
         redisService.saveCustomerSession(email, jwt);
 
         // Siapkan response
-        JwtResponse jwtResponse = new JwtResponse(jwt, user.getEmail(), user.getRole().getName(), userDetails.getFeatures());
+        JwtResponse jwtResponse = new JwtResponse(jwt, user.getEmail(), user.getRole().getName(), userDetails.getFeatures(), user.getName());
         Map<String, Object> response = new HashMap<>();
         response.put("status", "success");
 
@@ -132,7 +134,7 @@ public class AuthService {
 
         redisService.savePegawaiSession(nip, jwt);
 
-        JwtResponse jwtResponse = new JwtResponse(jwt, user.getEmail(), user.getRole().getName(), userDetails.getFeatures());
+        JwtResponse jwtResponse = new JwtResponse(jwt, user.getEmail(), user.getRole().getName(), userDetails.getFeatures(), user.getName());
 
         Map<String, Object> data = new HashMap<>();
         data.put("jwt", jwtResponse);
@@ -215,18 +217,79 @@ public class AuthService {
 
     @Transactional
     public void changePassword(ChangePasswordRequest request) {
-        User user = userService.findByNip(request.getNip());
+        User user = userService.getAuthenticatedUser(); // ambil user yang sedang login
 
+        // Validasi password lama
         if (!passwordEncoder.matches(request.getOldPassword(), user.getPassword())) {
             throw new CustomException("Password lama tidak cocok", HttpStatus.BAD_REQUEST);
         }
 
+        // Validasi password baru dan konfirmasi
+        if (!request.getNewPassword().equals(request.getConfirmNewPassword())) {
+            throw new CustomException("Konfirmasi password baru tidak cocok", HttpStatus.BAD_REQUEST);
+        }
+
+        // Update password
         user.setPassword(passwordEncoder.encode(request.getNewPassword()));
-        user.setFirstLogin(false);  // ✅ Setelah ganti password, set isFirstLogin = false
+        user.setFirstLogin(false); // jika ada first login logic
         userRepository.save(user);
 
-        // ✅ Hapus status first login di Redis
+        // Hapus status first login jika kamu pakai Redis
         redisService.removeFirstLoginStatus(user.getId().toString());
+    }
+
+    public void sendResetPasswordToken(String email) {
+        try {
+            User user = userRepository.findByEmail(email)
+                    .orElseThrow(() -> new CustomException("User tidak ditemukan", HttpStatus.NOT_FOUND));
+
+            // 🔹 Generate token menggunakan TokenService
+            String token = tokenService.generateToken(user);
+
+            // 🔹 Buat link reset password
+            String baseUrl = "localhost:4200/#/reset-password"; // Ganti dengan URL frontend kamu
+            String resetLink = baseUrl + "?token=" + token;
+
+            // 🔹 Kirim email dengan link reset password
+            emailService.sendResetPasswordEmail(email, resetLink);
+
+        } catch (CustomException e) {
+            logger.error("Kesalahan bisnis: {}", e.getMessage());
+            throw e;
+        } catch (Exception e) {
+            logger.error("Error saat mengirim token reset password: {}", e.getMessage(), e);
+            throw new CustomException("Gagal mengirim token reset password", HttpStatus.INTERNAL_SERVER_ERROR);
+        }
+    }
+
+    @Transactional
+    public void resetPassword(ResetPasswordRequest request) {
+        try {
+            // 1️⃣ Validasi password baru dan konfirmasi
+            if (!request.getNewPassword().equals(request.getConfirmPassword())) {
+                throw new CustomException("Password baru dan konfirmasi tidak cocok", HttpStatus.BAD_REQUEST);
+            }
+
+            // 2️⃣ Validasi token menggunakan TokenService
+            PasswordResetToken resetToken = tokenService.validateToken(request.getToken());
+
+            // 3️⃣ Update password user
+            User user = resetToken.getUser();
+            user.setPassword(passwordEncoder.encode(request.getNewPassword()));
+            userRepository.save(user);
+
+            // 4️⃣ Hapus token setelah digunakan
+            tokenService.deleteToken(resetToken);
+
+            logger.info("Password berhasil diubah untuk user: {}", user.getEmail());
+
+        } catch (CustomException e) {
+            logger.error("Kesalahan bisnis: {}", e.getMessage());
+            throw e;
+        } catch (Exception e) {
+            logger.error("Error saat mereset password: {}", e.getMessage(), e);
+            throw new CustomException("Gagal mereset password", HttpStatus.INTERNAL_SERVER_ERROR);
+        }
     }
 
     public boolean handleFirstLogin(User user) {
@@ -242,13 +305,6 @@ public class AuthService {
             // Ambil dari DB
             isFirstLogin = user.isFirstLogin();
             redisService.setFirstLoginStatus(userId, isFirstLogin);
-        }
-
-        // Jika firstLogin = true → update ke false
-        if (isFirstLogin) {
-            user.setFirstLogin(false);
-            userRepository.save(user);
-            redisService.setFirstLoginStatus(userId, false);
         }
 
         return isFirstLogin;

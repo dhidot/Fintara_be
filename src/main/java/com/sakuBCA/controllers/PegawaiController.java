@@ -23,7 +23,7 @@ import java.util.UUID;
 public class PegawaiController {
     private final PegawaiService pegawaiService;
 
-    @Secured("FEATURE_EMPLOYEE_ACCESS")
+    @Secured("FEATURE_ADD_EMPLOYEE_ACCESS")
     @PostMapping("/register")
     public ResponseEntity<RegisterPegawaiResponseDTO> registerPegawai(
             @RequestHeader("Authorization") String token,
@@ -32,25 +32,30 @@ public class PegawaiController {
         return ResponseEntity.ok(response);
     }
 
-    @Secured("FEATURE_EMPLOYEE_ACCESS")
+    @Secured("FEATURE_GET_ALL_EMPLOYEE_ACCESS")
     @GetMapping
     public ResponseEntity<List<UserWithPegawaiResponseDTO>> getAllPegawai() {
         List<UserWithPegawaiResponseDTO> pegawai = pegawaiService.getAllPegawai();
         return ResponseEntity.ok(pegawaiService.getAllPegawai());
     }
 
-    @Secured("FEATURE_EMPLOYEE_ACCESS")
+    @Secured("FEATURE_PROFILE_EMPLOYEE_ACCESS")  // Pastikan role/feature security sudah sesuai
+    @GetMapping("/me")
+    public UserWithPegawaiResponseDTO getMyProfile() {
+        return pegawaiService.getMyProfile();
+    }
+
+    @Secured("FEATURE_GET_EMPLOYEE_BY_ID_ACCESS")
     @GetMapping("/{id}")
     public ResponseEntity<UserWithPegawaiResponseDTO> getPegawaiById(@PathVariable UUID id) {
         UserWithPegawaiResponseDTO pegawai = pegawaiService.getPegawaiById(id);
         return ResponseEntity.ok(pegawai);
     }
 
-    @Secured("FEATURE_EMPLOYEE_ACCESS")
+    @Secured("FEATURE_DELETE_EMPLOYEE_ACCESS")
     @DeleteMapping("/{id}")
     public ResponseEntity<String> deletePegawai(@PathVariable UUID id) {
         pegawaiService.deletePegawai(id);
         return ResponseEntity.ok("Pegawai dengan ID " + id + " berhasil dihapus");
     }
-
 }

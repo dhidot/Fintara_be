@@ -9,7 +9,6 @@ import java.util.UUID;
 @Data
 @Builder
 public class LoanRequestDTO {
-    private UUID customerId;
     private BigDecimal amount;
     private Integer tenor;
     private double latitude;

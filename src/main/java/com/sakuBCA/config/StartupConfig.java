@@ -75,10 +75,21 @@ public class StartupConfig {
 
     private void initFeatures(FeatureRepository featureRepository, RoleRepository roleRepository, RoleFeatureRepository roleFeatureRepository) {
         List<Map<String, String>> featureRoles = List.of(
-                Map.of("name", "FEATURE_BRANCHES_ACCESS", "role", "SUPER_ADMIN"),
-                Map.of("name", "FEATURE_CUSTOMER_ACCESS", "role", "SUPER_ADMIN"),
+                Map.of("name", "FEATURE_ADD_BRANCHES_ACCESS", "role", "SUPER_ADMIN"),
+                Map.of("name", "FEATURE_GET_ALL_BRANCHES_ACCESS", "role", "SUPER_ADMIN"),
+                Map.of("name", "FEATURE_GET_BRANCHES_BY_ID_ACCESS", "role", "SUPER_ADMIN"),
+                Map.of("name", "FEATURE_UPDATE_BRANCHES_ACCESS", "role", "SUPER_ADMIN"),
+                Map.of("name", "FEATURE_DELETE_BRANCHES_ACCESS", "role", "SUPER_ADMIN"),
+                Map.of("name", "FEATURE_GET_ALL_CUSTOMER_ACCESS", "role", "SUPER_ADMIN"),
                 Map.of("name", "FEATURE_FEATURES_ACCESS", "role", "SUPER_ADMIN"),
-                Map.of("name", "FEATURE_EMPLOYEE_ACCESS", "role", "SUPER_ADMIN"),
+                Map.of("name", "FEATURE_ADD_EMPLOYEE_ACCESS", "role", "SUPER_ADMIN"),
+                Map.of("name", "FEATURE_GET_ALL_EMPLOYEE_ACCESS", "role", "SUPER_ADMIN"),
+                Map.of("name", "FEATURE_PROFILE_EMPLOYEE_ACCESS", "role", "SUPER_ADMIN"),
+                Map.of("name", "FEATURE_PROFILE_EMPLOYEE_ACCESS", "role", "BRANCH_MANAGER"),
+                Map.of("name", "FEATURE_PROFILE_EMPLOYEE_ACCESS", "role", "MARKETING"),
+                Map.of("name", "FEATURE_PROFILE_EMPLOYEE_ACCESS", "role", "BACK_OFFICE"),
+                Map.of("name", "FEATURE_GET_EMPLOYEE_BY_ID_ACCESS", "role", "SUPER_ADMIN"),
+                Map.of("name", "FEATURE_DELETE_EMPLOYEE_ACCESS", "role", "SUPER_ADMIN"),
                 Map.of("name", "FEATURE_PEGAWAI_PROFILE", "role", "SUPER_ADMIN"),
                 Map.of("name", "FEATURE_ROLE_ACCESS", "role", "SUPER_ADMIN"),
                 Map.of("name", "FEATURE_ROLE_FEATURE_ACCESS", "role", "SUPER_ADMIN"),
@@ -86,6 +97,9 @@ public class StartupConfig {
                 Map.of("name", "FEATURE_PLAFOND_ACCESS", "role", "SUPER_ADMIN"),
                 Map.of("name", "FEATURE_LOAN_STATUS", "role", "SUPER_ADMIN"),
                 Map.of("name", "FEATURE_CREATE_LOAN_REQUEST", "role", "CUSTOMER"),
+                Map.of("name", "FEATURE_REVIEW_LOAN_REQUEST", "role", "MARKETING"),
+                Map.of("name", "FEATURE_REVIEW_LOAN_REQUEST", "role", "BRANCH_MANAGER"),
+                Map.of("name", "FEATURE_REVIEW_LOAN_REQUEST", "role", "BACK_OFFICE"),
                 Map.of("name", "FEATURE_APPROVAL_MARKETING", "role", "MARKETING"),
                 Map.of("name", "FEATURE_APPROVAL_BM", "role", "BRANCH_MANAGER"),
                 Map.of("name", "FEATURE_DISBURSE", "role", "BACK_OFFICE"),
@@ -95,7 +109,19 @@ public class StartupConfig {
                 Map.of("name", "FEATURE_UPDATE_CUSTOMER_PROFILE", "role", "CUSTOMER"),
                 Map.of("name", "FEATURE_UPDATE_PEGAWAI_PROFILE", "role", "SUPER_ADMIN"),
                 Map.of("name", "FEATURE_UPDATE_PEGAWAI_PROFILE", "role", "MARKETING"),
-                Map.of("name", "FEATURE_UPDATE_PEGAWAI_PROFILE", "role", "BRANCH_MANAGER")
+                Map.of("name", "FEATURE_UPDATE_PEGAWAI_PROFILE", "role", "BRANCH_MANAGER"),
+                Map.of("name", "FEATURE_DASHBOARD_ACCESS", "role", "SUPER_ADMIN"),
+                Map.of("name", "FEATURE_DASHBOARD_ACCESS", "role", "CUSTOMER"),
+                Map.of("name", "FEATURE_DASHBOARD_ACCESS", "role", "BACK_OFFICE"),
+                Map.of("name", "FEATURE_DASHBOARD_ACCESS", "role", "BRANCH_MANAGER"),
+                Map.of("name", "FEATURE_DASHBOARD_ACCESS", "role", "MARKETING"),
+                Map.of("name", "FEATURE_APPROVAL_HISTORY", "role", "BACK_OFFICE"),
+                Map.of("name", "FEATURE_APPROVAL_HISTORY", "role", "MARKETING"),
+                Map.of("name", "FEATURE_APPROVAL_HISTORY", "role", "BRANCH_MANAGER"),
+                Map.of("name", "FEATURE_CHANGE_PASSWORD_EMPLOYEE_ACCESS", "role", "BACK_OFFICE"),
+                Map.of("name", "FEATURE_CHANGE_PASSWORD_EMPLOYEE_ACCESS", "role", "MARKETING"),
+                Map.of("name", "FEATURE_CHANGE_PASSWORD_EMPLOYEE_ACCESS", "role", "BRANCH_MANAGER"),
+                Map.of("name", "FEATURE_CHANGE_PASSWORD_EMPLOYEE_ACCESS", "role", "SUPER_ADMIN")
         );
 
         for (Map<String, String> featureRole : featureRoles) {

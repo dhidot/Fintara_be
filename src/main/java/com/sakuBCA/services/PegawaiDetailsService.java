@@ -89,5 +89,4 @@ public class PegawaiDetailsService {
 
         return "Pegawai details updated successfully!";
     }
-
 }

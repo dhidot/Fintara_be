@@ -17,7 +17,7 @@ public interface LoanRequestRepository extends JpaRepository<LoanRequest, UUID> 
     List<LoanRequest> findByCustomer(CustomerDetails customer);
 
     @Query("SELECT lr.marketing.id, COUNT(lr) FROM LoanRequest lr WHERE lr.branch.id = :branchId GROUP BY lr.marketing.id")
-    Map<UUID, Long> countLoanRequestsByMarketing(@Param("branchId") UUID branchId);
+    List<Object[]> countLoanRequestsByMarketing(@Param("branchId") UUID branchId);
 
     @Query("SELECT lr FROM LoanRequest lr WHERE lr.marketing.id = :marketingId AND lr.status.name = 'REVIEW'")
     List<LoanRequest> findByMarketingId(@Param("marketingId") UUID marketingId);

@@ -28,25 +28,25 @@ public class FeatureController {
         return features.stream().map(FeatureDTO::new).toList();
     }
 
-    @Secured("FEATURE_FEATURES_ACCESS")
+    @Secured("FEATURE_ADD_FEATURES_ACCESS")
     @PostMapping
     public Feature createFeature(@RequestBody Feature feature) {
         return featureService.createFeature(feature);
     }
 
-    @Secured("FEATURE_FEATURES_ACCESS")
+    @Secured("FEATURE_GET_FEATURES_BY_ID_ACCESS")
     @GetMapping("/{id}")
     public Feature getFeatureById(@PathVariable UUID id) {
         return featureService.getFeatureById(id);
     }
 
-    @Secured("FEATURE_FEATURES_ACCESS")
+    @Secured("FEATURE_UPDATE_FEATURES_ACCESS")
     @PutMapping("/{id}")
     public Feature updateFeature(@PathVariable UUID id, @RequestBody Feature feature) {
         return featureService.updateFeature(id, feature);
     }
 
-    @Secured("FEATURE_FEATURES_ACCESS")
+    @Secured("FEATURE_DELETE_FEATURES_ACCESS")
     @DeleteMapping("/{id}")
     public void deleteFeature(@PathVariable UUID id) {
         featureService.deleteFeature(id);

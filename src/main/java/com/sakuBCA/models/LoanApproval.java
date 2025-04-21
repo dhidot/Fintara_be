@@ -22,8 +22,8 @@ public class LoanApproval {
     private LoanRequest loanRequest;
 
     @ManyToOne
-    @JoinColumn(name = "approved_by", nullable = false)
-    private User approvedBy; // User yang menyetujui (Marketing/BM/Back Office)
+    @JoinColumn(name = "handled_by", nullable = false)
+    private User handledBy; // User yang menyetujui (Marketing/BM/Back Office)
 
     @ManyToOne
     @JoinColumn(name = "status_id", nullable = false)

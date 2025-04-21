@@ -52,25 +52,31 @@ public class AuthController {
     }
 
     @PostMapping("/forgot-password")
-    public ResponseEntity<String> forgotPassword(@RequestBody Map<String, String> requestBody) {
+    public ResponseEntity<Map<String, String>> forgotPassword(@RequestBody Map<String, String> requestBody) {
         String email = requestBody.get("email");
 
         if (email == null || email.isEmpty()) {
-            return ResponseEntity.badRequest().body("Email tidak boleh kosong.");
+            return ResponseEntity.badRequest().body(
+                    Collections.singletonMap("message", "Email tidak boleh kosong.")
+            );
         }
 
-        userService.sendResetPasswordToken(email);
-        return ResponseEntity.ok("Token reset password telah dikirim ke email.");
+        authService.sendResetPasswordToken(email);
+
+        return ResponseEntity.ok(
+                Collections.singletonMap("message", "Token reset password telah dikirim ke email.")
+        );
     }
+
 
     @PostMapping("/reset-password")
     public ResponseEntity<?> resetPassword(@RequestBody ResetPasswordRequest request) {
-        userService.resetPassword(request);
+        authService.resetPassword(request);
         return ResponseEntity.ok(Collections.singletonMap("message", "Password berhasil diubah"));
     }
 
     @PutMapping("/change-password")
-    public ResponseEntity<?> changePassword(@RequestBody ChangePasswordRequest request) {
+    public ResponseEntity<?> changePassword(@Valid @RequestBody ChangePasswordRequest request) {
         authService.changePassword(request);
         return ResponseEntity.ok(Collections.singletonMap("message", "Password berhasil diperbarui"));
     }

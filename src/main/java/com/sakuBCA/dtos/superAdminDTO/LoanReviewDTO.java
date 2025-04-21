@@ -7,7 +7,6 @@ import lombok.Setter;
 
 @Data
 public class LoanReviewDTO {
-    @JsonProperty("isApproved")
-    private Boolean isApproved;
+    private String status;
     private String notes;
 }

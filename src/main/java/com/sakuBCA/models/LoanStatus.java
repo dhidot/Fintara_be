@@ -20,5 +20,5 @@ public class LoanStatus {
     private UUID id;
 
     @Column(unique = true, nullable = false)
-    private String name; // Contoh: SEDANG_DIREVIEW, DITOLAK, APPROVED, DISBURSED
+    private String name;
 }

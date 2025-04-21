@@ -26,6 +26,9 @@ public interface UserRepository extends JpaRepository<User, UUID> {
     @Query("SELECT u FROM User u LEFT JOIN FETCH u.pegawaiDetails WHERE u.id = :userId")
     Optional<User> findByIdWithPegawai(@Param("userId") UUID userId);
 
+    @Query("SELECT u FROM User u LEFT JOIN FETCH u.customerDetails WHERE u.id = :userId")
+    Optional<User> findByIdWithCustomer(@Param("userId") UUID userId);
+
     @EntityGraph(attributePaths = {"customerDetails", "customerDetails.plafond"})
     @Query("SELECT u FROM User u WHERE u.email = :email")
     Optional<User> findByEmailWithDetails(@Param("email") String email);

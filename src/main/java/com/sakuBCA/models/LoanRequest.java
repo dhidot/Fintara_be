@@ -46,5 +46,7 @@ public class LoanRequest {
     private LocalDateTime approvalBMAt;
     private LocalDateTime disbursedAt;
 
-    // ❌ removed: repaymentStatus, remainingAmount, monthlyInstallment, dueDate, paidOffDate
+    public String getStatusName() {
+        return this.status != null ? this.status.getName() : null;
+    }
 }

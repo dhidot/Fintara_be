@@ -16,6 +16,8 @@ public interface RoleRepository extends JpaRepository<Role, UUID> {
 
     Optional<Role> findByName(String name);
 
+    Optional<Role> findById(UUID id);
+
     @Query("SELECT r FROM Role r LEFT JOIN FETCH r.roleFeatures")
     List<Role> findAllWithFeatures();
 

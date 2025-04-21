@@ -31,7 +31,7 @@ public class BranchService {
         return ResponseEntity.ok(branchRepository.save(branch));
     }
 
-    public Map<UUID, String> getAllBranches() {
+    public List<Branch> getAllBranches() {
         try {
             List<Branch> branches = branchRepository.findAll();
             if (branches.isEmpty()) {
@@ -39,11 +39,10 @@ public class BranchService {
             } else {
                 logger.info("Fetched {} branches", branches.size());
             }
-            return branches.stream()
-                    .collect(Collectors.toMap(Branch::getId, Branch::getName));
+            return branches; // Kembalikan List<Branch> langsung
         } catch (Exception e) {
             logger.error("Error fetching branches: {}", e.getMessage(), e);
-            return Collections.emptyMap();
+            return Collections.emptyList(); // Kembalikan list kosong jika terjadi error
         }
     }
 
@@ -51,13 +50,16 @@ public class BranchService {
         Branch branch = branchRepository.findById(id)
                 .orElseThrow(() -> new CustomException("Branch dengan ID " + id + " tidak ditemukan", HttpStatus.NOT_FOUND));
 
-        // Konversi model ke DTO
+        // Mengambil latitude dan longitude
         BranchDTO branchDTO = new BranchDTO();
         branchDTO.setName(branch.getName());
         branchDTO.setAddress(branch.getAddress());
+        branchDTO.setLatitude(branch.getLatitude());   // Pastikan ini ada
+        branchDTO.setLongitude(branch.getLongitude()); // Pastikan ini ada
 
         return branchDTO;
     }
+
 
     public Branch findBranchById(UUID id) {
         return branchRepository.findById(id)
@@ -97,6 +99,8 @@ public class BranchService {
         BranchDTO dto = new BranchDTO();
         dto.setName(branch.getName());
         dto.setAddress(branch.getAddress());
+        dto.setLatitude(branch.getLatitude());
+        dto.setLongitude(branch.getLongitude());
         return dto;
     }
 
@@ -104,23 +108,33 @@ public class BranchService {
         Branch branch = branchRepository.findById(id)
                 .orElseThrow(() -> new CustomException("Branch dengan ID ini tidak ditemukan", HttpStatus.NOT_FOUND));
 
-        // Cek apakah nama baru sudah digunakan oleh branch lain
-        if (branchRepository.findByName(request.getName()).isPresent()) {
-            throw new CustomException("Nama branch ini sudah digunakan", HttpStatus.BAD_REQUEST);
+        // Cek apakah nama baru sudah digunakan oleh branch lain, kecuali untuk branch itu sendiri
+        if (request.getName() != null && branchRepository.findByName(request.getName()).isPresent()) {
+            Branch existingBranch = branchRepository.findByName(request.getName()).get();
+            if (!existingBranch.getId().equals(id)) {
+                throw new CustomException("Nama branch ini sudah digunakan", HttpStatus.BAD_REQUEST);
+            }
         }
 
-        // **Pastikan field yang tidak diperbarui tetap dipertahankan**
+        // Update properti yang diterima dari request
         if (request.getName() != null) {
             branch.setName(request.getName());
         }
         if (request.getAddress() != null) {
             branch.setAddress(request.getAddress());
         }
+        if (request.getLatitude() != null) {
+            branch.setLatitude(request.getLatitude());
+        }
+        if (request.getLongitude() != null) {
+            branch.setLongitude(request.getLongitude());
+        }
 
         branchRepository.save(branch);
 
         return mapToDTO(branch);
     }
+
 
     public void deleteBranch(UUID id) {
         Branch branch = branchRepository.findById(id)
@@ -129,4 +143,7 @@ public class BranchService {
         branchRepository.delete(branch);
     }
 
+    public Long count() {
+        return branchRepository.count();
+    }
 }

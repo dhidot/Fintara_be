@@ -16,6 +16,10 @@ public class FeatureService {
     @Autowired
     private final FeatureRepository featureRepository;
 
+    public List<Feature> findAllById(List<UUID> ids) {
+        return featureRepository.findAllById(ids);
+    }
+
     public List<Feature> getAllFeatures() {
         return featureRepository.findAll();
     }

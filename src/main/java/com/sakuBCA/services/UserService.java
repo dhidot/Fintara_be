@@ -2,6 +2,7 @@ package com.sakuBCA.services;
 
 import com.sakuBCA.dtos.authDTO.ResetPasswordRequest;
 import com.sakuBCA.dtos.customerDTO.CustomerDetailsDTO;
+import com.sakuBCA.dtos.customerDTO.UserWithCustomerResponseDTO;
 import com.sakuBCA.dtos.pegawaiDTO.PegawaiDetailsDTO;
 import com.sakuBCA.dtos.superAdminDTO.UserResponseDTO;
 import com.sakuBCA.config.exceptions.CustomException;
@@ -176,22 +177,19 @@ public class UserService implements UserDetailsService {
 
     public User getAuthenticatedUser() {
         Authentication authentication = SecurityContextHolder.getContext().getAuthentication();
-        String username = authentication.getName();  // Get the username of the authenticated user
-        return userRepository.findByEmail(username)  // Assuming email is used as the username
+        String username = authentication.getName();
+        return userRepository.findByEmail(username)
                 .orElseThrow(() -> new CustomException("User not found", HttpStatus.UNAUTHORIZED));
     }
 
     public UUID getBranchIdByUserId(UUID userId) {
-        // Cari user berdasarkan ID
         User user = userRepository.findById(userId)
                 .orElseThrow(() -> new CustomException("User tidak ditemukan", HttpStatus.NOT_FOUND));
 
-        // Cek apakah user memiliki relasi dengan pegawai details (di mana branch ID tersimpan)
         if (user.getPegawaiDetails() == null || user.getPegawaiDetails().getBranch() == null) {
             throw new CustomException("User tidak terkait dengan cabang manapun", HttpStatus.BAD_REQUEST);
         }
 
-        // Kembalikan branch ID
         return user.getPegawaiDetails().getBranch().getId();
     }
 
@@ -230,62 +228,22 @@ public class UserService implements UserDetailsService {
         }
     }
 
-    public void sendResetPasswordToken(String email) {
+    public UserWithCustomerResponseDTO getCustomerUserById(UUID userId) {
         try {
-            User user = userRepository.findByEmail(email)
-                    .orElseThrow(() -> new CustomException("User tidak ditemukan", HttpStatus.NOT_FOUND));
+            User user = userRepository.findByIdWithCustomer(userId)
+                    .orElseThrow(() -> new CustomException("User dengan ID " + userId + " tidak ditemukan", HttpStatus.NOT_FOUND));
 
-            // 🔹 Generate token menggunakan TokenService
-            String token = tokenService.generateToken(user);
-
-            // 🔹 Buat link reset password
-            String baseUrl = "https://yourfrontend.com/reset-password";
-            String resetLink = baseUrl + "?token=" + token;
-
-            // 🔹 Kirim email dengan link reset password
-            emailService.sendResetPasswordEmail(email, resetLink);
-
-        } catch (CustomException e) {
-            logger.error("Kesalahan bisnis: {}", e.getMessage());
-            throw e;
+            return new UserWithCustomerResponseDTO(
+                    user.getId(),
+                    user.getName(),
+                    user.getEmail(),
+                    user.getRole().getName(),
+                    new CustomerDetailsDTO(user.getCustomerDetails())
+            );
         } catch (Exception e) {
-            logger.error("Error saat mengirim token reset password: {}", e.getMessage(), e);
-            throw new CustomException("Gagal mengirim token reset password", HttpStatus.INTERNAL_SERVER_ERROR);
+            logger.error("Error saat mengambil pengguna dengan ID {}: {}", userId, e.getMessage(), e);
+            throw new CustomException("Gagal mengambil pengguna", HttpStatus.INTERNAL_SERVER_ERROR);
         }
-    }
-
-    public void resetPassword(ResetPasswordRequest request) {
-        try {
-            // 1️⃣ Validasi password baru dan konfirmasi
-            if (!request.getNewPassword().equals(request.getConfirmPassword())) {
-                throw new CustomException("Password baru dan konfirmasi tidak cocok", HttpStatus.BAD_REQUEST);
-            }
-
-            // 2️⃣ Validasi token menggunakan TokenService
-            PasswordResetToken resetToken = tokenService.validateToken(request.getToken());
-
-            // 3️⃣ Update password user
-            User user = resetToken.getUser();
-            user.setPassword(passwordEncoder.encode(request.getNewPassword()));
-            userRepository.save(user);
-
-            // 4️⃣ Hapus token setelah digunakan
-            tokenService.deleteToken(resetToken);
-
-            logger.info("Password berhasil diubah untuk user: {}", user.getEmail());
-
-        } catch (CustomException e) {
-            logger.error("Kesalahan bisnis: {}", e.getMessage());
-            throw e;
-        } catch (Exception e) {
-            logger.error("Error saat mereset password: {}", e.getMessage(), e);
-            throw new CustomException("Gagal mereset password", HttpStatus.INTERNAL_SERVER_ERROR);
-        }
-    }
-
-    public User getUserWithPegawaiDetails(UUID userId) {
-        return userRepository.findUserWithPegawaiDetailsById(userId)
-                .orElseThrow(() -> new CustomException("User not found", HttpStatus.NOT_FOUND));
     }
 }
 

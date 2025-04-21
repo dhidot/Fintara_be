@@ -24,19 +24,20 @@ public class JwtUtils {
 
 
     public String generateToken(Authentication authentication) {
-        String username;
-        if (authentication.getPrincipal() instanceof UserDetailsImpl userPrincipal) {
-            username = userPrincipal.getUsername();
-        } else {
+        if (!(authentication.getPrincipal() instanceof UserDetailsImpl userPrincipal)) {
             throw new IllegalArgumentException("Unsupported principal type");
         }
+
         Date now = new Date();
         Calendar calendar = Calendar.getInstance();
-        calendar.setTime(new Date());
+        calendar.setTime(now);
         calendar.add(Calendar.HOUR, jwtExpirationHour);
         Date expiredDate = calendar.getTime();
+
         return Jwts.builder()
-                .subject(username)
+                .subject(userPrincipal.getUsername())
+                .claim("userId", userPrincipal.getUserId().toString())
+                .claim("role", userPrincipal.getRoleName().toString())
                 .issuedAt(now)
                 .expiration(expiredDate)
                 .signWith(getSignKey())
@@ -55,6 +56,24 @@ public class JwtUtils {
     private SecretKey getSignKey() {
         byte[] keyBytes = Decoders.BASE64.decode(secretKey);
         return Keys.hmacShaKeyFor(keyBytes);
+    }
+
+    public String getUserId(String jwt) {
+        return Jwts.parser()
+                .verifyWith(getSignKey())
+                .build()
+                .parseSignedClaims(jwt)
+                .getPayload()
+                .getId();
+    }
+
+    public String getRoleName(String jwt) {
+        return Jwts.parser()
+                .verifyWith(getSignKey())
+                .build()
+                .parseSignedClaims(jwt)
+                .getPayload()
+                .get("role", String.class);
     }
 
     public String extractToken(String bearerToken) {

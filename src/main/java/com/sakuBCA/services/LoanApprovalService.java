@@ -1,6 +1,7 @@
 package com.sakuBCA.services;
 
 import com.sakuBCA.config.exceptions.CustomException;
+import com.sakuBCA.dtos.loanApprovalDTO.LoanApprovalHistoryResponse;
 import com.sakuBCA.models.LoanApproval;
 import com.sakuBCA.models.LoanRequest;
 import com.sakuBCA.models.LoanStatus;
@@ -54,7 +55,7 @@ public class LoanApprovalService {
         // 4️⃣ Simpan approval baru
         LoanApproval approval = LoanApproval.builder()
                 .loanRequest(loanRequest)
-                .approvedBy(approver)
+                .handledBy(approver)
                 .status(newStatus)
                 .approvedAt(LocalDateTime.now())
                 .build();
@@ -76,5 +77,17 @@ public class LoanApprovalService {
     // save
     public LoanApproval save(LoanApproval loanApproval) {
         return loanApprovalRepository.save(loanApproval);
+    }
+
+    // find by id
+    public List<LoanApproval> findByLoanRequestId(UUID loanRequestId) {
+        return loanApprovalRepository.findByLoanRequestId(loanRequestId);
+    }
+
+    public List<LoanApprovalHistoryResponse> getHandledApprovalsByUser(UUID userId) {
+        List<LoanApproval> approvals = loanApprovalRepository.findAllByHandledBy(userId);
+        return approvals.stream()
+                .map(LoanApprovalHistoryResponse::fromEntity)
+                .toList();
     }
 }

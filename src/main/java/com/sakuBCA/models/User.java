@@ -50,4 +50,17 @@ public class User {
     @Enumerated(EnumType.STRING)
     @Column(name = "user_type", nullable = false)
     private UserType userType;
+
+    //    boolean
+    public boolean isBranchManager() {
+        return this.role != null && this.role.getName().equals("BRANCH_MANAGER");
+    }
+
+    public boolean isBackOffice() {
+        return this.role != null && this.role.getName().equals("BACK_OFFICE");
+    }
+
+    public boolean isMarketing() {
+        return this.role != null && this.role.getName().equals("MARKETING");
+    }
 }

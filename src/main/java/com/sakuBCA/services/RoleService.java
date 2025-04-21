@@ -1,7 +1,11 @@
 package com.sakuBCA.services;
 
 import com.sakuBCA.config.exceptions.CustomException;
+import com.sakuBCA.dtos.superAdminDTO.RoleUpdateRequest;
+import com.sakuBCA.dtos.superAdminDTO.RoleWithFeatureCount;
+import com.sakuBCA.models.Feature;
 import com.sakuBCA.models.Role;
+import com.sakuBCA.models.RoleFeature;
 import com.sakuBCA.repositories.RoleRepository;
 import com.sakuBCA.dtos.superAdminDTO.RoleDTO;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -13,6 +17,7 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 import java.util.List;
+import java.util.Map;
 import java.util.UUID;
 import java.util.stream.Collectors;
 
@@ -21,12 +26,11 @@ public class RoleService {
     private static final Logger logger = LoggerFactory.getLogger(RoleService.class);
 
     @Autowired
-    private final RoleRepository roleRepository;
-
+    private RoleRepository roleRepository;
     @Autowired
-    public RoleService(RoleRepository roleRepository) {
-        this.roleRepository = roleRepository;
-    }
+    private FeatureService featureService;
+    @Autowired
+    private RoleFeatureService roleFeatureService;
 
     public Role getRoleByName(String roleName) {
         return roleRepository.findByName(roleName)
@@ -52,7 +56,7 @@ public class RoleService {
         }
     }
 
-    public ResponseEntity<Role> createRole(@RequestBody Role role) {
+    public ResponseEntity<Role> addRole(@RequestBody Role role) {
         if (roleRepository.existsByName(role.getName())) {
             throw new CustomException("Role sudah ada!", HttpStatus.BAD_REQUEST);
         }
@@ -60,15 +64,31 @@ public class RoleService {
         return ResponseEntity.ok(roleRepository.save(role));
     }
 
-    public ResponseEntity<String> editRole(UUID id, Role role) {
-        Role roleData = roleRepository.findById(id)
+    public void editRole(UUID id, RoleUpdateRequest request) {
+        Role role = roleRepository.findById(id)
                 .orElseThrow(() -> new CustomException("Role tidak ditemukan!", HttpStatus.NOT_FOUND));
 
-        roleData.setName(role.getName());
-        roleRepository.save(roleData);
+        role.setName(request.getName());
 
-        return ResponseEntity.ok("Role berhasil diubah!");
+        // Hapus semua relasi lama dari DB
+        roleFeatureService.deleteByRoleId(role.getId());
+
+        // Ambil fitur baru
+        List<Feature> features = featureService.findAllById(request.getFeatureIds());
+
+        // Buat relasi baru
+        List<RoleFeature> newRoleFeatures = features.stream().map(feature -> {
+            RoleFeature rf = new RoleFeature();
+            rf.setRole(role);
+            rf.setFeature(feature);
+            return rf;
+        }).toList();
+
+        role.setRoleFeatures(newRoleFeatures);
+        roleRepository.save(role);
     }
+
+
 
     public ResponseEntity<String> deleteRole(UUID id) {
         Role role = roleRepository.findById(id)
@@ -77,5 +97,20 @@ public class RoleService {
         roleRepository.delete(role);
 
         return ResponseEntity.ok("Role berhasil dihapus!");
+    }
+
+    public List<RoleWithFeatureCount> getAllRolesWithFeatureCount() {
+        List<Role> roles = roleRepository.findAllWithFeatures(); // Pakai fetch join kalau bisa
+        return roles.stream()
+                .map(role -> new RoleWithFeatureCount(
+                        role.getId(),
+                        role.getName(),
+                        role.getRoleFeatures().size()
+                ))
+                .collect(Collectors.toList());
+    }
+
+    public Long count() {
+        return roleRepository.count();
     }
 }

@@ -21,6 +21,8 @@ import lombok.RequiredArgsConstructor;
 import org.apache.commons.lang3.RandomStringUtils;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.HttpStatus;
+import org.springframework.security.core.context.SecurityContextHolder;
+import org.springframework.security.core.userdetails.UserDetails;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Service;
 
@@ -134,6 +136,31 @@ public class PegawaiService {
         return response;
     }
 
+    public UserWithPegawaiResponseDTO getMyProfile() {
+        // Mengambil username atau ID pengguna yang sedang login dari SecurityContext
+        UserDetails userDetails = (UserDetails) SecurityContextHolder.getContext().getAuthentication().getPrincipal();
+        String username = userDetails.getUsername(); // Username biasanya adalah email atau ID pengguna
+
+        // Ambil User berdasarkan username
+        User user = userService.findByEmail(username);
+
+        return mapToUserWithPegawaiResponseDTO(user);
+    }
+
+    private UserWithPegawaiResponseDTO mapToUserWithPegawaiResponseDTO(User user) {
+        UserWithPegawaiResponseDTO response = new UserWithPegawaiResponseDTO();
+        response.setId(user.getId());
+        response.setName(user.getName());
+        response.setEmail(user.getEmail());
+        response.setRole(user.getRole().getName());
+
+        if (user.getPegawaiDetails() != null) {
+            response.setPegawaiDetails(new PegawaiDetailsDTO(user.getPegawaiDetails()));
+        }
+
+        return response;
+    }
+
     //Edit Data Pegawai
     @Transactional
     public UserWithPegawaiResponseDTO updatePegawai(UUID userId, UpdatePegawaiRequestDTO request, String token) {
@@ -192,5 +219,9 @@ public class PegawaiService {
     public void deletePegawai(UUID id) {
         User user = userService.getPegawaiUserById(id);
         userService.deleteUserById(user.getId());
+    }
+
+    public Long count() {
+        return pegawaiRepository.count();
     }
 }

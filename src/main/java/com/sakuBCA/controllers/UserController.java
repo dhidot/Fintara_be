@@ -1,12 +1,15 @@
 package com.sakuBCA.controllers;
 
+import com.sakuBCA.dtos.customerDTO.UserWithCustomerResponseDTO;
 import com.sakuBCA.dtos.superAdminDTO.UserResponseDTO;
 import com.sakuBCA.services.UserService;
+import org.springframework.http.ResponseEntity;
 import org.springframework.security.access.annotation.Secured;
 import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.web.bind.annotation.*;
 
 import java.util.List;
+import java.util.UUID;
 
 @RestController
 @RequestMapping("/api/v1/users")
@@ -23,9 +26,4 @@ public class UserController {
     public List<UserResponseDTO> getAllUsers() {
         return userService.getAllUsers();
     }
-
-//    @PreAuthorize("hasRole('SUPERADMIN') or #id == authentication.principal.id") // SUPERADMIN atau user yang login sendiri
-//    @GetMapping("/{id}")
-//    public ResponseEntity<UserDto> getUserById(@PathVariable Long id) {
-//        return ResponseEntity.ok(userService.getUserById(id));
 }

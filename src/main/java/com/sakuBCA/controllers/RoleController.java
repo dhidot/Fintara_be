@@ -1,6 +1,8 @@
 package com.sakuBCA.controllers;
 
 import com.sakuBCA.dtos.superAdminDTO.RoleDTO;
+import com.sakuBCA.dtos.superAdminDTO.RoleUpdateRequest;
+import com.sakuBCA.dtos.superAdminDTO.RoleWithFeatureCount;
 import com.sakuBCA.models.Role;
 import com.sakuBCA.repositories.RoleRepository;
 import com.sakuBCA.services.RoleFeatureService;
@@ -13,6 +15,7 @@ import org.springframework.security.access.annotation.Secured;
 import org.springframework.web.bind.annotation.*;
 
 import java.util.List;
+import java.util.Map;
 import java.util.UUID;
 import java.util.stream.Collectors;
 
@@ -34,18 +37,35 @@ public class RoleController {
         }
     }
 
-    @Secured("ROLE_ACCESS")
-    @PostMapping("/create")
-    public ResponseEntity<Role> createRole(@RequestBody Role role) {
-        System.out.println("Menerima request POST: " + role.getName());
-        return roleService.createRole(role);
+    @Secured("FEATURE_ROLE_ACCESS")
+    @GetMapping("/get/{id}")
+    public ResponseEntity<Role> getRoleById(@PathVariable UUID id) {
+        try {
+            Role role = roleService.getRoleById(id);
+            return ResponseEntity.ok(role);
+        } catch (Exception e) {
+            return ResponseEntity.internalServerError().build();
+        }
     }
 
-    @Secured("ROLE_ACCESS")
+    @Secured("FEATURE_ROLE_ACCESS")
+    @GetMapping("/with-feature-count")
+    public ResponseEntity<List<RoleWithFeatureCount>>getRolesWithFeatureCount() {
+        return ResponseEntity.ok(roleService.getAllRolesWithFeatureCount());
+    }
+
+    @Secured("FEATURE_ROLE_ACCESS")
+    @PostMapping("/add")
+    public ResponseEntity<Role> createRole(@RequestBody Role role) {
+        System.out.println("Menerima request POST: " + role.getName());
+        return roleService.addRole(role);
+    }
+
     @PutMapping("/edit/{id}")
-    public ResponseEntity<String> editRole(@PathVariable UUID id, @RequestBody Role role) {
-        System.out.println("Menerima request PUT: " + role.getName());
-        return roleService.editRole(id, role);
+    @Secured("FEATURE_ROLE_ACCESS")
+    public ResponseEntity<?> editRole(@PathVariable UUID id, @RequestBody RoleUpdateRequest request) {
+        roleService.editRole(id, request);
+        return ResponseEntity.ok(Map.of("message", "Role berhasil diubah!"));
     }
 
     @Secured("FEATURE_ROLE_ACCESS")
