@@ -20,7 +20,7 @@ public class RoleFeatureController {
     @Autowired
     private RoleFeatureService roleFeatureService;
 
-    @Secured("FEATURE_ROLE_FEATURE_ACCESS")
+    @Secured("FEATURE_ASSIGN_ROLE_FEATURE")
     @PostMapping("/assign-multiple-features")
     public ResponseEntity<Map<String, String>> assignMultipleFeaturesToRole(@RequestBody RoleFeatureRequest request) {
 
@@ -28,7 +28,7 @@ public class RoleFeatureController {
         return ResponseEntity.ok(Map.of("message", "Semua fitur berhasil ditambahkan ke role."));
     }
 
-    @Secured("FEATURE_ROLE_FEATURE_ACCESS")
+    @Secured("FEATURE_GET_FEATURES_BY_ROLE_ID")
     @GetMapping("/{roleId}/features")
     public ResponseEntity<List<Feature>> getFeaturesByRoleId(@PathVariable UUID roleId) {
         List<Feature> features = roleFeatureService.getFeaturesByRole(roleId);

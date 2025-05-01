@@ -1,5 +1,6 @@
 package com.sakuBCA.config;
 
+import com.sakuBCA.enums.JenisKelamin;
 import com.sakuBCA.enums.StatusPegawai;
 import com.sakuBCA.enums.UserType;
 import com.sakuBCA.models.*;
@@ -74,75 +75,115 @@ public class StartupConfig {
     }
 
     private void initFeatures(FeatureRepository featureRepository, RoleRepository roleRepository, RoleFeatureRepository roleFeatureRepository) {
-        List<Map<String, String>> featureRoles = List.of(
-                Map.of("name", "FEATURE_ADD_BRANCHES_ACCESS", "role", "SUPER_ADMIN"),
-                Map.of("name", "FEATURE_GET_ALL_BRANCHES_ACCESS", "role", "SUPER_ADMIN"),
-                Map.of("name", "FEATURE_GET_BRANCHES_BY_ID_ACCESS", "role", "SUPER_ADMIN"),
-                Map.of("name", "FEATURE_UPDATE_BRANCHES_ACCESS", "role", "SUPER_ADMIN"),
-                Map.of("name", "FEATURE_DELETE_BRANCHES_ACCESS", "role", "SUPER_ADMIN"),
-                Map.of("name", "FEATURE_GET_ALL_CUSTOMER_ACCESS", "role", "SUPER_ADMIN"),
-                Map.of("name", "FEATURE_FEATURES_ACCESS", "role", "SUPER_ADMIN"),
-                Map.of("name", "FEATURE_ADD_EMPLOYEE_ACCESS", "role", "SUPER_ADMIN"),
-                Map.of("name", "FEATURE_GET_ALL_EMPLOYEE_ACCESS", "role", "SUPER_ADMIN"),
-                Map.of("name", "FEATURE_PROFILE_EMPLOYEE_ACCESS", "role", "SUPER_ADMIN"),
-                Map.of("name", "FEATURE_PROFILE_EMPLOYEE_ACCESS", "role", "BRANCH_MANAGER"),
-                Map.of("name", "FEATURE_PROFILE_EMPLOYEE_ACCESS", "role", "MARKETING"),
-                Map.of("name", "FEATURE_PROFILE_EMPLOYEE_ACCESS", "role", "BACK_OFFICE"),
-                Map.of("name", "FEATURE_GET_EMPLOYEE_BY_ID_ACCESS", "role", "SUPER_ADMIN"),
-                Map.of("name", "FEATURE_DELETE_EMPLOYEE_ACCESS", "role", "SUPER_ADMIN"),
-                Map.of("name", "FEATURE_PEGAWAI_PROFILE", "role", "SUPER_ADMIN"),
-                Map.of("name", "FEATURE_ROLE_ACCESS", "role", "SUPER_ADMIN"),
-                Map.of("name", "FEATURE_ROLE_FEATURE_ACCESS", "role", "SUPER_ADMIN"),
-                Map.of("name", "FEATURE_USER_ACCESS", "role", "SUPER_ADMIN"),
-                Map.of("name", "FEATURE_PLAFOND_ACCESS", "role", "SUPER_ADMIN"),
-                Map.of("name", "FEATURE_LOAN_STATUS", "role", "SUPER_ADMIN"),
-                Map.of("name", "FEATURE_CREATE_LOAN_REQUEST", "role", "CUSTOMER"),
-                Map.of("name", "FEATURE_REVIEW_LOAN_REQUEST", "role", "MARKETING"),
-                Map.of("name", "FEATURE_REVIEW_LOAN_REQUEST", "role", "BRANCH_MANAGER"),
-                Map.of("name", "FEATURE_REVIEW_LOAN_REQUEST", "role", "BACK_OFFICE"),
-                Map.of("name", "FEATURE_APPROVAL_MARKETING", "role", "MARKETING"),
-                Map.of("name", "FEATURE_APPROVAL_BM", "role", "BRANCH_MANAGER"),
-                Map.of("name", "FEATURE_DISBURSE", "role", "BACK_OFFICE"),
-                Map.of("name", "FEATURE_GET_CUSTOMER_PROFILE", "role", "SUPER_ADMIN"),
-                Map.of("name", "FEATURE_GET_CUSTOMER_PROFILE", "role", "CUSTOMER"),
-                Map.of("name", "FEATURE_UPDATE_CUSTOMER_PROFILE", "role", "SUPER_ADMIN"),
-                Map.of("name", "FEATURE_UPDATE_CUSTOMER_PROFILE", "role", "CUSTOMER"),
-                Map.of("name", "FEATURE_UPDATE_PEGAWAI_PROFILE", "role", "SUPER_ADMIN"),
-                Map.of("name", "FEATURE_UPDATE_PEGAWAI_PROFILE", "role", "MARKETING"),
-                Map.of("name", "FEATURE_UPDATE_PEGAWAI_PROFILE", "role", "BRANCH_MANAGER"),
-                Map.of("name", "FEATURE_DASHBOARD_ACCESS", "role", "SUPER_ADMIN"),
-                Map.of("name", "FEATURE_DASHBOARD_ACCESS", "role", "CUSTOMER"),
-                Map.of("name", "FEATURE_DASHBOARD_ACCESS", "role", "BACK_OFFICE"),
-                Map.of("name", "FEATURE_DASHBOARD_ACCESS", "role", "BRANCH_MANAGER"),
-                Map.of("name", "FEATURE_DASHBOARD_ACCESS", "role", "MARKETING"),
-                Map.of("name", "FEATURE_APPROVAL_HISTORY", "role", "BACK_OFFICE"),
-                Map.of("name", "FEATURE_APPROVAL_HISTORY", "role", "MARKETING"),
-                Map.of("name", "FEATURE_APPROVAL_HISTORY", "role", "BRANCH_MANAGER"),
-                Map.of("name", "FEATURE_CHANGE_PASSWORD_EMPLOYEE_ACCESS", "role", "BACK_OFFICE"),
-                Map.of("name", "FEATURE_CHANGE_PASSWORD_EMPLOYEE_ACCESS", "role", "MARKETING"),
-                Map.of("name", "FEATURE_CHANGE_PASSWORD_EMPLOYEE_ACCESS", "role", "BRANCH_MANAGER"),
-                Map.of("name", "FEATURE_CHANGE_PASSWORD_EMPLOYEE_ACCESS", "role", "SUPER_ADMIN")
+        List<Map<String, Object>> featureRoles = List.of(
+                // ===== Branch =====
+                Map.of("name", "FEATURE_ADD_BRANCHES", "role", "SUPER_ADMIN", "category", "Branch"),
+                Map.of("name", "FEATURE_GET_ALL_BRANCHES", "role", "SUPER_ADMIN", "category", "Branch"),
+                Map.of("name", "FEATURE_GET_BRANCHES_BY_ID", "role", "SUPER_ADMIN", "category", "Branch"),
+                Map.of("name", "FEATURE_UPDATE_BRANCHES", "role", "SUPER_ADMIN", "category", "Branch"),
+                Map.of("name", "FEATURE_DELETE_BRANCHES", "role", "SUPER_ADMIN", "category", "Branch"),
+
+                // ===== Customer =====
+                Map.of("name", "FEATURE_GET_ALL_CUSTOMER", "role", "SUPER_ADMIN", "category", "Customer"),
+                Map.of("name", "FEATURE_GET_CUSTOMER_BY_ID", "role", "SUPER_ADMIN", "category", "Customer"),
+
+                // ===== Dashboard ====
+                Map.of("name", "FEATURE_DASHBOARD", "role", "SUPER_ADMIN", "category", "Dashboard"),
+                Map.of("name", "FEATURE_DASHBOARD", "role", "BACK_OFFICE", "category", "Dashboard"),
+                Map.of("name", "FEATURE_DASHBOARD", "role", "BRANCH_MANAGER", "category", "Dashboard"),
+                Map.of("name", "FEATURE_DASHBOARD", "role", "MARKETING", "category", "Dashboard"),
+
+                // ===== Role & Fitur Akses =====
+                Map.of("name", "FEATURE_GET_ALL_ROLE", "role", "SUPER_ADMIN", "category", "Role"),
+                Map.of("name", "FEATURE_GET_ROLE_BY_ID", "role", "SUPER_ADMIN", "category", "Role"),
+                Map.of("name", "FEATURE_ADD_ROLE", "role", "SUPER_ADMIN", "category", "Role"),
+                Map.of("name", "FEATURE_UPDATE_ROLE", "role", "SUPER_ADMIN", "category", "Role"),
+                Map.of("name", "FEATURE_DELETE_ROLE", "role", "SUPER_ADMIN", "category", "Role"),
+                Map.of("name", "FEATURE_ASSIGN_ROLE_FEATURE", "role", "SUPER_ADMIN", "category", "Role"),
+                Map.of("name", "FEATURE_GET_FEATURES_BY_ROLE_ID", "role", "SUPER_ADMIN", "category", "Role"),
+
+                // ===== Feature ======
+                Map.of("name", "FEATURE_GET_ALL_FEATURES", "role", "SUPER_ADMIN", "category", "Feature"),
+                Map.of("name", "FEATURE_GET_FEATURES_BY_ID", "role", "SUPER_ADMIN", "category", "Feature"),
+
+                // ===== Loan Request =====
+                Map.of("name", "FEATURE_CREATE_LOAN_REQUEST", "role", "CUSTOMER", "category", "Loan Request"),
+                Map.of("name", "FEATURE_APPROVAL_MARKETING", "role", "MARKETING", "category", "Loan Request"),
+                Map.of("name", "FEATURE_APPROVAL_BM", "role", "BRANCH_MANAGER", "category", "Loan Request"),
+                Map.of("name", "FEATURE_DISBURSE", "role", "BACK_OFFICE", "category", "Loan Request"),
+                Map.of("name", "FEATURE_REVIEW_LOAN_REQUEST", "role", "MARKETING", "category", "Loan Request"),
+                Map.of("name", "FEATURE_REVIEW_LOAN_REQUEST", "role", "BRANCH_MANAGER", "category", "Loan Request"),
+                Map.of("name", "FEATURE_REVIEW_LOAN_REQUEST", "role", "BACK_OFFICE", "category", "Loan Request"),
+
+                // ===== Approval History =====
+                Map.of("name", "FEATURE_APPROVAL_HISTORY", "role", "BACK_OFFICE", "category", "Approval History"),
+                Map.of("name", "FEATURE_APPROVAL_HISTORY", "role", "BRANCH_MANAGER", "category", "Approval History"),
+                Map.of("name", "FEATURE_APPROVAL_HISTORY", "role", "MARKETING", "category", "Approval History"),
+
+                // ===== Pegawai =====
+                Map.of("name", "FEATURE_ADD_EMPLOYEE", "role", "SUPER_ADMIN", "category", "Pegawai"),
+                Map.of("name", "FEATURE_GET_ALL_EMPLOYEE", "role", "SUPER_ADMIN", "category", "Pegawai"),
+                Map.of("name", "FEATURE_GET_EMPLOYEE_BY_ID", "role", "SUPER_ADMIN", "category", "Pegawai"),
+                Map.of("name", "FEATURE_DELETE_EMPLOYEE", "role", "SUPER_ADMIN", "category", "Pegawai"),
+                Map.of("name", "FEATURE_PROFILE_EMPLOYEE", "role", "MARKETING", "category", "Pegawai"),
+                Map.of("name", "FEATURE_PROFILE_EMPLOYEE", "role", "BRANCH_MANAGER", "category", "Pegawai"),
+                Map.of("name", "FEATURE_PROFILE_EMPLOYEE", "role", "BACK_OFFICE", "category", "Pegawai"),
+                Map.of("name", "FEATURE_PROFILE_EMPLOYEE", "role", "SUPER_ADMIN", "category", "Pegawai"),
+
+                Map.of("name", "FEATURE_UPDATE_EMPLOYEE_PROFILE", "role", "MARKETING", "category", "Pegawai"),
+                Map.of("name", "FEATURE_UPDATE_EMPLOYEE_PROFILE", "role", "BRANCH_MANAGER", "category", "Pegawai"),
+                Map.of("name", "FEATURE_UPDATE_EMPLOYEE_PROFILE", "role", "BACK_OFFICE", "category", "Pegawai"),
+                Map.of("name", "FEATURE_UPDATE_EMPLOYEE_PROFILE", "role", "SUPER_ADMIN", "category", "Pegawai"),
+
+                Map.of("name", "FEATURE_CHANGE_PASSWORD_EMPLOYEE", "role", "MARKETING", "category", "Pegawai"),
+                Map.of("name", "FEATURE_CHANGE_PASSWORD_EMPLOYEE", "role", "BRANCH_MANAGER", "category", "Pegawai"),
+                Map.of("name", "FEATURE_CHANGE_PASSWORD_EMPLOYEE", "role", "BACK_OFFICE", "category", "Pegawai"),
+                Map.of("name", "FEATURE_CHANGE_PASSWORD_EMPLOYEE", "role", "SUPER_ADMIN", "category", "Pegawai"),
+
+
+                Map.of("name", "FEATURE_UPDATE_CUSTOMER_PROFILE", "role", "CUSTOMER", "category", "Pegawai"),
+                // ===== Plafond =====
+                Map.of("name", "FEATURE_GET_ALL_PLAFOND", "role", "SUPER_ADMIN", "category", "Plafond"),
+                Map.of("name", "FEATURE_GET_PLAFOND_BY_ID", "role", "SUPER_ADMIN", "category", "Plafond"),
+                Map.of("name", "FEATURE_ADD_PLAFOND", "role", "SUPER_ADMIN", "category", "Plafond"),
+                Map.of("name", "FEATURE_UPDATE_PLAFOND", "role", "SUPER_ADMIN", "category", "Plafond"),
+
+                // ===== Loan Status (opsional jika status dikontrol via controller terpisah) =====
+                Map.of("name", "FEATURE_GET_ALL_LOAN_STATUS", "role", "SUPER_ADMIN", "category", "Loan Status"),
+                Map.of("name", "FEATURE_ADD_LOAN_STATUS", "role", "SUPER_ADMIN", "category", "Loan Status"),
+                Map.of("name", "FEATURE_UPDATE_LOAN_STATUS", "role", "SUPER_ADMIN", "category", "Loan Status"),
+                Map.of("name", "FEATURE_DELETE_LOAN_STATUS", "role", "SUPER_ADMIN", "category", "Loan Status")
         );
 
-        for (Map<String, String> featureRole : featureRoles) {
-            String featureName = featureRole.get("name");
-            String roleName = featureRole.get("role");
+        for (Map<String, Object> map : featureRoles) {
+            String roleName = (String) map.get("role");
+            String featureName = (String) map.get("name");
+            String category = (String) map.get("category");
 
-            Optional<Role> role = roleRepository.findByName(roleName);
-            if (role.isEmpty()) {
-                throw new IllegalStateException("Role " + roleName + " belum dibuat. Harap buat role terlebih dahulu.");
-            }
+            Role role = roleRepository.findByName(roleName)
+                    .orElseGet(() -> roleRepository.save(Role.builder().name(roleName).build()));
 
-            Feature feature = featureRepository.findByName(featureName).orElseGet(() -> {
-                Feature newFeature = Feature.builder().name(featureName).build();
-                return featureRepository.saveAndFlush(newFeature);
-            });
+            Feature feature = featureRepository.findByName(featureName)
+                    .map(existing -> {
+                        existing.setCategory(category); // update category kalau null
+                        return featureRepository.save(existing);
+                    })
+                    .orElseGet(() -> featureRepository.save(
+                            Feature.builder()
+                                    .name(featureName)
+                                    .category(category)
+                                    .build()
+                    ));
 
-            if (!roleFeatureRepository.existsByRoleAndFeature(role.get(), feature)) {
-                assignFeatureToRole(feature, roleName, roleRepository, roleFeatureRepository);
+            boolean exists = roleFeatureRepository.existsByRoleAndFeature(role, feature);
+            if (!exists) {
+                RoleFeature roleFeature = RoleFeature.builder()
+                        .role(role)
+                        .feature(feature)
+                        .build();
+                roleFeatureRepository.save(roleFeature);
             }
         }
-
         logger.info("✅ Semua fitur berhasil diinisialisasi dan diberikan ke peran yang sesuai!");
     }
 
@@ -170,6 +211,7 @@ public class StartupConfig {
                 User superAdmin = User.builder()
                         .name("Super Admin")
                         .email("superadmin@example.com")
+                        .jenisKelamin(JenisKelamin.valueOf("LAKI_LAKI"))
                         .password(passwordEncoder.encode("superadmin123"))
                         .role(superAdminRole)
                         .userType(UserType.PEGAWAI)
@@ -201,36 +243,36 @@ public class StartupConfig {
                                     RoleRepository roleRepository, PasswordEncoder passwordEncoder, BranchRepository branchRepository) {
         return args -> {
             // Cabang Pusat
-            createTestUser("marketing_pusat@example.com", "Marketing Pusat", "MARKETING", "MKT2024", "Pusat",
+            createTestUser("marketing_pusat@example.com", "Marketing Pusat", "MARKETING", "MKT2024", "Pusat", JenisKelamin.LAKI_LAKI,
                     userRepository, pegawaiDetailsRepository, roleRepository, passwordEncoder, branchRepository);
-            createTestUser("marketing1_pusat@example.com", "Marketing 1 Pusat", "MARKETING", "MKT12024", "Pusat",
+            createTestUser("marketing1_pusat@example.com", "Marketing 1 Pusat", "MARKETING", "MKT12024", "Pusat", JenisKelamin.PEREMPUAN,
                     userRepository, pegawaiDetailsRepository, roleRepository, passwordEncoder, branchRepository);
-            createTestUser("bm_pusat@example.com", "Branch Manager Pusat", "BRANCH_MANAGER", "BM2024", "Pusat",
+            createTestUser("bm_pusat@example.com", "Branch Manager Pusat", "BRANCH_MANAGER", "BM2024", "Pusat", JenisKelamin.LAKI_LAKI,
                     userRepository, pegawaiDetailsRepository, roleRepository, passwordEncoder, branchRepository);
-            createTestUser("bo_pusat@example.com", "Back Office Pusat", "BACK_OFFICE", "BO2024", "Pusat",
+            createTestUser("bo_pusat@example.com", "Back Office Pusat", "BACK_OFFICE", "BO2024", "Pusat", JenisKelamin.PEREMPUAN,
                     userRepository, pegawaiDetailsRepository, roleRepository, passwordEncoder, branchRepository);
 
             // Cabang Jakarta
-            createTestUser("marketing_jakarta@example.com", "Marketing Jakarta", "MARKETING", "MKT2025", "Jakarta",
+            createTestUser("marketing_jakarta@example.com", "Marketing Jakarta", "MARKETING", "MKT2025", "Jakarta", JenisKelamin.LAKI_LAKI,
                     userRepository, pegawaiDetailsRepository, roleRepository, passwordEncoder, branchRepository);
-            createTestUser("marketing1_jakarta@example.com", "Marketing 1 Jakarta", "MARKETING", "MKT12025", "Jakarta",
+            createTestUser("marketing1_jakarta@example.com", "Marketing 1 Jakarta", "MARKETING", "MKT12025", "Jakarta", JenisKelamin.PEREMPUAN,
                     userRepository, pegawaiDetailsRepository, roleRepository, passwordEncoder, branchRepository);
-            createTestUser("bm_jakarta@example.com", "Branch Manager Jakarta", "BRANCH_MANAGER", "BM2025", "Jakarta",
+            createTestUser("bm_jakarta@example.com", "Branch Manager Jakarta", "BRANCH_MANAGER", "BM2025", "Jakarta", JenisKelamin.LAKI_LAKI,
                     userRepository, pegawaiDetailsRepository, roleRepository, passwordEncoder, branchRepository);
-            createTestUser("bo_jakarta@example.com", "Back Office Jakarta", "BACK_OFFICE", "BO2025", "Jakarta",
+            createTestUser("bo_jakarta@example.com", "Back Office Jakarta", "BACK_OFFICE", "BO2025", "Jakarta", JenisKelamin.PEREMPUAN,
                     userRepository, pegawaiDetailsRepository, roleRepository, passwordEncoder, branchRepository);
 
             // Cabang Surabaya
-            createTestUser("marketing_surabaya@example.com", "Marketing Surabaya", "MARKETING", "MKT2026", "Surabaya",
+            createTestUser("marketing_surabaya@example.com", "Marketing Surabaya", "MARKETING", "MKT2026", "Surabaya", JenisKelamin.PEREMPUAN,
                     userRepository, pegawaiDetailsRepository, roleRepository, passwordEncoder, branchRepository);
-            createTestUser("bm_surabaya@example.com", "Branch Manager Surabaya", "BRANCH_MANAGER", "BM2026", "Surabaya",
+            createTestUser("bm_surabaya@example.com", "Branch Manager Surabaya", "BRANCH_MANAGER", "BM2026", "Surabaya", JenisKelamin.LAKI_LAKI,
                     userRepository, pegawaiDetailsRepository, roleRepository, passwordEncoder, branchRepository);
-            createTestUser("bo_surabaya@example.com", "Back Office Surabaya", "BACK_OFFICE", "BO2026", "Surabaya",
+            createTestUser("bo_surabaya@example.com", "Back Office Surabaya", "BACK_OFFICE", "BO2026", "Surabaya", JenisKelamin.PEREMPUAN,
                     userRepository, pegawaiDetailsRepository, roleRepository, passwordEncoder, branchRepository);
         };
     }
 
-    private void createTestUser(String email, String name, String roleName, String nip, String branchName,
+    private void createTestUser(String email, String name, String roleName, String nip, String branchName, JenisKelamin jenisKelamin,
                                 UserRepository userRepository, PegawaiDetailsRepository pegawaiDetailsRepository,
                                 RoleRepository roleRepository, PasswordEncoder passwordEncoder, BranchRepository branchRepository) {
         Role role = roleRepository.findByName(roleName)
@@ -243,6 +285,7 @@ public class StartupConfig {
                     .password(passwordEncoder.encode("test1234")) // 🔹 Password awal
                     .role(role)
                     .userType(UserType.PEGAWAI)
+                    .jenisKelamin(jenisKelamin)  // Menambahkan gender pada user
                     .isFirstLogin(true) // 🔹 Set flag agar pegawai wajib ganti password saat login pertama
                     .build();
 
@@ -264,6 +307,7 @@ public class StartupConfig {
             logger.warn("⚠️ {} dengan email {} sudah ada, tidak perlu membuat ulang.", roleName, email);
         }
     }
+
 
 
 

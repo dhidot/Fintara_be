@@ -8,10 +8,14 @@ import com.sakuBCA.models.User;
 import com.sakuBCA.repositories.CustomerDetailsRepository;
 import lombok.RequiredArgsConstructor;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.data.domain.Page;
+import org.springframework.data.domain.Pageable;
 import org.springframework.http.HttpStatus;
 import org.springframework.stereotype.Service;
 
+import java.util.HashMap;
 import java.util.List;
+import java.util.Map;
 import java.util.stream.Collectors;
 
 @Service
@@ -50,6 +54,8 @@ public class CustomerService {
             throw new CustomException("Terjadi kesalahan saat mengambil data customer", HttpStatus.INTERNAL_SERVER_ERROR);
         }
     }
+
+
 
     public Long count() {
         return customerDetailsRepository.count();

@@ -2,7 +2,9 @@ package com.sakuBCA.dtos.customerDTO;
 
 import com.fasterxml.jackson.annotation.JsonProperty;
 import com.sakuBCA.config.validators.ValidPassword;
+import com.sakuBCA.enums.JenisKelamin;
 import jakarta.validation.constraints.NotBlank;
+import jakarta.validation.constraints.NotNull;
 import jakarta.validation.constraints.Pattern;
 import jakarta.validation.constraints.Size;
 import lombok.Data;
@@ -13,6 +15,10 @@ public class RegisterCustomerRequestDTO {
     @JsonProperty("name")
     @NotBlank(message = "Nama tidak boleh kosong")
     private String name;
+
+    @NotNull(message = "Jenis Kelamin tidak boleh kosong")
+    @JsonProperty("jenis_kelamin")
+    private JenisKelamin jenisKelamin;
 
     @JsonProperty("email")
     @NotBlank(message = "Email tidak boleh kosong")

@@ -1,9 +1,8 @@
 package com.sakuBCA.models;
 
-import com.fasterxml.jackson.annotation.JsonIdentityInfo;
 import com.fasterxml.jackson.annotation.JsonIgnore;
 import com.fasterxml.jackson.annotation.JsonManagedReference;
-import com.fasterxml.jackson.annotation.ObjectIdGenerators;
+import com.sakuBCA.enums.JenisKelamin;
 import com.sakuBCA.enums.UserType;
 import jakarta.persistence.*;
 import lombok.*;
@@ -31,8 +30,18 @@ public class User {
     private String name;
     private String password;
 
+    @Column(name = "foto_url")
+    private String fotoUrl;
+
+    @Enumerated(EnumType.STRING)
+    @Column(name = "jenis_kelamin", nullable = false)
+    private JenisKelamin jenisKelamin;
+
     @Column(name = "is_first_login", nullable = false)
-    private boolean isFirstLogin = true; // Default true untuk pegawai baru
+    private boolean isFirstLogin = true; // Default true untuk pegawai baru dan customer baru
+
+    @Column(name = "email_verified", nullable = false)
+    private boolean emailVerified = false;
 
     @ManyToOne
     @JsonIgnore

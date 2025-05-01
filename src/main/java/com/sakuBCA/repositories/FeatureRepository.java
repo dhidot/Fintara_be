@@ -20,5 +20,8 @@ public interface FeatureRepository extends JpaRepository<Feature, UUID> {
 
     @Query("SELECT f.name FROM Feature f WHERE f.id = :featureId")
     String findFeatureNameById(@Param("featureId") UUID featureId);
+
+    @Query("SELECT f.id AS id, f.category AS category, f.name AS name FROM Feature f")
+    List<FeatureCategoryView> findAllProjected();
 }
 

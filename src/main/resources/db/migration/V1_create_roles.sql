@@ -1,11 +1,16 @@
-MERGE INTO roles AS target
-USING (VALUES
+-- V1__init_roles.sql
+
+-- Membuat tabel Role
+CREATE TABLE IF NOT EXISTS Roles (
+    id INT PRIMARY KEY IDENTITY,
+    name VARCHAR(255) NOT NULL
+);
+
+-- Menambahkan data roles
+INSERT INTO Roles (name)
+VALUES
     ('SUPER_ADMIN'),
     ('BACK_OFFICE'),
     ('BRANCH_MANAGER'),
     ('MARKETING'),
-    ('CUSTOMER')
-) AS source (name)
-ON target.name = source.name
-WHEN NOT MATCHED THEN
-    INSERT (id, name) VALUES (NEWID(), source.name);
+    ('CUSTOMER');

@@ -6,5 +6,6 @@ import org.springframework.stereotype.Repository;
 
 @Repository
 public interface PegawaiRepository extends JpaRepository<PegawaiDetails, Long> {
-    //count
+    boolean existsByNip(String nip);
+
 }

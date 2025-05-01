@@ -10,11 +10,14 @@ import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
+import org.springframework.data.domain.PageRequest;
+import org.springframework.data.domain.Pageable;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.access.annotation.Secured;
 import org.springframework.web.bind.annotation.*;
 
 import java.util.List;
+import java.util.Map;
 import java.util.UUID;
 
 @RestController
@@ -23,7 +26,7 @@ import java.util.UUID;
 public class PegawaiController {
     private final PegawaiService pegawaiService;
 
-    @Secured("FEATURE_ADD_EMPLOYEE_ACCESS")
+    @Secured("FEATURE_ADD_EMPLOYEE")
     @PostMapping("/register")
     public ResponseEntity<RegisterPegawaiResponseDTO> registerPegawai(
             @RequestHeader("Authorization") String token,
@@ -32,27 +35,27 @@ public class PegawaiController {
         return ResponseEntity.ok(response);
     }
 
-    @Secured("FEATURE_GET_ALL_EMPLOYEE_ACCESS")
+    @Secured("FEATURE_GET_ALL_EMPLOYEE")
     @GetMapping
     public ResponseEntity<List<UserWithPegawaiResponseDTO>> getAllPegawai() {
         List<UserWithPegawaiResponseDTO> pegawai = pegawaiService.getAllPegawai();
         return ResponseEntity.ok(pegawaiService.getAllPegawai());
     }
 
-    @Secured("FEATURE_PROFILE_EMPLOYEE_ACCESS")  // Pastikan role/feature security sudah sesuai
+    @Secured("FEATURE_PROFILE_EMPLOYEE")  // Pastikan role/feature security sudah sesuai
     @GetMapping("/me")
     public UserWithPegawaiResponseDTO getMyProfile() {
         return pegawaiService.getMyProfile();
     }
 
-    @Secured("FEATURE_GET_EMPLOYEE_BY_ID_ACCESS")
+    @Secured("FEATURE_GET_EMPLOYEE_BY_ID")
     @GetMapping("/{id}")
     public ResponseEntity<UserWithPegawaiResponseDTO> getPegawaiById(@PathVariable UUID id) {
         UserWithPegawaiResponseDTO pegawai = pegawaiService.getPegawaiById(id);
         return ResponseEntity.ok(pegawai);
     }
 
-    @Secured("FEATURE_DELETE_EMPLOYEE_ACCESS")
+    @Secured("FEATURE_DELETE_EMPLOYEE")
     @DeleteMapping("/{id}")
     public ResponseEntity<String> deletePegawai(@PathVariable UUID id) {
         pegawaiService.deletePegawai(id);

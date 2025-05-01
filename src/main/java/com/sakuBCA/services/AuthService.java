@@ -59,6 +59,52 @@ public class AuthService {
 
     private static final Logger logger = LoggerFactory.getLogger(UserService.class);
 
+    // CUSTOMER AUTHENTICATION
+    @Transactional
+    public CustomerResponseDTO registerCustomer(RegisterCustomerRequestDTO request) {
+        // Cek apakah email sudah pernah didaftarkan
+        if (userRepository.existsByEmail(request.getEmail())) {
+            throw new CustomException("Email sudah terdaftar!", HttpStatus.BAD_REQUEST);
+        }
+
+        Role customerRole = roleService.getRoleByName("CUSTOMER");
+
+        User customer = User.builder()
+                .name(request.getName())
+                .email(request.getEmail())
+                .jenisKelamin(request.getJenisKelamin())
+                .password(passwordEncoder.encode(request.getPassword()))
+                .userType(UserType.CUSTOMER)
+                .role(customerRole)
+                .build();
+
+        // ⬇️ Simpan User dulu
+        userRepository.save(customer);
+
+        // ⬇️ Ambil Plafond default (Bronze)
+        Plafond bronzePlafond = plafondService.getPlafondByName("Bronze");
+
+        // ⬇️ Buat CustomerDetails dengan Plafond default
+        CustomerDetails customerDetails = CustomerDetails.builder()
+                .user(customer)
+                .plafond(bronzePlafond)
+                .remainingPlafond(bronzePlafond.getMaxAmount())
+                .build();
+
+        // ⬇️ Simpan CustomerDetails
+        customerDetailsService.saveCustomerDetails(customerDetails);
+
+        // 🔹 Generate token verifikasi dan simpan ke Redis
+        String verificationToken = UUID.randomUUID().toString();
+        redisService.saveEmailVerificationToken(verificationToken, customer.getEmail());
+
+        String verificationLink = "localhost:4200/#/verify-email?token=" + verificationToken;
+        emailService.sendVerificationEmail(customer.getEmail(), verificationLink);
+
+        // 🔹 Langsung kembalikan CustomerResponseDTO
+        return CustomerResponseDTO.fromUser(customer, customerDetails);
+    }
+
     @Transactional
     public Map<String, Object> loginCustomer(LoginRequestCustomer request) {
         String rawEmail = request.getEmail();
@@ -77,12 +123,16 @@ public class AuthService {
         // Set auth context
         SecurityContextHolder.getContext().setAuthentication(authentication);
 
-        // Generate JWT baru
-        String jwt = jwtUtils.generateToken(authentication);
+        // Ambil user dari principal
         UserDetailsImpl userDetails = (UserDetailsImpl) authentication.getPrincipal();
         User user = userDetails.getUser();
 
-        // Validasi tipe user
+        // 🔒 Cek apakah email sudah diverifikasi
+        if (!user.isEmailVerified()) {
+            throw new CustomException("Email belum diverifikasi! Silakan cek email Anda.", HttpStatus.UNAUTHORIZED);
+        }
+
+        // 🔒 Validasi tipe user
         if (user.getUserType() != UserType.CUSTOMER) {
             throw new CustomException("Akun ini bukan customer!", HttpStatus.UNAUTHORIZED);
         }
@@ -90,23 +140,32 @@ public class AuthService {
         // ✅ Gunakan helper handleFirstLogin()
         boolean isFirstLogin = handleFirstLogin(user);
 
-        // Simpan session baru ke Redis
+        // 🔐 Simpan session baru ke Redis
+        String jwt = jwtUtils.generateToken(authentication);
         redisService.saveCustomerSession(email, jwt);
 
         // Siapkan response
-        JwtResponse jwtResponse = new JwtResponse(jwt, user.getEmail(), user.getRole().getName(), userDetails.getFeatures(), user.getName());
+        JwtResponse jwtResponse = new JwtResponse(
+                jwt,
+                user.getEmail(),
+                user.getRole().getName(),
+                userDetails.getFeatures(),
+                user.getName()
+        );
+
         Map<String, Object> response = new HashMap<>();
         response.put("status", "success");
 
         Map<String, Object> data = new HashMap<>();
         data.put("jwt", jwtResponse);
-        data.put("firstLogin", isFirstLogin); // ← ✅ Kirim ke frontend
+        data.put("firstLogin", isFirstLogin);
 
         response.put("data", data);
 
         return response;
     }
 
+    // EMPLOYEE AUTHENTICATION
     @Transactional
     public Map<String, Object> loginPegawai(LoginRequestPegawai request) {
         String nip = request.getNip();
@@ -145,43 +204,6 @@ public class AuthService {
         response.put("data", data);
 
         return response;
-    }
-
-    @Transactional
-    public CustomerResponseDTO registerCustomer(RegisterCustomerRequestDTO request) {
-        // Cek apakah email sudah pernah didaftarkan
-        if (userRepository.existsByEmail(request.getEmail())) {
-            throw new CustomException("Email sudah terdaftar!", HttpStatus.BAD_REQUEST);
-        }
-
-        Role customerRole = roleService.getRoleByName("CUSTOMER");
-
-        User customer = User.builder()
-                .name(request.getName())
-                .email(request.getEmail())
-                .password(passwordEncoder.encode(request.getPassword()))
-                .userType(UserType.CUSTOMER)
-                .role(customerRole)
-                .build();
-
-        // ⬇️ Simpan User dulu
-        userRepository.save(customer);
-
-        // ⬇️ Ambil Plafond default (Bronze)
-        Plafond bronzePlafond = plafondService.getPlafondByName("Bronze");
-
-        // ⬇️ Buat CustomerDetails dengan Plafond default
-        CustomerDetails customerDetails = CustomerDetails.builder()
-                .user(customer)
-                .plafond(bronzePlafond)
-                .remainingPlafond(bronzePlafond.getMaxAmount())
-                .build();
-
-        // ⬇️ Simpan CustomerDetails
-        customerDetailsService.saveCustomerDetails(customerDetails);
-
-        // 🔹 Langsung kembalikan CustomerResponseDTO
-        return CustomerResponseDTO.fromUser(customer, customerDetails);
     }
 
     @Transactional
@@ -308,5 +330,46 @@ public class AuthService {
         }
 
         return isFirstLogin;
+    }
+
+    @Transactional
+    public Map<String, Object> verifyEmail(String token) {
+        String email = redisService.getEmailByVerificationToken(token);
+        if (email == null) {
+            return Map.of(
+                    "status", "error",
+                    "message", "Token tidak valid atau sudah kedaluwarsa",
+                    "httpStatus", HttpStatus.BAD_REQUEST
+            );
+        }
+
+        User user = userRepository.findByEmail(email)
+                .orElse(null);
+
+        if (user == null) {
+            return Map.of(
+                    "status", "error",
+                    "message", "User tidak ditemukan",
+                    "httpStatus", HttpStatus.NOT_FOUND
+            );
+        }
+
+        if (user.isEmailVerified()) {
+            return Map.of(
+                    "status", "success",
+                    "message", "Email sudah diverifikasi sebelumnya.",
+                    "httpStatus", HttpStatus.OK
+            );
+        }
+
+        user.setEmailVerified(true);
+        userRepository.save(user);
+        redisService.removeEmailVerificationToken(token);
+
+        return Map.of(
+                "status", "success",
+                "message", "Email berhasil diverifikasi.",
+                "httpStatus", HttpStatus.OK
+        );
     }
 }

@@ -6,10 +6,12 @@ import com.sakuBCA.dtos.customerDTO.CustomerResponseDTO;
 import com.sakuBCA.models.User;
 import com.sakuBCA.services.AuthService;
 import com.sakuBCA.services.CustomerDetailsService;
+import com.sakuBCA.services.RedisService;
 import com.sakuBCA.services.UserService;
 import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 
@@ -27,6 +29,9 @@ public class AuthController {
     private UserService userService;
     @Autowired
     private CustomerDetailsService customerDetailsService;
+    @Autowired
+    private RedisService redisService;
+
 
     @PostMapping("/login-customer")
     public ResponseEntity<?> loginCustomer(@RequestBody LoginRequestCustomer request) {
@@ -79,6 +84,12 @@ public class AuthController {
     public ResponseEntity<?> changePassword(@Valid @RequestBody ChangePasswordRequest request) {
         authService.changePassword(request);
         return ResponseEntity.ok(Collections.singletonMap("message", "Password berhasil diperbarui"));
+    }
+
+    @GetMapping("/verify-email")
+    public ResponseEntity<?> verifyEmail(@RequestParam("token") String token) {
+        Map<String, Object> response = authService.verifyEmail(token);
+        return ResponseEntity.status((HttpStatus) response.getOrDefault("httpStatus", HttpStatus.OK)).body(response);
     }
 }
 

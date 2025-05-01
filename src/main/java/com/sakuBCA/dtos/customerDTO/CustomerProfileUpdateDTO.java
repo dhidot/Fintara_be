@@ -7,6 +7,7 @@ import lombok.Setter;
 @Getter
 public class CustomerProfileUpdateDTO {
     private String ttl;
+    private String ktpUrl;
     private String alamat;
     private String noTelp;
     private String nik;

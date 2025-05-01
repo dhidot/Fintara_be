@@ -4,6 +4,7 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.mail.MailException;
 import org.springframework.mail.javamail.JavaMailSender;
 import org.springframework.mail.javamail.MimeMessageHelper;
+import org.springframework.scheduling.annotation.Async;
 import org.springframework.stereotype.Service;
 import jakarta.mail.MessagingException;
 import jakarta.mail.internet.MimeMessage;
@@ -43,26 +44,33 @@ public class EmailService {
     }
 
     // 🔹 Kirim password sementara saat register pegawai
+    @Async
     public void sendInitialPasswordEmail(String to, String generatedPassword) {
         if (generatedPassword == null || generatedPassword.isEmpty()) {
-            logger.error("Gagal mengirim email: password sementara tidak boleh kosong.");
-            throw new IllegalArgumentException("Password sementara tidak boleh kosong.");
+            logger.error("Gagal mengirim email: password sementara tidak boleh kosong untuk email {}", to);
+            return; // Stop di sini, jangan kirim email
         }
 
-        String subject = "Akun Pegawai Baru - SakuBCA";
-        String body = "<html><body>"
-                + "<h2>Selamat, akun Anda telah dibuat.</h2>"
-                + "<p>Berikut adalah detail akun Anda:</p>"
-                + "<ul>"
-                + "<li><strong>Email:</strong> " + to + "</li>"
-                + "<li><strong>Password sementara:</strong> " + generatedPassword + "</li>"
-                + "</ul>"
-                + "<p>Harap segera masuk dan ubah password Anda.</p>"
-                + "<p>Terima kasih.</p>"
-                + "</body></html>";
+        try {
+            String subject = "Akun Pegawai Baru - SakuBCA";
+            String body = "<html><body>"
+                    + "<h2>Selamat, akun Anda telah dibuat.</h2>"
+                    + "<p>Berikut adalah detail akun Anda:</p>"
+                    + "<ul>"
+                    + "<li><strong>Email:</strong> " + to + "</li>"
+                    + "<li><strong>Password sementara:</strong> " + generatedPassword + "</li>"
+                    + "</ul>"
+                    + "<p>Harap segera masuk dan ubah password Anda.</p>"
+                    + "<p>Terima kasih.</p>"
+                    + "</body></html>";
 
-        sendEmail(to, subject, body);
+            sendEmail(to, subject, body);
+            logger.info("Berhasil mengirim email registrasi ke {}", to);
+        } catch (Exception e) {
+            logger.error("Gagal mengirim email ke {}: {}", to, e.getMessage(), e);
+        }
     }
+
 
     // 🔹 Kirim token reset password ke email user
     public void sendResetPasswordEmail(String email, String resetLink) {
@@ -74,5 +82,18 @@ public class EmailService {
                 + "</body></html>";
 
         sendEmail(email, subject, message);
+    }
+
+    public void sendVerificationEmail(String to, String verificationLink) {
+        String subject = "Verifikasi Email Anda - SakuBCA";
+        String body = "<html><body>"
+                + "<p>Hai,</p>"
+                + "<p>Terima kasih telah mendaftar di <strong>SakuBCA</strong>.</p>"
+                + "<p>Silakan klik link di bawah ini untuk memverifikasi email Anda:</p>"
+                + "<p><a href=\"" + verificationLink + "\">Verifikasi Email</a></p>"
+                + "<p><em>Link ini berlaku selama 30 menit.</em></p>"
+                + "</body></html>";
+
+        sendEmail(to, subject, body);
     }
 }

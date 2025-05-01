@@ -21,7 +21,8 @@ public class Feature {
     @GeneratedValue(strategy = GenerationType.UUID)
     private UUID id;
 
-    private String name; // Misalnya: "CREATE_USER", "APPROVE_LOAN", dll.
+    private String name;
+    private String category;
 
     @OneToMany(mappedBy = "feature", fetch = FetchType.LAZY, cascade = CascadeType.ALL)
     @JsonIgnore

@@ -19,31 +19,31 @@ public class BranchController {
     @Autowired
     private BranchService branchService;
 
-    @Secured("FEATURE_ADD_BRANCHES_ACCESS")
+    @Secured("FEATURE_ADD_BRANCHES")
     @PostMapping("/add")
     public ResponseEntity<Branch> createBranch(@RequestBody Branch branch) {
         return branchService.createBranch(branch);
     }
 
-    @Secured("FEATURE_GET_ALL_BRANCHES_ACCESS")
+    @Secured("FEATURE_GET_ALL_BRANCHES")
     @GetMapping("/all")
     public List<Branch> getAllBranches() {
         return branchService.getAllBranches();
     }
 
-    @Secured("FEATURE_GET_BRANCHES_BY_ID_ACCESS")
+    @Secured("FEATURE_GET_BRANCHES_BY_ID")
     @GetMapping("/{id}")
     public ResponseEntity<BranchDTO> getBranchById(@PathVariable UUID id) {
         return ResponseEntity.ok(branchService.getBranchById(id));
     }
 
-    @Secured("FEATURE_UPDATE_BRANCHES_ACCESS")
+    @Secured("FEATURE_UPDATE_BRANCHES")
     @PutMapping("/update/{id}")
     public ResponseEntity<BranchDTO> updateBranch(@PathVariable UUID id, @RequestBody BranchDTO request) {
         return ResponseEntity.ok(branchService.updateBranch(id, request));
     }
 
-    @Secured("FEATURE_DELETE_BRANCHES_ACCESS")
+    @Secured("FEATURE_DELETE_BRANCHES")
     @DeleteMapping("/delete/{id}")
     public ResponseEntity<String> deleteBranch(@PathVariable UUID id) {
         branchService.deleteBranch(id);

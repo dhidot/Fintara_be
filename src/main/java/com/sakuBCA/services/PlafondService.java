@@ -1,9 +1,11 @@
 package com.sakuBCA.services;
 
 import com.sakuBCA.config.exceptions.CustomException;
+import com.sakuBCA.config.security.NameNormalizer;
 import com.sakuBCA.models.Plafond;
 import com.sakuBCA.repositories.PlafondRepository;
 import lombok.RequiredArgsConstructor;
+import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.HttpStatus;
 import org.springframework.stereotype.Service;
 
@@ -16,6 +18,8 @@ import java.util.UUID;
 public class PlafondService {
 
     private final PlafondRepository plafondRepository;
+    @Autowired
+    private final NameNormalizer nameNormalizer;
 
     public List<Plafond> getAllPlafonds() {
         return plafondRepository.findAll();
@@ -32,9 +36,17 @@ public class PlafondService {
     }
 
     public Plafond createPlafond(Plafond request) {
+        String normalizedName = nameNormalizer.normalizedName(request.getName());
+        request.setName(normalizedName);
+
         if (plafondRepository.findByName(request.getName()).isPresent()) {
             throw new CustomException("Nama plafond sudah digunakan", HttpStatus.BAD_REQUEST);
         }
+
+        if (request.getMinTenor() > request.getMaxTenor()) {
+            throw new CustomException("Minimal tenor tidak boleh lebih besar dari maksimal tenor", HttpStatus.BAD_REQUEST);
+        }
+
         return plafondRepository.save(request);
     }
 
@@ -47,7 +59,14 @@ public class PlafondService {
             throw new CustomException("Nama plafond sudah digunakan", HttpStatus.BAD_REQUEST);
         }
 
-        existing.setName(request.getName());
+        if (request.getMinTenor() > request.getMaxTenor()) {
+            throw new CustomException("Minimal tenor tidak boleh lebih besar dari maksimal tenor", HttpStatus.BAD_REQUEST);
+        }
+
+        String normalizedName = nameNormalizer.normalizedName(request.getName());
+        request.setName(normalizedName);
+
+        existing.setName(normalizedName);
         existing.setMaxAmount(request.getMaxAmount());
         existing.setInterestRate(request.getInterestRate());
         existing.setMinTenor(request.getMinTenor());

@@ -1,12 +1,15 @@
 package com.sakuBCA.services;
 
 import com.sakuBCA.config.exceptions.CustomException;
+import com.sakuBCA.config.security.NameNormalizer;
 import com.sakuBCA.dtos.superAdminDTO.BranchDTO;
 import com.sakuBCA.models.Branch;
 import com.sakuBCA.repositories.BranchRepository;
+import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
+import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.stereotype.Service;
@@ -22,9 +25,14 @@ public class BranchService {
     private static final Logger logger = LoggerFactory.getLogger(BranchService.class);
 
     private final BranchRepository branchRepository;
+    @Autowired
+    private NameNormalizer nameNormalizer;
 
-    public ResponseEntity<Branch> createBranch(@RequestBody Branch branch) {
-        if (branchRepository.existsByName(branch.getName())) {
+    public ResponseEntity<Branch> createBranch(@Valid @RequestBody Branch branch) {
+        String normalizedName = nameNormalizer.normalizedName(branch.getName());
+        branch.setName(normalizedName);
+
+        if (branchRepository.existsByName(normalizedName)) {
             throw new CustomException("Branch sudah ada!", HttpStatus.BAD_REQUEST);
         }
 

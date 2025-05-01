@@ -44,8 +44,8 @@ public class LoanApprovalController {
         return ResponseEntity.ok(approvals);
     }
 
-    @GetMapping("/approval-history")
     @Secured("FEATURE_APPROVAL_HISTORY")
+    @GetMapping("/approval-history")
     public ResponseEntity<List<LoanApprovalHistoryResponse>> getHandledLoanRequestsByCurrentUser(Authentication authentication) {
         User currentUser = userService.getAuthenticatedUser();
         List<LoanApprovalHistoryResponse> result = loanApprovalService.getHandledApprovalsByUser(currentUser.getId());

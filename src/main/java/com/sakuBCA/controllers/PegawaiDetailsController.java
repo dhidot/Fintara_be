@@ -17,7 +17,7 @@ public class PegawaiDetailsController {
     @Autowired
     private PegawaiDetailsService pegawaiDetailsService;
 
-    @Secured("FEATURE_UPDATE_PEGAWAI_PROFILE")
+    @Secured("FEATURE_UPDATE_EMPLOYEE_PROFILE")
     @PutMapping("/update/{idPegawai}")
     public ResponseEntity<Map<String, String>> updatePegawaiDetails(
             @RequestHeader("Authorization") String token,

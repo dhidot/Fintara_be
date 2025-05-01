@@ -1,6 +1,7 @@
 package com.sakuBCA.services;
 
 import com.sakuBCA.config.exceptions.CustomException;
+import com.sakuBCA.config.security.NameNormalizer;
 import com.sakuBCA.dtos.superAdminDTO.RoleUpdateRequest;
 import com.sakuBCA.dtos.superAdminDTO.RoleWithFeatureCount;
 import com.sakuBCA.models.Feature;
@@ -31,6 +32,8 @@ public class RoleService {
     private FeatureService featureService;
     @Autowired
     private RoleFeatureService roleFeatureService;
+    @Autowired
+    private NameNormalizer nameNormalizer;
 
     public Role getRoleByName(String roleName) {
         return roleRepository.findByName(roleName)
@@ -57,7 +60,10 @@ public class RoleService {
     }
 
     public ResponseEntity<Role> addRole(@RequestBody Role role) {
-        if (roleRepository.existsByName(role.getName())) {
+        // Normalisasi nama role
+        String normalizedName = nameNormalizer.normalizeRoleName(role.getName());
+        role.setName(normalizedName);
+        if (roleRepository.existsByName(normalizedName)) {
             throw new CustomException("Role sudah ada!", HttpStatus.BAD_REQUEST);
         }
 
@@ -90,13 +96,13 @@ public class RoleService {
 
 
 
-    public ResponseEntity<String> deleteRole(UUID id) {
+    public ResponseEntity<Map<String, String>> deleteRole(UUID id) {
         Role role = roleRepository.findById(id)
                 .orElseThrow(() -> new CustomException("Role tidak ditemukan!", HttpStatus.NOT_FOUND));
 
         roleRepository.delete(role);
 
-        return ResponseEntity.ok("Role berhasil dihapus!");
+        return ResponseEntity.ok(Map.of("message", "Role berhasil dihapus!"));
     }
 
     public List<RoleWithFeatureCount> getAllRolesWithFeatureCount() {

@@ -18,6 +18,8 @@ public class RedisService {
     private static final String PEGAWAI_SESSION_PREFIX = "pegawai_session:";
     private static final String CUSTOMER_SESSION_PREFIX = "customer_session:";
     private static final String FIRST_LOGIN_PREFIX = "first_login:";
+    private static final String VERIFY_EMAIL_PREFIX = "verify_email:";
+    private static final long VERIFY_EMAIL_TTL_MINUTES = 30;
 
     // ---------- PEGAWAI ----------
     public void savePegawaiSession(String nip, String jwtToken) {
@@ -57,5 +59,18 @@ public class RedisService {
 
     public void removeFirstLoginStatus(String userId) {
         redisTemplate.delete(FIRST_LOGIN_PREFIX + userId);
+    }
+
+    // ---------- VERIFY EMAIL ----------
+    public void saveEmailVerificationToken(String token, String email) {
+        redisTemplate.opsForValue().set(VERIFY_EMAIL_PREFIX + token, email, VERIFY_EMAIL_TTL_MINUTES, TimeUnit.MINUTES);
+    }
+
+    public String getEmailByVerificationToken(String token) {
+        return redisTemplate.opsForValue().get(VERIFY_EMAIL_PREFIX + token);
+    }
+
+    public void removeEmailVerificationToken(String token) {
+        redisTemplate.delete(VERIFY_EMAIL_PREFIX + token);
     }
 }

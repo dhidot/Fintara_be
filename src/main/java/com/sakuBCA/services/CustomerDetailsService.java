@@ -89,6 +89,7 @@ public class CustomerDetailsService {
     // Metode untuk mengisi data dari DTO ke entitas
     private void updateCustomerDetailsFromDTO(CustomerDetails customerDetails, CustomerProfileUpdateDTO dto) {
         customerDetails.setTtl(LocalDate.parse(dto.getTtl()));
+        customerDetails.setKtpUrl(dto.getKtpUrl());
         customerDetails.setAlamat(dto.getAlamat());
         customerDetails.setNoTelp(dto.getNoTelp());
         customerDetails.setNik(dto.getNik());

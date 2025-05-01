@@ -16,7 +16,7 @@ import java.util.Map;
 public class DashboardController {
     private final DashboardService dashboardService;
 
-    @Secured("FEATURE_DASHBOARD_ACCESS")
+    @Secured("FEATURE_DASHBOARD")
     @GetMapping("/data")
     public ResponseEntity<Map<String, Long>> getDashboard() {
         Map<String, Long> summary = dashboardService.getDashboardSummary();

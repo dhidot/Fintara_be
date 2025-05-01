@@ -20,6 +20,7 @@ import jakarta.transaction.Transactional;
 import lombok.RequiredArgsConstructor;
 import org.apache.commons.lang3.RandomStringUtils;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.dao.DuplicateKeyException;
 import org.springframework.http.HttpStatus;
 import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.security.core.userdetails.UserDetails;
@@ -52,6 +53,15 @@ public class PegawaiService {
 
     @Transactional
     public RegisterPegawaiResponseDTO registerPegawai(RegisterPegawaiRequestDTO request) {
+        if (pegawaiRepository.existsByNip(request.getNip())) {
+            throw new DuplicateKeyException("NIP sudah terdaftar");
+        }
+
+        // Validasi apakah email sudah terdaftar
+        if (userService.existsByEmail(request.getEmail())) {
+            throw new DuplicateKeyException("Email sudah terdaftar");
+        }
+
         Branch existingBranch = branchService.findBranchByName(request.getBranchName());
         Role pegawaiRole = roleService.getRoleByName(request.getRole());
         String generatedPassword = RandomStringUtils.randomAlphanumeric(8);
@@ -59,6 +69,7 @@ public class PegawaiService {
         User pegawai = User.builder()
                 .name(request.getName())
                 .email(request.getEmail())
+                .jenisKelamin(request.getJenisKelamin())
                 .password(passwordEncoder.encode(generatedPassword))
                 .role(pegawaiRole)
                 .userType(UserType.PEGAWAI)
@@ -97,6 +108,7 @@ public class PegawaiService {
                 response.setId(user.getId());
                 response.setName(user.getName());
                 response.setEmail(user.getEmail());
+                response.setJenisKelamin(user.getJenisKelamin());
 
                 // Pastikan role tidak null sebelum diakses
                 if (user.getRole() != null) {
@@ -127,6 +139,7 @@ public class PegawaiService {
         response.setId(user.getId());
         response.setName(user.getName());
         response.setEmail(user.getEmail());
+        response.setJenisKelamin(user.getJenisKelamin());
         response.setRole(user.getRole().getName());
 
         // Konversi PegawaiDetails ke DTO jika ada
@@ -150,7 +163,9 @@ public class PegawaiService {
     private UserWithPegawaiResponseDTO mapToUserWithPegawaiResponseDTO(User user) {
         UserWithPegawaiResponseDTO response = new UserWithPegawaiResponseDTO();
         response.setId(user.getId());
+        response.setFotoUrl(user.getFotoUrl());
         response.setName(user.getName());
+        response.setJenisKelamin(user.getJenisKelamin());
         response.setEmail(user.getEmail());
         response.setRole(user.getRole().getName());
 

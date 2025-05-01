@@ -1,12 +1,10 @@
 package com.sakuBCA.services;
 
-import com.sakuBCA.dtos.authDTO.ResetPasswordRequest;
 import com.sakuBCA.dtos.customerDTO.CustomerDetailsDTO;
 import com.sakuBCA.dtos.customerDTO.UserWithCustomerResponseDTO;
 import com.sakuBCA.dtos.pegawaiDTO.PegawaiDetailsDTO;
 import com.sakuBCA.dtos.superAdminDTO.UserResponseDTO;
 import com.sakuBCA.config.exceptions.CustomException;
-import com.sakuBCA.models.PasswordResetToken;
 import com.sakuBCA.models.User;
 import com.sakuBCA.models.Role;
 import com.sakuBCA.repositories.UserRepository;
@@ -71,6 +69,11 @@ public class UserService implements UserDetailsService {
                 .orElseThrow(() -> new CustomException("User tidak ditemukan", HttpStatus.NOT_FOUND));
     }
 
+    // Exists by email
+    public boolean existsByEmail(String email) {
+        return userRepository.existsByEmail(email);
+    }
+
     // save
     public User saveUser(User user) {
         try {
@@ -127,7 +130,6 @@ public class UserService implements UserDetailsService {
         }
     }
 
-    // Get all pegawai (use UserWithPegawaiResponse)
     public List<User> getAllPegawai() {
         try {
             List<User> users = userRepository.findAllWithPegawai();
@@ -142,6 +144,7 @@ public class UserService implements UserDetailsService {
             throw new CustomException("Gagal mengambil daftar pengguna", HttpStatus.INTERNAL_SERVER_ERROR);
         }
     }
+
 
     public User getPegawaiByEmail(String email) {
         try {
@@ -211,6 +214,7 @@ public class UserService implements UserDetailsService {
         }
     }
 
+
     @Override
     public UserDetails loadUserByUsername(String username) throws UsernameNotFoundException {
         try {
@@ -245,5 +249,6 @@ public class UserService implements UserDetailsService {
             throw new CustomException("Gagal mengambil pengguna", HttpStatus.INTERNAL_SERVER_ERROR);
         }
     }
+
 }
 

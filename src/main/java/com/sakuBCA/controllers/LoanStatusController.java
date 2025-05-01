@@ -15,7 +15,7 @@ public class LoanStatusController {
     LoanStatusService loanStatusService;
 
     // ✅ Create Loan Status
-    @Secured("FEATURE_LOAN_STATUS")
+    @Secured("FEATURE_ADD_LOAN_STATUS")
     @PostMapping
     public ResponseEntity<LoanStatus> createLoanStatus(@RequestBody LoanStatus loanStatus) {
         LoanStatus createdLoanStatus = loanStatusService.createLoanStatus(loanStatus);
@@ -23,7 +23,7 @@ public class LoanStatusController {
     }
 
     // ✅ Get All Loan Statuses
-    @Secured("FEATURE_LOAN_STATUS")
+    @Secured("FEATURE_GET_ALL_LOAN_STATUS")
     @GetMapping
     public ResponseEntity<List<LoanStatus>> getAllLoanStatuses() {
         List<LoanStatus> loanStatuses = loanStatusService.getAllLoanStatuses();
@@ -31,7 +31,7 @@ public class LoanStatusController {
     }
 
     // ✅ Get Loan Status by ID
-    @Secured("FEATURE_LOAN_STATUS")
+    @Secured("FEATURE_GET_LOAN_STATUS_BY_ID")
     @GetMapping("/{id}")
     public ResponseEntity<LoanStatus> getLoanStatusById(@PathVariable UUID id) {
         LoanStatus loanStatus = loanStatusService.getLoanStatusById(id);
@@ -39,7 +39,7 @@ public class LoanStatusController {
     }
 
     // ✅ Update Loan Status
-    @Secured("FEATURE_LOAN_STATUS")
+    @Secured("FEATURE_UPDATE_LOAN_STATUS")
     @PutMapping("/{id}")
     public ResponseEntity<LoanStatus> updateLoanStatus(@PathVariable UUID id, @RequestBody LoanStatus loanStatus) {
         LoanStatus updatedLoanStatus = loanStatusService.updateLoanStatus(id, loanStatus);
@@ -47,7 +47,7 @@ public class LoanStatusController {
     }
 
     // ✅ Delete Loan Status
-    @Secured("FEATURE_LOAN_STATUS")
+    @Secured("FEATURE_DELETE_LOAN_STATUS")
     @DeleteMapping("/{id}")
     public ResponseEntity<Void> deleteLoanStatus(@PathVariable UUID id) {
         loanStatusService.deleteLoanStatus(id);

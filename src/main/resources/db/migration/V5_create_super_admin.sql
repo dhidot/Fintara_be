@@ -1,13 +1,24 @@
-MERGE INTO users AS target
-USING (VALUES
-    ('admin@example.com', 'Admin User', 'hashed_password_1', 'SUPER_ADMIN', 'EMPLOYEE'),
-    ('backoffice@example.com', 'Back Office', 'hashed_password_2', 'BACK_OFFICE', 'EMPLOYEE'),
-    ('branchmanager@example.com', 'Branch Manager', 'hashed_password_3', 'BRANCH_MANAGER', 'EMPLOYEE'),
-    ('marketing@example.com', 'Marketing Team', 'hashed_password_4', 'MARKETING', 'EMPLOYEE'),
-    ('customer@example.com', 'Customer', 'hashed_password_5', 'CUSTOMER', 'CUSTOMER')
-) AS source (email, name, password, role_name, user_type)
-ON target.email = source.email
-WHEN NOT MATCHED THEN
-    INSERT (id, email, name, password, role_id, user_type)
-    VALUES (NEWID(), source.email, source.name, source.password,
-           (SELECT id FROM roles WHERE name = source.role_name), source.user_type);
+-- Insert SuperAdmin User
+INSERT INTO users (name, email, password, role_id, user_type, is_first_login)
+SELECT
+    'Super Admin',
+    'superadmin@example.com',
+    '$2a$10$U/Pwl0uFkmPTnuhDqHWG8u8m7A7BZWqfjq7E8d1PvMNStP/NqSkC6', -- BCrypt dari "superadmin123"
+    r.id,
+    'PEGAWAI',
+    false
+FROM roles r
+WHERE r.name = 'SUPER_ADMIN'
+ON CONFLICT (email) DO NOTHING;
+
+-- Insert Pegawai Details untuk SuperAdmin
+INSERT INTO pegawai_details (nip, status_pegawai, user_id, branch_id)
+SELECT
+    '20242751',
+    'ACTIVE',
+    u.id,
+    b.id
+FROM users u
+JOIN branches b ON b.name = 'Pusat'
+WHERE u.email = 'superadmin@example.com'
+ON CONFLICT (user_id) DO NOTHING;
