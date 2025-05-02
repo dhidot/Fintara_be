@@ -1,11 +1,9 @@
 package com.sakuBCA.controllers;
 
-import com.sakuBCA.config.security.UserDetailsImpl;
 import com.sakuBCA.dtos.loanRequestDTO.LoanRequestApprovalDTO;
 import com.sakuBCA.dtos.loanRequestDTO.LoanRequestDTO;
 import com.sakuBCA.dtos.loanRequestDTO.LoanRequestResponseDTO;
 import com.sakuBCA.dtos.superAdminDTO.LoanReviewDTO;
-import com.sakuBCA.models.CustomerDetails;
 import com.sakuBCA.models.LoanRequest;
 import com.sakuBCA.models.User;
 import com.sakuBCA.services.LoanRequestService;
@@ -25,7 +23,7 @@ import java.util.Map;
 import java.util.UUID;
 
 @RestController
-@RequestMapping("/api/v1/loan-requests")
+@RequestMapping("/v1/loan-requests")
 @RequiredArgsConstructor
 public class LoanRequestController {
     @Autowired

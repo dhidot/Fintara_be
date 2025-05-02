@@ -12,7 +12,7 @@ import java.util.Map;
 import java.util.UUID;
 
 @RestController
-@RequestMapping("/api/v1/pegawaiprofile")
+@RequestMapping("/v1/pegawaiprofile")
 public class PegawaiDetailsController {
     @Autowired
     private PegawaiDetailsService pegawaiDetailsService;

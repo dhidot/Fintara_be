@@ -12,7 +12,7 @@ import org.springframework.web.multipart.MultipartFile;
 import java.util.UUID;
 
 @RestController
-@RequestMapping("/api/v1/profilecustomer")
+@RequestMapping("/v1/profilecustomer")
 public class CustomerDetailsController {
     @Autowired
     private CustomerDetailsService customerDetailsService;

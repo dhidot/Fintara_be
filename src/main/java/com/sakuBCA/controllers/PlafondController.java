@@ -13,7 +13,7 @@ import java.util.List;
 import java.util.UUID;
 
 @RestController
-@RequestMapping("/api/v1/plafonds")
+@RequestMapping("/v1/plafonds")
 @RequiredArgsConstructor
 public class PlafondController {
 

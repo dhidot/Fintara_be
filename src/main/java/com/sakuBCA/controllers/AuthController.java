@@ -3,7 +3,6 @@ package com.sakuBCA.controllers;
 import com.sakuBCA.dtos.authDTO.*;
 import com.sakuBCA.dtos.customerDTO.RegisterCustomerRequestDTO;
 import com.sakuBCA.dtos.customerDTO.CustomerResponseDTO;
-import com.sakuBCA.models.User;
 import com.sakuBCA.services.AuthService;
 import com.sakuBCA.services.CustomerDetailsService;
 import com.sakuBCA.services.RedisService;
@@ -16,11 +15,10 @@ import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 
 import java.util.Collections;
-import java.util.HashMap;
 import java.util.Map;
 
 @RestController
-@RequestMapping("/api/v1/auth")
+@RequestMapping("/v1/auth")
 @RequiredArgsConstructor
 public class AuthController {
     @Autowired

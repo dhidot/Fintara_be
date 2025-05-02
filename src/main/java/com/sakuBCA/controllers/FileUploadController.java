@@ -11,7 +11,7 @@ import java.io.IOException;
 import java.util.Map;
 
 @RestController
-@RequestMapping("/api/v1/upload")
+@RequestMapping("/v1/upload")
 public class FileUploadController {
 
     @Resource

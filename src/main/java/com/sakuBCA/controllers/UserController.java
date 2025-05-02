@@ -1,7 +1,6 @@
 package com.sakuBCA.controllers;
 
 import com.sakuBCA.config.security.UserDetailsImpl;
-import com.sakuBCA.dtos.customerDTO.UserWithCustomerResponseDTO;
 import com.sakuBCA.dtos.superAdminDTO.UserResponseDTO;
 import com.sakuBCA.models.User;
 import com.sakuBCA.services.CloudinaryService;
@@ -9,20 +8,18 @@ import com.sakuBCA.services.UserService;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.access.annotation.Secured;
-import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.security.core.Authentication;
 import org.springframework.web.bind.annotation.*;
 import org.springframework.web.multipart.MultipartFile;
 
 import java.io.IOException;
-import java.security.Principal;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 import java.util.UUID;
 
 @RestController
-@RequestMapping("/api/v1/users")
+@RequestMapping("/v1/users")
 public class UserController {
 
     private final UserService userService;

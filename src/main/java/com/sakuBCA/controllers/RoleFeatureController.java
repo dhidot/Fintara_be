@@ -8,13 +8,12 @@ import org.springframework.http.ResponseEntity;
 import org.springframework.security.access.annotation.Secured;
 import org.springframework.web.bind.annotation.*;
 
-import java.util.Collections;
 import java.util.Map;
 import java.util.UUID;
 import java.util.List;
 
 @RestController
-@RequestMapping("/api/v1/role-features")
+@RequestMapping("/v1/role-features")
 public class RoleFeatureController {
 
     @Autowired

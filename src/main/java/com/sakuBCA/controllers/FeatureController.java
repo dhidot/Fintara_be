@@ -15,7 +15,7 @@ import java.util.Map;
 import java.util.UUID;
 
 @RestController
-@RequestMapping("/api/v1/features")
+@RequestMapping("/v1/features")
 public class FeatureController {
     private final FeatureService featureService;
 

@@ -3,10 +3,8 @@ package com.sakuBCA.controllers;
 import com.sakuBCA.dtos.loanApprovalDTO.LoanApprovalHistoryResponse;
 import com.sakuBCA.dtos.loanRequestDTO.LoanApprovalDTO;
 import com.sakuBCA.models.LoanApproval;
-import com.sakuBCA.models.LoanRequest;
 import com.sakuBCA.models.User;
 import com.sakuBCA.services.LoanApprovalService;
-import com.sakuBCA.services.LoanRequestService;
 import com.sakuBCA.services.UserService;
 import lombok.RequiredArgsConstructor;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -20,7 +18,7 @@ import java.util.List;
 import java.util.UUID;
 
 @RestController
-@RequestMapping("/api/v1/loan-approvals")
+@RequestMapping("/v1/loan-approvals")
 @RequiredArgsConstructor
 public class LoanApprovalController {
     @Autowired

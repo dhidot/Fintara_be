@@ -4,11 +4,7 @@ import com.sakuBCA.dtos.superAdminDTO.RoleDTO;
 import com.sakuBCA.dtos.superAdminDTO.RoleUpdateRequest;
 import com.sakuBCA.dtos.superAdminDTO.RoleWithFeatureCount;
 import com.sakuBCA.models.Role;
-import com.sakuBCA.repositories.RoleRepository;
-import com.sakuBCA.services.RoleFeatureService;
 import com.sakuBCA.services.RoleService;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.access.annotation.Secured;
@@ -17,10 +13,9 @@ import org.springframework.web.bind.annotation.*;
 import java.util.List;
 import java.util.Map;
 import java.util.UUID;
-import java.util.stream.Collectors;
 
 @RestController
-@RequestMapping("/api/v1/roles")
+@RequestMapping("/v1/roles")
 public class RoleController {
     @Autowired
     private RoleService roleService;
