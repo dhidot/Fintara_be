@@ -18,7 +18,7 @@ import java.util.Collections;
 import java.util.Map;
 
 @RestController
-@RequestMapping("/v1/auth")
+@RequestMapping("v1/auth")
 @RequiredArgsConstructor
 public class AuthController {
     @Autowired
