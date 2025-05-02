@@ -52,11 +52,11 @@ public class SecurityConfiguration implements WebMvcConfigurer {
                 .authorizeHttpRequests(auth ->
                         auth
                                 .requestMatchers(
-                                        "/api/download/**",
-                                        "/api/v1/home/",
+                                        "/download/**",
+                                        "/v1/home/",
                                         "/swagger-ui.html","/swagger-ui/**",
                                         "/v3/api-docs/**","/api-docs/**").permitAll()
-                                .requestMatchers("/api/v1/auth/**").permitAll()
+                                .requestMatchers("/v1/auth/**").permitAll()
                                 .anyRequest().authenticated()
                 )
                 .authenticationProvider(authenticationProvider())
