@@ -4,7 +4,9 @@ import com.sakuBCA.models.Feature;
 import com.sakuBCA.models.Role;
 import com.sakuBCA.models.RoleFeature;
 import org.springframework.data.jpa.repository.JpaRepository;
+import org.springframework.data.jpa.repository.Modifying;
 import org.springframework.data.jpa.repository.Query;
+import org.springframework.data.repository.query.Param;
 import org.springframework.stereotype.Repository;
 
 import java.util.List;
@@ -21,5 +23,11 @@ public interface RoleFeatureRepository extends JpaRepository<RoleFeature, Intege
     Optional<RoleFeature> findByRoleAndFeature(Role role, Feature feature);
 
     boolean existsByRoleAndFeature(Role role, Feature feature);
+
+    List<RoleFeature> findByRoleId(UUID roleId);
+
+    @Modifying
+    @Query("DELETE FROM RoleFeature rf WHERE rf.role.id = :roleId")
+    void deleteByRoleId(@Param("roleId") UUID roleId);
 }
 

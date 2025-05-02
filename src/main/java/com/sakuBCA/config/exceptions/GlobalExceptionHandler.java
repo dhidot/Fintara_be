@@ -9,6 +9,7 @@ import org.springframework.web.bind.annotation.ExceptionHandler;
 import org.springframework.web.bind.annotation.ControllerAdvice;
 import org.springframework.security.access.AccessDeniedException;
 
+import jakarta.servlet.http.HttpServletRequest;
 import java.time.LocalDateTime;
 import java.util.HashMap;
 import java.util.LinkedHashMap;
@@ -28,11 +29,13 @@ public class GlobalExceptionHandler {
     }
 
     @ExceptionHandler(CustomException.class)
-    public ResponseEntity<Map<String, Object>> handleCustomException(CustomException ex) {
-        Map<String, Object> response = new HashMap<>();
+    public ResponseEntity<Map<String, Object>> handleCustomException(CustomException ex, HttpServletRequest request) {
+        Map<String, Object> response = new LinkedHashMap<>();
         response.put("status", ex.getStatus().value());
+        response.put("timestamp", LocalDateTime.now());
         response.put("error", ex.getStatus().getReasonPhrase()); // ✅ Gunakan status yang sesuai
         response.put("message", ex.getMessage());
+        response.put("path", request.getRequestURI());
 
         return new ResponseEntity<>(response, ex.getStatus());
     }

@@ -7,6 +7,7 @@ import org.springframework.security.core.authority.SimpleGrantedAuthority;
 import org.springframework.security.core.userdetails.UserDetails;
 
 import java.util.List;
+import java.util.UUID;
 import java.util.stream.Collectors;
 
 @Getter
@@ -15,11 +16,16 @@ public class UserDetailsImpl implements UserDetails {
     private final User user;
     private final String username;
     private final String password;
+    private final UUID userId;
+    private final String roleName;
     private final List<GrantedAuthority> authorities;
 
-    public UserDetailsImpl(User user, String username, String password, List<GrantedAuthority> authorities) {
+    public UserDetailsImpl(User user, String username, UUID userId, String roleName, String password, List<GrantedAuthority> authorities) {
         this.user = user;
         this.username = username;
+        this.userId = user.getId();
+        this.roleName = user.getRole().getName();
+
         this.password = password;
         this.authorities = List.copyOf(authorities); // Membuat list tidak bisa diubah
     }
@@ -27,22 +33,21 @@ public class UserDetailsImpl implements UserDetails {
     public static UserDetails build(User user) {
         List<GrantedAuthority> grantedAuthorities = user.getRole() != null
                 ? user.getRole().getRoleFeatures().stream()
-                .map(roleFeature -> new SimpleGrantedAuthority("FEATURE_" + roleFeature.getFeature().getName()))
+                .map(roleFeature -> new SimpleGrantedAuthority(roleFeature.getFeature().getName()))
                 .collect(Collectors.toList())
                 : List.of();
 
         // Tambahkan role sebagai authority
-        if (user.getRole() != null) {
-            grantedAuthorities.add(new SimpleGrantedAuthority("ROLE_" + user.getRole().getName()));
-        }
+//        if (user.getRole() != null) {
+//            grantedAuthorities.add(new SimpleGrantedAuthority("ROLE_" + user.getRole().getName()));
+//        }
 
-        return new UserDetailsImpl(user, user.getEmail(), user.getPassword(), grantedAuthorities);
+        return new UserDetailsImpl(user, user.getEmail(), user.getId(), user.getRole().getName(), user.getPassword(), grantedAuthorities);  // Sertakan userId
     }
 
     public List<String> getFeatures() {
         return authorities.stream()
                 .map(GrantedAuthority::getAuthority)
-                .filter(auth -> auth.startsWith("FEATURE_"))
                 .collect(Collectors.toList());
     }
 

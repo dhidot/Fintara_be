@@ -1,6 +1,8 @@
 package com.sakuBCA.controllers;
 
 import com.sakuBCA.dtos.superAdminDTO.RoleDTO;
+import com.sakuBCA.dtos.superAdminDTO.RoleUpdateRequest;
+import com.sakuBCA.dtos.superAdminDTO.RoleWithFeatureCount;
 import com.sakuBCA.models.Role;
 import com.sakuBCA.repositories.RoleRepository;
 import com.sakuBCA.services.RoleFeatureService;
@@ -13,6 +15,7 @@ import org.springframework.security.access.annotation.Secured;
 import org.springframework.web.bind.annotation.*;
 
 import java.util.List;
+import java.util.Map;
 import java.util.UUID;
 import java.util.stream.Collectors;
 
@@ -23,7 +26,7 @@ public class RoleController {
     private RoleService roleService;
 
 
-    @Secured("FEATURE_ROLE_ACCESS")
+    @Secured("FEATURE_GET_ALL_ROLE")
     @GetMapping("/all")
     public ResponseEntity<List<RoleDTO>> getAllRoles() {
         try {
@@ -34,24 +37,39 @@ public class RoleController {
         }
     }
 
-    @Secured("ROLE_ACCESS")
-    @PostMapping("/create")
+    @Secured("FEATURE_GET_ROLE_BY_ID")
+    @GetMapping("/{id}")
+    public ResponseEntity<Role> getRoleById(@PathVariable UUID id) {
+        try {
+            Role role = roleService.getRoleById(id);
+            return ResponseEntity.ok(role);
+        } catch (Exception e) {
+            return ResponseEntity.internalServerError().build();
+        }
+    }
+
+    @Secured("FEATURE_GET_ALL_ROLE")
+    @GetMapping("/with-feature-count")
+    public ResponseEntity<List<RoleWithFeatureCount>>getRolesWithFeatureCount() {
+        return ResponseEntity.ok(roleService.getAllRolesWithFeatureCount());
+    }
+
+    @Secured("FEATURE_ADD_ROLE")
+    @PostMapping("/add")
     public ResponseEntity<Role> createRole(@RequestBody Role role) {
-        System.out.println("Menerima request POST: " + role.getName());
-        return roleService.createRole(role);
+        return roleService.addRole(role);
     }
 
-    @Secured("ROLE_ACCESS")
+    @Secured("FEATURE_UPDATE_ROLE")
     @PutMapping("/edit/{id}")
-    public ResponseEntity<String> editRole(@PathVariable UUID id, @RequestBody Role role) {
-        System.out.println("Menerima request PUT: " + role.getName());
-        return roleService.editRole(id, role);
+    public ResponseEntity<?> editRole(@PathVariable UUID id, @RequestBody RoleUpdateRequest request) {
+        roleService.editRole(id, request);
+        return ResponseEntity.ok(Map.of("message", "Role berhasil diubah!"));
     }
 
-    @Secured("FEATURE_ROLE_ACCESS")
-    @DeleteMapping("/delete/{id}")
-    public ResponseEntity<String> deleteRole(@PathVariable UUID id) {
-        System.out.println("Menerima request DELETE: " + id);
+    @Secured("FEATURE_DELETE_ROLE")
+    @DeleteMapping("/{id}")
+    public ResponseEntity<Map<String,String>> deleteRole(@PathVariable UUID id) {
         return roleService.deleteRole(id);
     }
 

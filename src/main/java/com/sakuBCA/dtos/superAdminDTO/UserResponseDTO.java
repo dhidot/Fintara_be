@@ -1,5 +1,7 @@
 package com.sakuBCA.dtos.superAdminDTO;
 
+import com.sakuBCA.dtos.customerDTO.CustomerDetailsDTO;
+import com.sakuBCA.dtos.pegawaiDTO.PegawaiDetailsDTO;
 import lombok.Getter;
 import lombok.Setter;
 

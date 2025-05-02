@@ -1,21 +1,27 @@
 package com.sakuBCA.controllers;
 
+import com.sakuBCA.config.security.UserDetailsImpl;
 import com.sakuBCA.dtos.loanRequestDTO.LoanRequestApprovalDTO;
 import com.sakuBCA.dtos.loanRequestDTO.LoanRequestDTO;
+import com.sakuBCA.dtos.loanRequestDTO.LoanRequestResponseDTO;
 import com.sakuBCA.dtos.superAdminDTO.LoanReviewDTO;
+import com.sakuBCA.models.CustomerDetails;
 import com.sakuBCA.models.LoanRequest;
 import com.sakuBCA.models.User;
 import com.sakuBCA.services.LoanRequestService;
 import com.sakuBCA.services.LoanStatusService;
 import com.sakuBCA.services.UserService;
+import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.access.annotation.Secured;
+import org.springframework.security.core.Authentication;
 import org.springframework.web.bind.annotation.*;
 
 import java.util.List;
+import java.util.Map;
 import java.util.UUID;
 
 @RestController
@@ -31,17 +37,23 @@ public class LoanRequestController {
 
     @Secured("FEATURE_CREATE_LOAN_REQUEST")
     @PostMapping
-    public ResponseEntity<LoanRequest> createLoanRequest(@RequestBody LoanRequestDTO request) {
-        // Mendapatkan informasi customer yang sedang login dan memanggil service untuk membuat loan request
-        LoanRequest loanRequest = loanRequestService.createLoanRequest(
-                request.getAmount(),
-                request.getTenor(),
-                request.getLatitude(),
-                request.getLongitude()
-        );
-
-        return ResponseEntity.status(HttpStatus.CREATED).body(loanRequest);
+    public ResponseEntity<LoanRequestResponseDTO> createLoanRequest(@Valid @RequestBody LoanRequestDTO request) {
+        LoanRequestResponseDTO loanRequestResponse = loanRequestService.createLoanRequest(request);
+        return ResponseEntity.status(HttpStatus.CREATED).body(loanRequestResponse);
     }
+
+    @Secured("FEATURE_REVIEW_LOAN_REQUEST")
+    @GetMapping("/{id}")
+    public ResponseEntity<LoanRequestApprovalDTO> getLoanRequest(@PathVariable UUID id, Authentication authentication) {
+        User currentUser = userService.getAuthenticatedUser();
+        LoanRequest loanRequest = loanRequestService.getLoanRequestById(id);
+
+        loanRequestService.validateAccess(currentUser, loanRequest);
+
+        LoanRequestApprovalDTO dto = loanRequestService.mapToApprovalDTO(loanRequest);
+        return ResponseEntity.ok(dto);
+    }
+
 
     /********** APPROVAL MARKETING **********/
     @Secured("FEATURE_APPROVAL_MARKETING")
@@ -56,16 +68,15 @@ public class LoanRequestController {
 
     @Secured("FEATURE_APPROVAL_MARKETING")
     @PutMapping("/review/{loanRequestId}")
-    public ResponseEntity<String> reviewLoanRequest(
+    public ResponseEntity<Map<String, String>> reviewLoanRequest(
             @PathVariable UUID loanRequestId,
             @RequestBody LoanReviewDTO loanReviewDTO) {
 
-        System.out.println("DEBUG RAW REQUEST: " + loanReviewDTO);
-
         User currentMarketing = userService.getAuthenticatedUser();
-        loanRequestService.reviewLoanRequest(loanRequestId, currentMarketing.getId(), loanReviewDTO.getIsApproved(), loanReviewDTO.getNotes());
+        loanRequestService.reviewLoanRequest(loanRequestId, currentMarketing.getId(), loanReviewDTO.getStatus(), loanReviewDTO.getNotes());
 
-        return ResponseEntity.ok("Review berhasil diproses");
+        return ResponseEntity.ok(Map.of("message", "Review Marketing berhasil diproses"));
+
     }
 
 
@@ -82,14 +93,14 @@ public class LoanRequestController {
 
     @Secured("FEATURE_APPROVAL_BM")
     @PutMapping("/branch-manager/review/{loanRequestId}")
-    public ResponseEntity<String> reviewLoanRequestByBM(
+    public ResponseEntity<Map<String, String>> reviewLoanRequestByBM(
             @PathVariable UUID loanRequestId,
             @RequestBody LoanReviewDTO loanReviewDTO) {
 
         User currentBM = userService.getAuthenticatedUser();
-        loanRequestService.reviewLoanRequestByBM(loanRequestId, currentBM.getId(), loanReviewDTO.getIsApproved(), loanReviewDTO.getNotes());
+        loanRequestService.reviewLoanRequestByBM(loanRequestId, currentBM.getId(), loanReviewDTO.getStatus(), loanReviewDTO.getNotes());
 
-        return ResponseEntity.ok("Review oleh Branch Manager berhasil diproses");
+        return ResponseEntity.ok(Map.of("message", "Review BM berhasil diproses"));
     }
 
 
@@ -105,10 +116,10 @@ public class LoanRequestController {
 
     @Secured("FEATURE_DISBURSE")
     @PutMapping("/back-office/disburse/{loanRequestId}")
-    public ResponseEntity<String> disburseLoanRequest(@PathVariable UUID loanRequestId) {
+    public ResponseEntity<Map<String, String>> disburseLoanRequest(@PathVariable UUID loanRequestId) {
         User currentBO = userService.getAuthenticatedUser();
         loanRequestService.disburseLoanRequest(loanRequestId, currentBO.getId());
 
-        return ResponseEntity.ok("Loan request berhasil dicairkan");
+        return ResponseEntity.ok(Map.of("message", "Loan request berhasil dicairkan"));
     }
 }

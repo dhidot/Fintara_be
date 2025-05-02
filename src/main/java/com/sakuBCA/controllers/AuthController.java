@@ -1,21 +1,22 @@
 package com.sakuBCA.controllers;
 
-import com.sakuBCA.dtos.authDTO.LoginRequest;
+import com.sakuBCA.dtos.authDTO.*;
 import com.sakuBCA.dtos.customerDTO.RegisterCustomerRequestDTO;
-import com.sakuBCA.dtos.authDTO.ResetPasswordRequest;
-import com.sakuBCA.dtos.superAdminDTO.CustomerResponseDTO;
-import com.sakuBCA.models.CustomerDetails;
+import com.sakuBCA.dtos.customerDTO.CustomerResponseDTO;
 import com.sakuBCA.models.User;
 import com.sakuBCA.services.AuthService;
 import com.sakuBCA.services.CustomerDetailsService;
+import com.sakuBCA.services.RedisService;
 import com.sakuBCA.services.UserService;
 import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 
 import java.util.Collections;
+import java.util.HashMap;
 import java.util.Map;
 
 @RestController
@@ -28,10 +29,19 @@ public class AuthController {
     private UserService userService;
     @Autowired
     private CustomerDetailsService customerDetailsService;
+    @Autowired
+    private RedisService redisService;
 
-    @PostMapping("/login")
-    public ResponseEntity<Map<String, Object>> authenticate(@Valid @RequestBody LoginRequest loginRequestDto) {
-        Map<String, Object> response = authService.authenticate(loginRequestDto);
+
+    @PostMapping("/login-customer")
+    public ResponseEntity<?> loginCustomer(@RequestBody LoginRequestCustomer request) {
+        Map<String, Object> response = authService.loginCustomer(request);
+        return ResponseEntity.ok(response);
+    }
+
+    @PostMapping("/login-pegawai")
+    public ResponseEntity<?> loginPegawai(@RequestBody LoginRequestPegawai request) {
+        Map<String, Object> response = authService.loginPegawai(request);
         return ResponseEntity.ok(response);
     }
 
@@ -47,21 +57,39 @@ public class AuthController {
     }
 
     @PostMapping("/forgot-password")
-    public ResponseEntity<String> forgotPassword(@RequestBody Map<String, String> requestBody) {
+    public ResponseEntity<Map<String, String>> forgotPassword(@RequestBody Map<String, String> requestBody) {
         String email = requestBody.get("email");
 
         if (email == null || email.isEmpty()) {
-            return ResponseEntity.badRequest().body("Email tidak boleh kosong.");
+            return ResponseEntity.badRequest().body(
+                    Collections.singletonMap("message", "Email tidak boleh kosong.")
+            );
         }
 
-        userService.sendResetPasswordToken(email);
-        return ResponseEntity.ok("Token reset password telah dikirim ke email.");
+        authService.sendResetPasswordToken(email);
+
+        return ResponseEntity.ok(
+                Collections.singletonMap("message", "Token reset password telah dikirim ke email.")
+        );
     }
+
 
     @PostMapping("/reset-password")
     public ResponseEntity<?> resetPassword(@RequestBody ResetPasswordRequest request) {
-        userService.resetPassword(request);
+        authService.resetPassword(request);
         return ResponseEntity.ok(Collections.singletonMap("message", "Password berhasil diubah"));
+    }
+
+    @PutMapping("/change-password")
+    public ResponseEntity<?> changePassword(@Valid @RequestBody ChangePasswordRequest request) {
+        authService.changePassword(request);
+        return ResponseEntity.ok(Collections.singletonMap("message", "Password berhasil diperbarui"));
+    }
+
+    @GetMapping("/verify-email")
+    public ResponseEntity<?> verifyEmail(@RequestParam("token") String token) {
+        Map<String, Object> response = authService.verifyEmail(token);
+        return ResponseEntity.status((HttpStatus) response.getOrDefault("httpStatus", HttpStatus.OK)).body(response);
     }
 }
 

@@ -1,6 +1,8 @@
 package com.sakuBCA.repositories;
 
 import com.sakuBCA.models.User;
+import org.springframework.data.domain.Page;
+import org.springframework.data.domain.Pageable;
 import org.springframework.data.jpa.repository.JpaRepository;
 import org.springframework.data.jpa.repository.Query;
 import org.springframework.data.repository.query.Param;
@@ -26,11 +28,27 @@ public interface UserRepository extends JpaRepository<User, UUID> {
     @Query("SELECT u FROM User u LEFT JOIN FETCH u.pegawaiDetails WHERE u.id = :userId")
     Optional<User> findByIdWithPegawai(@Param("userId") UUID userId);
 
+    @Query("SELECT u FROM User u LEFT JOIN FETCH u.customerDetails WHERE u.id = :userId")
+    Optional<User> findByIdWithCustomer(@Param("userId") UUID userId);
+
     @EntityGraph(attributePaths = {"customerDetails", "customerDetails.plafond"})
     @Query("SELECT u FROM User u WHERE u.email = :email")
     Optional<User> findByEmailWithDetails(@Param("email") String email);
 
+    @Query("SELECT u FROM User u LEFT JOIN FETCH u.pegawaiDetails WHERE u.id = :id")
+    Optional<User> findUserWithPegawaiDetailsById(@Param("id") UUID id);
+
     Optional<User> findByEmail(String email);
+
+    // find by NIP
+    Optional<User> findByPegawaiDetails_Nip(String nip);
+
+    @Query("""
+    SELECT u FROM User u
+    LEFT JOIN u.pegawaiDetails pd
+    WHERE u.email = :username OR pd.nip = :username
+""")
+    Optional<User> findByEmailOrNip(String username);
 
     boolean existsByEmail(String email);
 }

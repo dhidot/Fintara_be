@@ -1,21 +1,21 @@
 package com.sakuBCA.services;
 
 import com.sakuBCA.config.exceptions.CustomException;
+import com.sakuBCA.config.security.NameNormalizer;
 import com.sakuBCA.dtos.superAdminDTO.BranchDTO;
 import com.sakuBCA.models.Branch;
 import com.sakuBCA.repositories.BranchRepository;
+import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
+import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.stereotype.Service;
 import org.springframework.web.bind.annotation.RequestBody;
 
-import java.util.Collections;
-import java.util.List;
-import java.util.Map;
-import java.util.UUID;
+import java.util.*;
 import java.util.stream.Collectors;
 
 @Service
@@ -25,18 +25,21 @@ public class BranchService {
     private static final Logger logger = LoggerFactory.getLogger(BranchService.class);
 
     private final BranchRepository branchRepository;
+    @Autowired
+    private NameNormalizer nameNormalizer;
 
-    // 🔹 CREATE Branch
-    public ResponseEntity<Branch> createBranch(@RequestBody Branch branch) {
-        if (branchRepository.existsByName(branch.getName())) {
+    public ResponseEntity<Branch> createBranch(@Valid @RequestBody Branch branch) {
+        String normalizedName = nameNormalizer.normalizedName(branch.getName());
+        branch.setName(normalizedName);
+
+        if (branchRepository.existsByName(normalizedName)) {
             throw new CustomException("Branch sudah ada!", HttpStatus.BAD_REQUEST);
         }
 
         return ResponseEntity.ok(branchRepository.save(branch));
     }
 
-    // READ Semua Branch
-    public Map<UUID, String> getAllBranches() {
+    public List<Branch> getAllBranches() {
         try {
             List<Branch> branches = branchRepository.findAll();
             if (branches.isEmpty()) {
@@ -44,38 +47,68 @@ public class BranchService {
             } else {
                 logger.info("Fetched {} branches", branches.size());
             }
-            return branches.stream()
-                    .collect(Collectors.toMap(Branch::getId, Branch::getName));
+            return branches; // Kembalikan List<Branch> langsung
         } catch (Exception e) {
             logger.error("Error fetching branches: {}", e.getMessage(), e);
-            return Collections.emptyMap();
+            return Collections.emptyList(); // Kembalikan list kosong jika terjadi error
         }
     }
 
-    // 🔹 READ Branch by ID
     public BranchDTO getBranchById(UUID id) {
         Branch branch = branchRepository.findById(id)
                 .orElseThrow(() -> new CustomException("Branch dengan ID " + id + " tidak ditemukan", HttpStatus.NOT_FOUND));
 
-        // Konversi model ke DTO
+        // Mengambil latitude dan longitude
         BranchDTO branchDTO = new BranchDTO();
         branchDTO.setName(branch.getName());
         branchDTO.setAddress(branch.getAddress());
+        branchDTO.setLatitude(branch.getLatitude());   // Pastikan ini ada
+        branchDTO.setLongitude(branch.getLongitude()); // Pastikan ini ada
 
         return branchDTO;
     }
 
-    //find branch by id
+
     public Branch findBranchById(UUID id) {
         return branchRepository.findById(id)
                 .orElseThrow(() -> new CustomException("Branch dengan ID ini tidak ditemukan", HttpStatus.NOT_FOUND));
     }
 
-    // 🔹 UPDATE Branch
+    public Branch findBranchByName(String branchName) {
+        return branchRepository.findByName(branchName)
+                .orElseThrow(() -> new CustomException("Branch tidak ditemukan", HttpStatus.NOT_FOUND));
+    }
+
+    public UUID findNearestBranch(double latitude, double longitude) {
+        List<Branch> allBranches = branchRepository.findAll();
+
+        return allBranches.stream()
+                .min(Comparator.comparing(branch -> haversineDistance(
+                        latitude, longitude,
+                        branch.getLatitude(), branch.getLongitude())))
+                .map(Branch::getId)
+                .orElse(null);
+    }
+
+    private double haversineDistance(double lat1, double lon1, double lat2, double lon2) {
+        final int R = 6371; // Radius bumi dalam KM
+        double dLat = Math.toRadians(lat2 - lat1);
+        double dLon = Math.toRadians(lon2 - lon1);
+
+        double a = Math.sin(dLat / 2) * Math.sin(dLat / 2)
+                + Math.cos(Math.toRadians(lat1)) * Math.cos(Math.toRadians(lat2))
+                * Math.sin(dLon / 2) * Math.sin(dLon / 2);
+
+        double c = 2 * Math.atan2(Math.sqrt(a), Math.sqrt(1 - a));
+        return R * c;
+    }
+
     private BranchDTO mapToDTO(Branch branch) {
         BranchDTO dto = new BranchDTO();
         dto.setName(branch.getName());
         dto.setAddress(branch.getAddress());
+        dto.setLatitude(branch.getLatitude());
+        dto.setLongitude(branch.getLongitude());
         return dto;
     }
 
@@ -83,17 +116,26 @@ public class BranchService {
         Branch branch = branchRepository.findById(id)
                 .orElseThrow(() -> new CustomException("Branch dengan ID ini tidak ditemukan", HttpStatus.NOT_FOUND));
 
-        // Cek apakah nama baru sudah digunakan oleh branch lain
-        if (branchRepository.findByName(request.getName()).isPresent()) {
-            throw new CustomException("Nama branch ini sudah digunakan", HttpStatus.BAD_REQUEST);
+        // Cek apakah nama baru sudah digunakan oleh branch lain, kecuali untuk branch itu sendiri
+        if (request.getName() != null && branchRepository.findByName(request.getName()).isPresent()) {
+            Branch existingBranch = branchRepository.findByName(request.getName()).get();
+            if (!existingBranch.getId().equals(id)) {
+                throw new CustomException("Nama branch ini sudah digunakan", HttpStatus.BAD_REQUEST);
+            }
         }
 
-        // **Pastikan field yang tidak diperbarui tetap dipertahankan**
+        // Update properti yang diterima dari request
         if (request.getName() != null) {
             branch.setName(request.getName());
         }
         if (request.getAddress() != null) {
             branch.setAddress(request.getAddress());
+        }
+        if (request.getLatitude() != null) {
+            branch.setLatitude(request.getLatitude());
+        }
+        if (request.getLongitude() != null) {
+            branch.setLongitude(request.getLongitude());
         }
 
         branchRepository.save(branch);
@@ -102,7 +144,6 @@ public class BranchService {
     }
 
 
-    // 🔹 DELETE Branch
     public void deleteBranch(UUID id) {
         Branch branch = branchRepository.findById(id)
                 .orElseThrow(() -> new CustomException("Branch dengan ID ini tidak ditemukan", HttpStatus.NOT_FOUND));
@@ -110,14 +151,7 @@ public class BranchService {
         branchRepository.delete(branch);
     }
 
-    // Nearest Branch to customer
-    public UUID findNearestBranch(double latitude, double longitude) {
-        return branchRepository.findNearestBranch(latitude, longitude);
-    }
-
-    // Find By ID
-    public Branch findById(UUID id) {
-        return branchRepository.findById(id)
-                .orElseThrow(() -> new CustomException("Branch dengan ID ini tidak ditemukan", HttpStatus.NOT_FOUND));
+    public Long count() {
+        return branchRepository.count();
     }
 }

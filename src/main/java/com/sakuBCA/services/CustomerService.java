@@ -1,28 +1,33 @@
 package com.sakuBCA.services;
 
 import com.sakuBCA.config.exceptions.CustomException;
-import com.sakuBCA.dtos.superAdminDTO.CustomerDetailsDTO;
-import com.sakuBCA.dtos.superAdminDTO.UserWithCustomerResponseDTO;
+import com.sakuBCA.dtos.customerDTO.CustomerDetailsDTO;
+import com.sakuBCA.dtos.customerDTO.UserWithCustomerResponseDTO;
+import com.sakuBCA.models.CustomerDetails;
 import com.sakuBCA.models.User;
+import com.sakuBCA.repositories.CustomerDetailsRepository;
 import lombok.RequiredArgsConstructor;
+import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.data.domain.Page;
+import org.springframework.data.domain.Pageable;
 import org.springframework.http.HttpStatus;
 import org.springframework.stereotype.Service;
 
+import java.util.HashMap;
 import java.util.List;
+import java.util.Map;
 import java.util.stream.Collectors;
 
 @Service
 @RequiredArgsConstructor
 public class CustomerService {
     private final UserService userService;
+    @Autowired
+    private CustomerDetailsRepository customerDetailsRepository;
 
     public List<UserWithCustomerResponseDTO> getAllCustomer() {
         try {
             List<User> users = userService.getAllCustomers();
-
-            if (users.isEmpty()) {
-                throw new CustomException("Tidak ada data customer yang ditemukan", HttpStatus.NOT_FOUND);
-            }
 
             return users.stream().map(user -> {
                 UserWithCustomerResponseDTO response = new UserWithCustomerResponseDTO();
@@ -34,7 +39,7 @@ public class CustomerService {
                 if (user.getRole() != null) {
                     response.setRole(user.getRole().getName());
                 } else {
-                    response.setRole("ROLE_UNKNOWN"); // Default jika role null
+                    response.setRole("ROLE_UNKNOWN");
                 }
 
                 // Set CustomerDetails jika ada
@@ -44,12 +49,15 @@ public class CustomerService {
                 return response;
             }).collect(Collectors.toList());
 
-        } catch (CustomException e) {
-            throw e; // CustomException tetap dilempar agar bisa ditangani oleh controller
         } catch (Exception e) {
             // Tangani kesalahan tidak terduga dan log error
             throw new CustomException("Terjadi kesalahan saat mengambil data customer", HttpStatus.INTERNAL_SERVER_ERROR);
         }
     }
 
+
+
+    public Long count() {
+        return customerDetailsRepository.count();
+    }
 }

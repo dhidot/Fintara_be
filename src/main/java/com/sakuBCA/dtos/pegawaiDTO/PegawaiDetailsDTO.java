@@ -1,4 +1,4 @@
-package com.sakuBCA.dtos.superAdminDTO;
+package com.sakuBCA.dtos.pegawaiDTO;
 
 import com.sakuBCA.enums.StatusPegawai;
 import com.sakuBCA.models.PegawaiDetails;
@@ -12,13 +12,13 @@ import java.util.UUID;
 public class PegawaiDetailsDTO {
     private UUID id;
     private String nip;
-    private UUID branchId;
+    private String branchName;
     private StatusPegawai statusPegawai;
 
     public PegawaiDetailsDTO(PegawaiDetails pegawaiDetails) {
         this.id = pegawaiDetails.getId();
         this.nip = pegawaiDetails.getNip();
-        this.branchId = pegawaiDetails.getBranch().getId();
+        this.branchName = pegawaiDetails.getBranch().getName();
         this.statusPegawai = pegawaiDetails.getStatusPegawai();
     }
 }

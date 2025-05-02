@@ -1,51 +1,19 @@
-INSERT INTO branches (id, name, address) VALUES
-(NEWID(), 'Cabang Jakarta', 'Jl. Utama Jakarta, Indonesia'),
-(NEWID(), 'Cabang Surabaya', 'Jl. Utama Surabaya, Indonesia'),
-(NEWID(), 'Cabang Bandung', 'Jl. Utama Bandung, Indonesia'),
-(NEWID(), 'Cabang Medan', 'Jl. Utama Medan, Indonesia'),
-(NEWID(), 'Cabang Semarang', 'Jl. Utama Semarang, Indonesia'),
-(NEWID(), 'Cabang Makassar', 'Jl. Utama Makassar, Indonesia'),
-(NEWID(), 'Cabang Palembang', 'Jl. Utama Palembang, Indonesia'),
-(NEWID(), 'Cabang Depok', 'Jl. Utama Depok, Indonesia'),
-(NEWID(), 'Cabang Tangerang', 'Jl. Utama Tangerang, Indonesia'),
-(NEWID(), 'Cabang Bekasi', 'Jl. Utama Bekasi, Indonesia'),
-(NEWID(), 'Cabang Yogyakarta', 'Jl. Utama Yogyakarta, Indonesia'),
-(NEWID(), 'Cabang Malang', 'Jl. Utama Malang, Indonesia'),
-(NEWID(), 'Cabang Batam', 'Jl. Utama Batam, Indonesia'),
-(NEWID(), 'Cabang Pekanbaru', 'Jl. Utama Pekanbaru, Indonesia'),
-(NEWID(), 'Cabang Denpasar', 'Jl. Utama Denpasar, Indonesia'),
-(NEWID(), 'Cabang Padang', 'Jl. Utama Padang, Indonesia'),
-(NEWID(), 'Cabang Bogor', 'Jl. Utama Bogor, Indonesia'),
-(NEWID(), 'Cabang Samarinda', 'Jl. Utama Samarinda, Indonesia'),
-(NEWID(), 'Cabang Tasikmalaya', 'Jl. Utama Tasikmalaya, Indonesia'),
-(NEWID(), 'Cabang Banjarmasin', 'Jl. Utama Banjarmasin, Indonesia'),
-(NEWID(), 'Cabang Pontianak', 'Jl. Utama Pontianak, Indonesia'),
-(NEWID(), 'Cabang Serang', 'Jl. Utama Serang, Indonesia'),
-(NEWID(), 'Cabang Balikpapan', 'Jl. Utama Balikpapan, Indonesia'),
-(NEWID(), 'Cabang Jambi', 'Jl. Utama Jambi, Indonesia'),
-(NEWID(), 'Cabang Mataram', 'Jl. Utama Mataram, Indonesia'),
-(NEWID(), 'Cabang Manado', 'Jl. Utama Manado, Indonesia'),
-(NEWID(), 'Cabang Cimahi', 'Jl. Utama Cimahi, Indonesia'),
-(NEWID(), 'Cabang Ambon', 'Jl. Utama Ambon, Indonesia'),
-(NEWID(), 'Cabang Kupang', 'Jl. Utama Kupang, Indonesia'),
-(NEWID(), 'Cabang Cirebon', 'Jl. Utama Cirebon, Indonesia'),
-(NEWID(), 'Cabang Kendari', 'Jl. Utama Kendari, Indonesia'),
-(NEWID(), 'Cabang Jayapura', 'Jl. Utama Jayapura, Indonesia'),
-(NEWID(), 'Cabang Bengkulu', 'Jl. Utama Bengkulu, Indonesia'),
-(NEWID(), 'Cabang Palu', 'Jl. Utama Palu, Indonesia'),
-(NEWID(), 'Cabang Tegal', 'Jl. Utama Tegal, Indonesia'),
-(NEWID(), 'Cabang Purwokerto', 'Jl. Utama Purwokerto, Indonesia'),
-(NEWID(), 'Cabang Kediri', 'Jl. Utama Kediri, Indonesia'),
-(NEWID(), 'Cabang Binjai', 'Jl. Utama Binjai, Indonesia'),
-(NEWID(), 'Cabang Pangkal Pinang', 'Jl. Utama Pangkal Pinang, Indonesia'),
-(NEWID(), 'Cabang Singkawang', 'Jl. Utama Singkawang, Indonesia'),
-(NEWID(), 'Cabang Cilegon', 'Jl. Utama Cilegon, Indonesia'),
-(NEWID(), 'Cabang Madiun', 'Jl. Utama Madiun, Indonesia'),
-(NEWID(), 'Cabang Tanjung Pinang', 'Jl. Utama Tanjung Pinang, Indonesia'),
-(NEWID(), 'Cabang Banjar', 'Jl. Utama Banjar, Indonesia'),
-(NEWID(), 'Cabang Blitar', 'Jl. Utama Blitar, Indonesia'),
-(NEWID(), 'Cabang Sukabumi', 'Jl. Utama Sukabumi, Indonesia'),
-(NEWID(), 'Cabang Lhokseumawe', 'Jl. Utama Lhokseumawe, Indonesia'),
-(NEWID(), 'Cabang Magelang', 'Jl. Utama Magelang, Indonesia'),
-(NEWID(), 'Cabang Probolinggo', 'Jl. Utama Probolinggo, Indonesia'),
-(NEWID(), 'Cabang Pasuruan', 'Jl. Utama Pasuruan, Indonesia');
+-- V2__init_branches.sql
+
+-- Membuat tabel Branch
+CREATE TABLE IF NOT EXISTS Branches (
+    id INT PRIMARY KEY IDENTITY,
+    name VARCHAR(255) NOT NULL,
+    address VARCHAR(255),
+    latitude DOUBLE,
+    longitude DOUBLE
+);
+
+-- Menambahkan data cabang
+INSERT INTO Branches (name, address, latitude, longitude)
+VALUES
+    ('Pusat', 'Alamat Pusat', -6.2088, 106.8456),
+    ('Jakarta Selatan', 'Alamat Jakarta Selatan', -6.2615, 106.8101),
+    ('Surabaya', 'Alamat Surabaya', -7.2575, 112.7521),
+    ('Bandung', 'Alamat Bandung', -6.9147, 107.6098),
+    ('Medan', 'Alamat Medan', 3.5952, 98.6722);

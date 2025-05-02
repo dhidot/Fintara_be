@@ -1,7 +1,10 @@
 package com.sakuBCA.dtos.customerDTO;
 
 import com.fasterxml.jackson.annotation.JsonProperty;
+import com.sakuBCA.config.validators.ValidPassword;
+import com.sakuBCA.enums.JenisKelamin;
 import jakarta.validation.constraints.NotBlank;
+import jakarta.validation.constraints.NotNull;
 import jakarta.validation.constraints.Pattern;
 import jakarta.validation.constraints.Size;
 import lombok.Data;
@@ -13,6 +16,10 @@ public class RegisterCustomerRequestDTO {
     @NotBlank(message = "Nama tidak boleh kosong")
     private String name;
 
+    @NotNull(message = "Jenis Kelamin tidak boleh kosong")
+    @JsonProperty("jenis_kelamin")
+    private JenisKelamin jenisKelamin;
+
     @JsonProperty("email")
     @NotBlank(message = "Email tidak boleh kosong")
     @Pattern(
@@ -23,10 +30,6 @@ public class RegisterCustomerRequestDTO {
 
     @JsonProperty("password")
     @NotBlank(message = "Password tidak boleh kosong")
-    @Size(min = 8, message = "Password minimal 8 karakter")
-    @Pattern(
-            regexp = "^(?=.*[a-z])(?=.*[A-Z])(?=.*\\d)[A-Za-z\\d]{8,}$",
-            message = "Password harus mengandung huruf besar, huruf kecil, dan angka"
-    )
+    @ValidPassword
     private String password;
 }

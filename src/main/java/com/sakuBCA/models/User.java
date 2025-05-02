@@ -1,9 +1,8 @@
 package com.sakuBCA.models;
 
-import com.fasterxml.jackson.annotation.JsonIdentityInfo;
 import com.fasterxml.jackson.annotation.JsonIgnore;
 import com.fasterxml.jackson.annotation.JsonManagedReference;
-import com.fasterxml.jackson.annotation.ObjectIdGenerators;
+import com.sakuBCA.enums.JenisKelamin;
 import com.sakuBCA.enums.UserType;
 import jakarta.persistence.*;
 import lombok.*;
@@ -31,13 +30,26 @@ public class User {
     private String name;
     private String password;
 
+    @Column(name = "foto_url")
+    private String fotoUrl;
+
+    @Enumerated(EnumType.STRING)
+    @Column(name = "jenis_kelamin", nullable = false)
+    private JenisKelamin jenisKelamin;
+
+    @Column(name = "is_first_login", nullable = false)
+    private boolean isFirstLogin = true; // Default true untuk pegawai baru dan customer baru
+
+    @Column(name = "email_verified", nullable = false)
+    private boolean emailVerified = false;
+
     @ManyToOne
     @JsonIgnore
     @JoinColumn(name = "role_id", nullable = false)
     private Role role;
 
     @JsonManagedReference
-    @OneToOne(mappedBy = "user", cascade = CascadeType.ALL)
+    @OneToOne(mappedBy = "user", cascade = CascadeType.ALL, fetch = FetchType.EAGER)
     private PegawaiDetails pegawaiDetails;
 
     @JsonManagedReference
@@ -47,4 +59,17 @@ public class User {
     @Enumerated(EnumType.STRING)
     @Column(name = "user_type", nullable = false)
     private UserType userType;
+
+    //    boolean
+    public boolean isBranchManager() {
+        return this.role != null && this.role.getName().equals("BRANCH_MANAGER");
+    }
+
+    public boolean isBackOffice() {
+        return this.role != null && this.role.getName().equals("BACK_OFFICE");
+    }
+
+    public boolean isMarketing() {
+        return this.role != null && this.role.getName().equals("MARKETING");
+    }
 }
