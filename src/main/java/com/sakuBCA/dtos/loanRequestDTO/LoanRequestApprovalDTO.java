@@ -10,18 +10,23 @@ import java.util.UUID;
 @Data
 @Builder
 public class LoanRequestApprovalDTO {
+    //    Data pinjaman customer
     private UUID id;
     private BigDecimal amount;
     private Integer tenor;
+    private String customerJob;
+    private BigDecimal customerSalary;
     private String status;
     private LocalDateTime requestDate;
 
+    //    Data customer
+    private String customerKtpPhotoUrl;
     private String customerName;
     private String customerEmail;
     private String customerPhone;
-    private String customerJob;
-    private BigDecimal customerSalary;
+    private String customerAddress;
 
     private String marketingNotes;
     private String bmNotes;
+    private String backOfficeNotes;
 }

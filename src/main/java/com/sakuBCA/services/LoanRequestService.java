@@ -230,21 +230,30 @@ public class LoanRequestService {
                 .findFirst()
                 .orElse(null);
 
+        String backOfficeNotes = approvals.stream()
+                .filter(a -> "DISBURSED".equals(a.getStatus().getName()))
+                .map(LoanApproval::getNotes)
+                .findFirst()
+                .orElse(null);
+
         return LoanRequestApprovalDTO.builder()
                 .id(loanRequest.getId())
+                .customerJob(customer.getPekerjaan())
+                .customerSalary(customer.getGaji())
                 .status(loanRequest.getStatus().getName())
                 .amount(loanRequest.getAmount())
                 .tenor(loanRequest.getTenor())
                 .requestDate(loanRequest.getRequestDate())
 
                 .customerName(customer.getUser().getName())
+                .customerKtpPhotoUrl(customer.getKtpUrl())
                 .customerEmail(customer.getUser().getEmail())
                 .customerPhone(customer.getNoTelp())
-                .customerJob(customer.getPekerjaan())
-                .customerSalary(customer.getGaji())
+                .customerAddress(customer.getAlamat())
 
                 .marketingNotes(marketingNotes)
                 .bmNotes(bmNotes)
+                .backOfficeNotes(backOfficeNotes)
                 .build();
     }
 

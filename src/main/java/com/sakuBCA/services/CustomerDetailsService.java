@@ -14,7 +14,9 @@ import org.springframework.http.HttpStatus;
 import org.springframework.stereotype.Service;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
+import org.springframework.web.multipart.MultipartFile;
 
+import java.io.IOException;
 import java.math.BigDecimal;
 import java.time.LocalDate;
 import java.util.UUID;
@@ -33,6 +35,8 @@ public class CustomerDetailsService {
     private JwtUtils jwtUtils;
     @Autowired
     private ModelMapper modelMapper;
+    @Autowired
+    private CloudinaryService cloudinaryService;
 
     private static final Logger logger = LoggerFactory.getLogger(CustomerDetailsService.class);
 
@@ -89,7 +93,6 @@ public class CustomerDetailsService {
     // Metode untuk mengisi data dari DTO ke entitas
     private void updateCustomerDetailsFromDTO(CustomerDetails customerDetails, CustomerProfileUpdateDTO dto) {
         customerDetails.setTtl(LocalDate.parse(dto.getTtl()));
-        customerDetails.setKtpUrl(dto.getKtpUrl());
         customerDetails.setAlamat(dto.getAlamat());
         customerDetails.setNoTelp(dto.getNoTelp());
         customerDetails.setNik(dto.getNik());
@@ -98,10 +101,13 @@ public class CustomerDetailsService {
         customerDetails.setGaji(BigDecimal.valueOf(dto.getGaji()));
         customerDetails.setNoRek(dto.getNoRek());
         customerDetails.setStatusRumah(dto.getStatusRumah());
+        if (dto.getKtpUrl() != null && !dto.getKtpUrl().isEmpty()) {
+            customerDetails.setKtpUrl(dto.getKtpUrl()); // Menyimpan URL KTP yang diterima dari frontend
+        }
     }
 
     @Transactional
-    public String updateCustomerDetails(UUID id, String token, CustomerProfileUpdateDTO dto) {
+    public String updateCustomerDetails(UUID id, String token, CustomerProfileUpdateDTO dto, MultipartFile ktpPhoto) {
         logger.info("Memulai proses update data customer untuk ID: {}", id);
         String extractedToken = jwtUtils.extractToken(token);
         String email = jwtUtils.getUsername(extractedToken);
@@ -135,11 +141,23 @@ public class CustomerDetailsService {
             logger.debug("CustomerDetails baru dibuat untuk user ID: {}", targetUser.getId());
         }
 
+        // Meng-upload foto KTP ke Cloudinary
+        if (ktpPhoto != null && !ktpPhoto.isEmpty()) {
+            try {
+                String ktpUrl = cloudinaryService.uploadImage(ktpPhoto.getBytes()); // Mengupload foto ke Cloudinary
+                customerDetails.setKtpUrl(ktpUrl); // Menyimpan URL foto KTP ke entitas
+            } catch (IOException e) {
+                logger.error("Terjadi kesalahan saat mengupload foto KTP", e);
+                throw new CustomException("Gagal mengupload foto KTP", HttpStatus.INTERNAL_SERVER_ERROR);
+            }
+        }
+
+        // Update data lainnya dari DTO
         updateCustomerDetailsFromDTO(customerDetails, dto);
         saveCustomerDetails(customerDetails);
 
         logger.info("Data customer berhasil diupdate untuk ID: {}", id);
         return "Customer details updated successfully!";
     }
-
 }
+

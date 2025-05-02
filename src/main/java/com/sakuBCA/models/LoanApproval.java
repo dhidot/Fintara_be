@@ -30,5 +30,8 @@ public class LoanApproval {
     private LoanStatus status;
 
     private String notes;
+    private String notesIdentitas;
+    private String notesPlafond;
+    private String notesSummary;
     private LocalDateTime approvedAt;
 }
