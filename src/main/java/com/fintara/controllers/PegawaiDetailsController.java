@@ -1,0 +1,34 @@
+package com.fintara.controllers;
+
+import com.fintara.dtos.pegawaiDTO.PegawaiDetailsRequestDTO;
+import com.fintara.services.PegawaiDetailsService;
+import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.http.ResponseEntity;
+import org.springframework.security.access.annotation.Secured;
+import org.springframework.web.bind.annotation.*;
+
+import java.util.HashMap;
+import java.util.Map;
+import java.util.UUID;
+
+@RestController
+@RequestMapping("v1/pegawaiprofile")
+public class PegawaiDetailsController {
+    @Autowired
+    private PegawaiDetailsService pegawaiDetailsService;
+
+    @Secured("FEATURE_UPDATE_EMPLOYEE_PROFILE")
+    @PutMapping("/update/{idPegawai}")
+    public ResponseEntity<Map<String, String>> updatePegawaiDetails(
+            @RequestHeader("Authorization") String token,
+            @PathVariable("idPegawai") UUID idPegawai,
+            @RequestBody PegawaiDetailsRequestDTO request) {
+
+        String message = pegawaiDetailsService.updatePegawaiDetails(token, idPegawai, request);
+
+        Map<String, String> response = new HashMap<>();
+        response.put("message", message);
+
+        return ResponseEntity.ok(response);
+    }
+}
