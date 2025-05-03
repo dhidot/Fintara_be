@@ -1,7 +1,7 @@
 package com.fintara.services;
 
-import com.fintara.config.exceptions.CustomException;
-import com.fintara.config.security.NameNormalizer;
+import com.fintara.exceptions.CustomException;
+import com.fintara.utils.NameNormalizer;
 import com.fintara.models.Plafond;
 import com.fintara.repositories.PlafondRepository;
 import lombok.RequiredArgsConstructor;

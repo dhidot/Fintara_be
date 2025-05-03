@@ -1,7 +1,7 @@
 package com.fintara.dtos.customerDTO;
 
 import com.fasterxml.jackson.annotation.JsonProperty;
-import com.fintara.config.validators.ValidPassword;
+import com.fintara.validators.ValidPassword;
 import com.fintara.enums.JenisKelamin;
 import jakarta.validation.constraints.NotBlank;
 import jakarta.validation.constraints.NotNull;

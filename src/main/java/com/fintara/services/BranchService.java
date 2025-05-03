@@ -1,7 +1,7 @@
 package com.fintara.services;
 
-import com.fintara.config.exceptions.CustomException;
-import com.fintara.config.security.NameNormalizer;
+import com.fintara.exceptions.CustomException;
+import com.fintara.utils.NameNormalizer;
 import com.fintara.dtos.superAdminDTO.BranchDTO;
 import com.fintara.models.Branch;
 import com.fintara.repositories.BranchRepository;

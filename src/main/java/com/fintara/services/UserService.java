@@ -4,7 +4,7 @@ import com.fintara.dtos.customerDTO.CustomerDetailsDTO;
 import com.fintara.dtos.customerDTO.UserWithCustomerResponseDTO;
 import com.fintara.dtos.pegawaiDTO.PegawaiDetailsDTO;
 import com.fintara.dtos.superAdminDTO.UserResponseDTO;
-import com.fintara.config.exceptions.CustomException;
+import com.fintara.exceptions.CustomException;
 import com.fintara.models.User;
 import com.fintara.models.Role;
 import com.fintara.repositories.UserRepository;

@@ -1,7 +1,7 @@
 package com.fintara.services;
 
-import com.fintara.config.exceptions.CustomException;
-import com.fintara.config.security.NameNormalizer;
+import com.fintara.exceptions.CustomException;
+import com.fintara.utils.NameNormalizer;
 import com.fintara.dtos.superAdminDTO.RoleUpdateRequest;
 import com.fintara.dtos.superAdminDTO.RoleWithFeatureCount;
 import com.fintara.models.Feature;
@@ -93,8 +93,6 @@ public class RoleService {
         role.setRoleFeatures(newRoleFeatures);
         roleRepository.save(role);
     }
-
-
 
     public ResponseEntity<Map<String, String>> deleteRole(UUID id) {
         Role role = roleRepository.findById(id)

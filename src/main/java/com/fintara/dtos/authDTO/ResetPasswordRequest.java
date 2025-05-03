@@ -1,6 +1,6 @@
 package com.fintara.dtos.authDTO;
 
-import com.fintara.config.validators.ValidPassword;
+import com.fintara.validators.ValidPassword;
 import jakarta.validation.constraints.NotBlank;
 import lombok.Getter;
 import lombok.Setter;

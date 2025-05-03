@@ -1,6 +1,7 @@
 package com.fintara.controllers;
 
 import com.fintara.models.Plafond;
+import com.fintara.responses.ApiResponse;
 import com.fintara.services.PlafondService;
 import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
@@ -21,31 +22,36 @@ public class PlafondController {
 
     @Secured("FEATURE_GET_ALL_PLAFOND")
     @GetMapping("/all")
-    public ResponseEntity<List<Plafond>> getAllPlafonds() {
-        return ResponseEntity.ok(plafondService.getAllPlafonds());
+    public ResponseEntity<ApiResponse<List<Plafond>>> getAllPlafonds() {
+        List<Plafond> plafonds = plafondService.getAllPlafonds();
+        return ResponseEntity.ok(new ApiResponse<>(HttpStatus.OK.value(), "Success", plafonds));
     }
 
     @Secured("FEATURE_GET_PLAFOND_BY_ID")
     @GetMapping("get/{id}")
-    public ResponseEntity<Plafond> getPlafondById(@PathVariable UUID id) {
-        return ResponseEntity.ok(plafondService.getPlafondById(id));
+    public ResponseEntity<ApiResponse<Plafond>> getPlafondById(@PathVariable UUID id) {
+        Plafond plafond = plafondService.getPlafondById(id);
+        return ResponseEntity.ok(new ApiResponse<>(HttpStatus.OK.value(), "Success", plafond));
     }
 
     @Secured("FEATURE_ADD_PLAFOND")
     @PostMapping("/add")
-    public ResponseEntity<Plafond> addPlafond(@Valid @RequestBody Plafond request) {
-        return ResponseEntity.status(HttpStatus.CREATED).body(plafondService.createPlafond(request));
+    public ResponseEntity<ApiResponse<Plafond>> addPlafond(@Valid @RequestBody Plafond request) {
+        Plafond createdPlafond = plafondService.createPlafond(request);
+        return ResponseEntity.status(HttpStatus.CREATED)
+                .body(new ApiResponse<>(HttpStatus.CREATED.value(), "Plafond created successfully", createdPlafond));
     }
-
 
     @Secured("FEATURE_UPDATE_PLAFOND")
     @PutMapping("/update/{id}")
-    public ResponseEntity<Plafond> updatePlafond(@PathVariable UUID id, @RequestBody Plafond request) {
-        return ResponseEntity.ok(plafondService.updatePlafond(id, request));
+    public ResponseEntity<ApiResponse<Plafond>> updatePlafond(@PathVariable UUID id, @RequestBody Plafond request) {
+        Plafond updatedPlafond = plafondService.updatePlafond(id, request);
+        return ResponseEntity.ok(new ApiResponse<>(HttpStatus.OK.value(), "Plafond updated successfully", updatedPlafond));
     }
 
     @GetMapping("/{name}")
-    public ResponseEntity<Plafond> getPlafondByName(@PathVariable String name) {
-        return ResponseEntity.ok(plafondService.getPlafondByName(name));
+    public ResponseEntity<ApiResponse<Plafond>> getPlafondByName(@PathVariable String name) {
+        Plafond plafond = plafondService.getPlafondByName(name);
+        return ResponseEntity.ok(new ApiResponse<>(HttpStatus.OK.value(), "Success", plafond));
     }
 }

@@ -1,11 +1,13 @@
 package com.fintara.controllers;
 
-import com.fintara.config.security.UserDetailsImpl;
+import com.fintara.security.UserDetailsImpl;
 import com.fintara.dtos.superAdminDTO.UserResponseDTO;
 import com.fintara.models.User;
+import com.fintara.responses.ApiResponse;
 import com.fintara.services.CloudinaryService;
 import com.fintara.services.UserService;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.access.annotation.Secured;
 import org.springframework.security.core.Authentication;
@@ -33,12 +35,13 @@ public class UserController {
 
     @Secured("FEATURE_GET_ALL_USER")
     @GetMapping("/all")
-    public List<UserResponseDTO> getAllUsers() {
-        return userService.getAllUsers();
+    public ResponseEntity<ApiResponse<List<UserResponseDTO>>> getAllUsers() {
+        List<UserResponseDTO> users = userService.getAllUsers();
+        return ResponseEntity.ok(new ApiResponse<>(HttpStatus.OK.value(), "Users retrieved successfully", users));
     }
 
     @PutMapping("/update/foto")
-    public ResponseEntity<Map<String, String>> updateFotoProfil(
+    public ResponseEntity<ApiResponse<Map<String, String>>> updateFotoProfil(
             @RequestParam("foto") MultipartFile foto,
             Authentication authentication
     ) throws IOException {
@@ -47,7 +50,8 @@ public class UserController {
 
         User user = userService.findById(userId);
         if (user == null) {
-            return ResponseEntity.notFound().build();
+            return ResponseEntity.status(HttpStatus.NOT_FOUND)
+                    .body(new ApiResponse<>(HttpStatus.NOT_FOUND.value(), "User not found", null));
         }
 
         String fotoUrl = cloudinaryService.uploadImage(foto.getBytes());
@@ -57,6 +61,7 @@ public class UserController {
         Map<String, String> response = new HashMap<>();
         response.put("message", "Foto profil berhasil diperbarui.");
         response.put("fotoUrl", fotoUrl);
-        return ResponseEntity.ok(response);
+
+        return ResponseEntity.ok(new ApiResponse<>(HttpStatus.OK.value(), "Profile picture updated successfully", response));
     }
 }

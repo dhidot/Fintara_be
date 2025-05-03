@@ -1,7 +1,7 @@
 package com.fintara.controllers;
 
-
 import com.fintara.dtos.customerDTO.UserWithCustomerResponseDTO;
+import com.fintara.responses.ApiResponse;
 import com.fintara.services.CustomerService;
 import com.fintara.services.UserService;
 import lombok.RequiredArgsConstructor;
@@ -17,20 +17,21 @@ import java.util.UUID;
 @RequestMapping("v1/customer")
 @RequiredArgsConstructor
 public class CustomerController {
+
     private final CustomerService customerService;
-    @Autowired
-    private UserService userService;
+    private final UserService userService;
 
     @Secured("FEATURE_GET_ALL_CUSTOMER")
     @GetMapping("/all")
-    public ResponseEntity<List<UserWithCustomerResponseDTO>> getAllCustomer(){
-        List<UserWithCustomerResponseDTO> customer = customerService.getAllCustomer();
-        return ResponseEntity.ok(customerService.getAllCustomer());
+    public ResponseEntity<ApiResponse<List<UserWithCustomerResponseDTO>>> getAllCustomer() {
+        List<UserWithCustomerResponseDTO> customers = customerService.getAllCustomer();
+        return ResponseEntity.ok(ApiResponse.success("Berhasil mengambil semua data customer", customers));
     }
 
     @Secured("FEATURE_GET_CUSTOMER_BY_ID")
     @GetMapping("/{id}")
-    public ResponseEntity<UserWithCustomerResponseDTO> getCustomerUserById(@PathVariable UUID id) {
-        return ResponseEntity.ok(userService.getCustomerUserById(id));
+    public ResponseEntity<ApiResponse<UserWithCustomerResponseDTO>> getCustomerUserById(@PathVariable UUID id) {
+        UserWithCustomerResponseDTO customer = userService.getCustomerUserById(id);
+        return ResponseEntity.ok(ApiResponse.success("Berhasil mengambil data customer", customer));
     }
 }

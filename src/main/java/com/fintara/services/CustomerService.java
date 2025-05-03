@@ -1,6 +1,6 @@
 package com.fintara.services;
 
-import com.fintara.config.exceptions.CustomException;
+import com.fintara.exceptions.CustomException;
 import com.fintara.dtos.customerDTO.CustomerDetailsDTO;
 import com.fintara.dtos.customerDTO.UserWithCustomerResponseDTO;
 import com.fintara.models.User;

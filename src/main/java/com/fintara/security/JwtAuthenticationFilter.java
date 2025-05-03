@@ -1,5 +1,6 @@
-package com.fintara.config.security;
+package com.fintara.security;
 
+import com.fintara.utils.JwtUtils;
 import jakarta.servlet.FilterChain;
 import jakarta.servlet.ServletException;
 import jakarta.servlet.http.HttpServletRequest;

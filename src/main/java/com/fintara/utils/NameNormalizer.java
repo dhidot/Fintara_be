@@ -1,4 +1,4 @@
-package com.fintara.config.security;
+package com.fintara.utils;
 
 import org.springframework.stereotype.Component;
 

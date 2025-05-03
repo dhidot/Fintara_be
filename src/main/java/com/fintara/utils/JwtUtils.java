@@ -1,5 +1,6 @@
-package com.fintara.config.security;
+package com.fintara.utils;
 
+import com.fintara.security.UserDetailsImpl;
 import io.jsonwebtoken.Jwts;
 import io.jsonwebtoken.io.Decoders;
 import io.jsonwebtoken.security.Keys;

@@ -4,9 +4,7 @@ import com.fintara.dtos.authDTO.*;
 import com.fintara.dtos.customerDTO.RegisterCustomerRequestDTO;
 import com.fintara.dtos.customerDTO.CustomerResponseDTO;
 import com.fintara.services.AuthService;
-import com.fintara.services.CustomerDetailsService;
-import com.fintara.services.RedisService;
-import com.fintara.services.UserService;
+import com.fintara.responses.ApiResponse;
 import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -14,80 +12,67 @@ import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 
-import java.util.Collections;
 import java.util.Map;
 
 @RestController
 @RequestMapping("v1/auth")
 @RequiredArgsConstructor
 public class AuthController {
-    @Autowired
-    private AuthService authService;
-    @Autowired
-    private UserService userService;
-    @Autowired
-    private CustomerDetailsService customerDetailsService;
-    @Autowired
-    private RedisService redisService;
 
+    @Autowired private AuthService authService;
 
     @PostMapping("/login-customer")
-    public ResponseEntity<?> loginCustomer(@RequestBody LoginRequestCustomer request) {
+    public ResponseEntity<ApiResponse<Map<String, Object>>> loginCustomer(@RequestBody LoginRequestCustomer request) {
         Map<String, Object> response = authService.loginCustomer(request);
-        return ResponseEntity.ok(response);
+        return ResponseEntity.ok(ApiResponse.success("Login berhasil", response));
     }
 
     @PostMapping("/login-pegawai")
-    public ResponseEntity<?> loginPegawai(@RequestBody LoginRequestPegawai request) {
+    public ResponseEntity<ApiResponse<Map<String, Object>>> loginPegawai(@RequestBody LoginRequestPegawai request) {
         Map<String, Object> response = authService.loginPegawai(request);
-        return ResponseEntity.ok(response);
+        return ResponseEntity.ok(ApiResponse.success("Login berhasil", response));
     }
 
     @PostMapping("/register/customer")
-    public ResponseEntity<CustomerResponseDTO> registerCustomer(@Valid @RequestBody RegisterCustomerRequestDTO request) {
-        return ResponseEntity.ok(authService.registerCustomer(request));
+    public ResponseEntity<ApiResponse<CustomerResponseDTO>> registerCustomer(@Valid @RequestBody RegisterCustomerRequestDTO request) {
+        CustomerResponseDTO result = authService.registerCustomer(request);
+        return ResponseEntity.ok(ApiResponse.success("Registrasi berhasil", result));
     }
 
     @PostMapping("/logout")
-    public ResponseEntity<String> logout(@RequestHeader("Authorization") String token) {
+    public ResponseEntity<ApiResponse<String>> logout(@RequestHeader("Authorization") String token) {
         authService.logout(token);
-        return ResponseEntity.ok("Logout berhasil.");
+        return ResponseEntity.ok(ApiResponse.success("Logout berhasil"));
     }
 
     @PostMapping("/forgot-password")
-    public ResponseEntity<Map<String, String>> forgotPassword(@RequestBody Map<String, String> requestBody) {
+    public ResponseEntity<ApiResponse<Object>> forgotPassword(@RequestBody Map<String, String> requestBody) {
         String email = requestBody.get("email");
 
         if (email == null || email.isEmpty()) {
-            return ResponseEntity.badRequest().body(
-                    Collections.singletonMap("message", "Email tidak boleh kosong.")
-            );
+            return ResponseEntity.badRequest().body(ApiResponse.error(HttpStatus.BAD_REQUEST,"Email tidak boleh kosong."));
         }
 
         authService.sendResetPasswordToken(email);
-
-        return ResponseEntity.ok(
-                Collections.singletonMap("message", "Token reset password telah dikirim ke email.")
-        );
+        return ResponseEntity.ok(ApiResponse.success("Token reset password telah dikirim ke email."));
     }
 
-
     @PostMapping("/reset-password")
-    public ResponseEntity<?> resetPassword(@RequestBody ResetPasswordRequest request) {
+    public ResponseEntity<ApiResponse<Object>> resetPassword(@RequestBody ResetPasswordRequest request) {
         authService.resetPassword(request);
-        return ResponseEntity.ok(Collections.singletonMap("message", "Password berhasil diubah"));
+        return ResponseEntity.ok(ApiResponse.success("Password berhasil diubah"));
     }
 
     @PutMapping("/change-password")
-    public ResponseEntity<?> changePassword(@Valid @RequestBody ChangePasswordRequest request) {
+    public ResponseEntity<ApiResponse<Object>> changePassword(@Valid @RequestBody ChangePasswordRequest request) {
         authService.changePassword(request);
-        return ResponseEntity.ok(Collections.singletonMap("message", "Password berhasil diperbarui"));
+        return ResponseEntity.ok(ApiResponse.success("Password berhasil diperbarui"));
     }
 
     @GetMapping("/verify-email")
-    public ResponseEntity<?> verifyEmail(@RequestParam("token") String token) {
+    public ResponseEntity<ApiResponse<Map<String, Object>>> verifyEmail(@RequestParam("token") String token) {
         Map<String, Object> response = authService.verifyEmail(token);
-        return ResponseEntity.status((HttpStatus) response.getOrDefault("httpStatus", HttpStatus.OK)).body(response);
+        HttpStatus status = (HttpStatus) response.getOrDefault("httpStatus", HttpStatus.OK);
+        return ResponseEntity.status(status).body(ApiResponse.success("Email berhasil diverifikasi", response));
     }
 }
-

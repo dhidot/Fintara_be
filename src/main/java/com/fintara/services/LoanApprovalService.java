@@ -1,6 +1,6 @@
 package com.fintara.services;
 
-import com.fintara.config.exceptions.CustomException;
+import com.fintara.exceptions.CustomException;
 import com.fintara.dtos.loanApprovalDTO.LoanApprovalHistoryResponse;
 import com.fintara.models.LoanApproval;
 import com.fintara.models.LoanRequest;

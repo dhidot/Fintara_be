@@ -1,7 +1,7 @@
 package com.fintara.services;
 
-import com.fintara.config.exceptions.CustomException;
-import com.fintara.config.security.JwtUtils;
+import com.fintara.exceptions.CustomException;
+import com.fintara.utils.JwtUtils;
 import com.fintara.dtos.customerDTO.CustomerProfileResponseDTO;
 import com.fintara.dtos.customerDTO.CustomerProfileUpdateDTO;
 import com.fintara.models.CustomerDetails;

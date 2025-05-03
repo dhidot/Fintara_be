@@ -1,4 +1,4 @@
-package com.fintara.config.exceptions;
+package com.fintara.exceptions;
 
 import org.springframework.http.HttpStatus;
 

@@ -1,4 +1,4 @@
-package com.fintara.config.security;
+package com.fintara.security;
 
 import com.fintara.repositories.UserRepository;
 import org.springframework.security.core.userdetails.UserDetails;

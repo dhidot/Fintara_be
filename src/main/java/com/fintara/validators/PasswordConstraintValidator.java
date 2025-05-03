@@ -1,4 +1,4 @@
-package com.fintara.config.validators;
+package com.fintara.validators;
 
 import jakarta.validation.ConstraintValidator;
 import jakarta.validation.ConstraintValidatorContext;

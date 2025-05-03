@@ -1,15 +1,15 @@
 package com.fintara.services;
 
-import com.fintara.config.security.JwtResponse;
-import com.fintara.config.security.UserDetailsImpl;
+import com.fintara.security.JwtResponse;
+import com.fintara.security.UserDetailsImpl;
 import com.fintara.dtos.authDTO.*;
 import com.fintara.dtos.customerDTO.RegisterCustomerRequestDTO;
 import com.fintara.dtos.customerDTO.CustomerResponseDTO;
 import com.fintara.enums.UserType;
-import com.fintara.config.exceptions.CustomException;
+import com.fintara.exceptions.CustomException;
 import com.fintara.models.*;
 import com.fintara.repositories.UserRepository;
-import com.fintara.config.security.JwtUtils;
+import com.fintara.utils.JwtUtils;
 import jakarta.transaction.Transactional;
 import lombok.RequiredArgsConstructor;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -168,41 +168,47 @@ public class AuthService {
     public Map<String, Object> loginPegawai(LoginRequestPegawai request) {
         String nip = request.getNip();
 
+        // Check if the employee is already logged in from another device
         if (redisService.isPegawaiLoggedIn(nip)) {
             throw new CustomException("Pegawai sudah login di perangkat lain!", HttpStatus.BAD_REQUEST);
         }
 
+        // Authenticate the user
         Authentication authentication = authenticationManager.authenticate(
                 new UsernamePasswordAuthenticationToken(nip, request.getPassword())
         );
 
         SecurityContextHolder.getContext().setAuthentication(authentication);
+
+        // Generate JWT token
         String jwt = jwtUtils.generateToken(authentication);
 
+        // Get user details
         UserDetailsImpl userDetails = (UserDetailsImpl) authentication.getPrincipal();
         User user = userDetails.getUser();
 
+        // Check if the user is a pegawai (employee)
         if (user.getUserType() != UserType.PEGAWAI) {
             throw new CustomException("Akun ini bukan pegawai!", HttpStatus.UNAUTHORIZED);
         }
 
-        // ✅ Gunakan helper handleFirstLogin
+        // Handle first login logic
         boolean isFirstLogin = handleFirstLogin(user);
 
+        // Save session to Redis
         redisService.savePegawaiSession(nip, jwt);
 
+        // Prepare JWT response
         JwtResponse jwtResponse = new JwtResponse(jwt, user.getEmail(), user.getRole().getName(), userDetails.getFeatures(), user.getName());
 
-        Map<String, Object> data = new HashMap<>();
-        data.put("jwt", jwtResponse);
-        data.put("firstLogin", isFirstLogin);
-
+        // Prepare the response without redundant "data" key
         Map<String, Object> response = new HashMap<>();
-        response.put("status", "success");
-        response.put("data", data);
+        response.put("jwt", jwtResponse);
+        response.put("firstLogin", isFirstLogin);
 
         return response;
     }
+
 
     @Transactional
     public void logout(String token) {

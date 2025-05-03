@@ -1,4 +1,4 @@
-package com.fintara.config.security;
+package com.fintara.security;
 
 import lombok.*;
 

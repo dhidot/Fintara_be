@@ -1,6 +1,6 @@
 package com.fintara.services;
 
-import com.fintara.config.exceptions.CustomException;
+import com.fintara.exceptions.CustomException;
 import com.fintara.models.Role;
 import com.fintara.models.Feature;
 import com.fintara.models.RoleFeature;

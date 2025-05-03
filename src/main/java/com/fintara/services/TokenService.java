@@ -1,6 +1,6 @@
 package com.fintara.services;
 
-import com.fintara.config.exceptions.CustomException;
+import com.fintara.exceptions.CustomException;
 import com.fintara.models.BlacklistedToken;
 import com.fintara.models.PasswordResetToken;
 import com.fintara.models.User;

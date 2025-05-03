@@ -1,5 +1,6 @@
-package com.fintara.config.security;
+package com.fintara.security;
 
+import com.fintara.utils.JwtUtils;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;

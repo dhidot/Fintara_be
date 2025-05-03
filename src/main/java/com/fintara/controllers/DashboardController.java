@@ -1,5 +1,6 @@
 package com.fintara.controllers;
 
+import com.fintara.responses.ApiResponse;
 import com.fintara.services.DashboardService;
 import lombok.RequiredArgsConstructor;
 import org.springframework.http.ResponseEntity;
@@ -18,8 +19,8 @@ public class DashboardController {
 
     @Secured("FEATURE_DASHBOARD")
     @GetMapping("/data")
-    public ResponseEntity<Map<String, Long>> getDashboard() {
+    public ResponseEntity<ApiResponse<Map<String, Long>>> getDashboard() {
         Map<String, Long> summary = dashboardService.getDashboardSummary();
-        return ResponseEntity.ok(summary);
+        return ResponseEntity.ok(ApiResponse.success("Dashboard data retrieved successfully", summary));
     }
 }

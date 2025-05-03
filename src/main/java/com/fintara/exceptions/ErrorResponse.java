@@ -1,4 +1,4 @@
-package com.fintara.config.exceptions;
+package com.fintara.exceptions;
 
 import lombok.Getter;
 import lombok.Setter;

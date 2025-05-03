@@ -1,7 +1,7 @@
 package com.fintara.services;
 
-import com.fintara.config.exceptions.CustomException;
-import com.fintara.config.security.JwtUtils;
+import com.fintara.exceptions.CustomException;
+import com.fintara.utils.JwtUtils;
 import com.fintara.dtos.pegawaiDTO.PegawaiDetailsRequestDTO;
 import com.fintara.enums.StatusPegawai;
 import com.fintara.models.Branch;
