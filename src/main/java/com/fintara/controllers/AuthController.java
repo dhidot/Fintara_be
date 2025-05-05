@@ -33,14 +33,15 @@ public class AuthController {
         return ResponseEntity.ok(ApiResponse.success("Login berhasil", response));
     }
 
-public ResponseEntity<ApiResponse<CustomerResponseDTO>> registerCustomer(@Valid @RequestBody RegisterCustomerRequestDTO request, BindingResult bindingResult) {
-    if (bindingResult.hasErrors()) {
-        Map<String, String> errors = new HashMap<>();
-        for (FieldError fieldError : bindingResult.getFieldErrors()) {
-            errors.put(fieldError.getField(), fieldError.getDefaultMessage());
+    @PostMapping("/register/customer")
+    public ResponseEntity<ApiResponse<CustomerResponseDTO>> registerCustomer(@Valid @RequestBody RegisterCustomerRequestDTO request, BindingResult bindingResult) {
+        if (bindingResult.hasErrors()) {
+            Map<String, String> errors = new HashMap<>();
+            for (FieldError fieldError : bindingResult.getFieldErrors()) {
+                errors.put(fieldError.getField(), fieldError.getDefaultMessage());
+            }
+            return ResponseEntity.badRequest().body(ApiResponse.error("Validation failed", errors));
         }
-        return ResponseEntity.badRequest().body(ApiResponse.error("Validation failed", errors));
-    }
 
     // Proses registrasi jika valid
     CustomerResponseDTO result = authService.registerCustomer(request);
