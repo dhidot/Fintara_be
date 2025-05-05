@@ -34,5 +34,10 @@ public class ApiResponse<T> {
     public static <T> ApiResponse<T> error(HttpStatus status, String message) {
         return new ApiResponse<>(status.value(), message, null);
     }
+
+    // Dengan data
+    public static <T> ApiResponse<T> error(String message, T data) {
+        return new ApiResponse<>(HttpStatus.BAD_REQUEST.value(), message, data);
+    }
 }
 
