@@ -42,7 +42,7 @@ public class AuthController {
             for (FieldError fieldError : bindingResult.getFieldErrors()) {
                 errors.put(fieldError.getField(), fieldError.getDefaultMessage());
             }
-            return ResponseEntity.badRequest().body(ApiResponse.error("Validation failed", errors));
+            return ResponseEntity.badRequest().body(ApiResponse.<Map<String, String>>error("Validation failed", HttpStatus.BAD_REQUEST));
         }
 
     // Proses registrasi jika valid
