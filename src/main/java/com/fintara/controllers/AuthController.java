@@ -36,23 +36,10 @@ public class AuthController {
     }
 
     @PostMapping("/register/customer")
-    public ResponseEntity<ApiResponse<CustomerResponseDTO>> registerCustomer(@Valid @RequestBody RegisterCustomerRequestDTO request, BindingResult bindingResult) {
-        if (bindingResult.hasErrors()) {
-            Map<String, String> errors = new HashMap<>();
-                for (FieldError fieldError : bindingResult.getFieldErrors()) {
-                errors.put(fieldError.getField(), fieldError.getDefaultMessage());
-        }
-
-    return ResponseEntity
-        .badRequest()
-        .body(ApiResponse.error("Validasi gagal", errors));
-}
-
-    // Proses registrasi jika valid
-    CustomerResponseDTO result = authService.registerCustomer(request);
-    return ResponseEntity.ok(ApiResponse.success("Registrasi berhasil", result));
-}
-
+    public ResponseEntity<ApiResponse<CustomerResponseDTO>> registerCustomer(@Valid @RequestBody RegisterCustomerRequestDTO request) {
+        CustomerResponseDTO result = authService.registerCustomer(request);
+        return ResponseEntity.ok(ApiResponse.success("Registrasi berhasil", result));
+    }
 
     @PostMapping("/logout")
     public ResponseEntity<ApiResponse<String>> logout(@RequestHeader("Authorization") String token) {
