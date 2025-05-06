@@ -152,13 +152,8 @@ public class AuthService {
         );
 
         Map<String, Object> response = new HashMap<>();
-        response.put("status", "success");
-
-        Map<String, Object> data = new HashMap<>();
-        data.put("jwt", jwtResponse);
-        data.put("firstLogin", isFirstLogin);
-
-        response.put("data", data);
+        response.put("jwt", jwtResponse);
+        response.put("firstLogin", isFirstLogin);
 
         return response;
     }
