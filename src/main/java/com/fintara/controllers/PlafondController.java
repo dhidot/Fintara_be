@@ -20,7 +20,6 @@ public class PlafondController {
 
     private final PlafondService plafondService;
 
-    @Secured("FEATURE_GET_ALL_PLAFOND")
     @GetMapping("/all")
     public ResponseEntity<ApiResponse<List<Plafond>>> getAllPlafonds() {
         List<Plafond> plafonds = plafondService.getAllPlafonds();
