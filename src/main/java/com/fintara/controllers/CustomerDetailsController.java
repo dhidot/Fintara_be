@@ -21,14 +21,13 @@ public class CustomerDetailsController {
     private CustomerDetailsService customerDetailsService;
 
     @Secured("FEATURE_UPDATE_CUSTOMER_PROFILE")
-    @PutMapping("/update/{id}")
-    public ResponseEntity<ApiResponse<String>> updateCustomerDetails(
-            @PathVariable UUID id,
+    @PutMapping("/update")
+    public ResponseEntity<ApiResponse<String>> updateOwnCustomerDetails(
             @RequestHeader("Authorization") String token,
-            @RequestParam("ktpPhoto") MultipartFile ktpPhoto,  // Menerima file foto KTP
-            @RequestParam("request") String requestJson) {    // Menerima data lainnya dalam bentuk JSON
+            @RequestParam("ktpPhoto") MultipartFile ktpPhoto,
+            @RequestParam("selfiePhoto") MultipartFile selfiePhoto,
+            @RequestParam("request") String requestJson) {
 
-        // Deserialize requestJson ke DTO
         CustomerProfileUpdateDTO request = null;
         try {
             ObjectMapper objectMapper = new ObjectMapper();
@@ -39,11 +38,10 @@ public class CustomerDetailsController {
             );
         }
 
-        String result = customerDetailsService.updateCustomerDetails(id, token, request, ktpPhoto);
-        return ResponseEntity.ok(
-                ApiResponse.success("Customer profile updated successfully", result)
-        );
+        String result = customerDetailsService.updateOwnCustomerDetails(request, ktpPhoto, selfiePhoto);
+        return ResponseEntity.ok(ApiResponse.success("Customer profile updated successfully", result));
     }
+
 
     @Secured("FEATURE_GET_CUSTOMER_PROFILE")
     @GetMapping("/{id}")

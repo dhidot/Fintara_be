@@ -29,6 +29,8 @@ public class CustomerDetails {
     private LocalDate ttl;
     @Column(name = "ktp_url")
     private String ktpUrl;
+    @Column(name = "selfie_ktp_url")
+    private String selfieKtpUrl;
     private String alamat;
     private String noTelp;
     private String nik;

@@ -11,6 +11,8 @@ import jakarta.transaction.Transactional;
 import org.modelmapper.ModelMapper;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.HttpStatus;
+import org.springframework.security.core.context.SecurityContextHolder;
+import org.springframework.security.core.userdetails.UserDetails;
 import org.springframework.stereotype.Service;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -37,6 +39,8 @@ public class CustomerDetailsService {
     private ModelMapper modelMapper;
     @Autowired
     private CloudinaryService cloudinaryService;
+    @Autowired
+    private RedisService redisService;
 
     private static final Logger logger = LoggerFactory.getLogger(CustomerDetailsService.class);
 
@@ -105,6 +109,66 @@ public class CustomerDetailsService {
             customerDetails.setKtpUrl(dto.getKtpUrl()); // Menyimpan URL KTP yang diterima dari frontend
         }
     }
+
+    @Transactional
+    public String updateOwnCustomerDetails(CustomerProfileUpdateDTO dto, MultipartFile ktpPhoto, MultipartFile selfiePhoto) {
+        // Mengambil informasi user yang sedang login dari SecurityContext
+        UserDetails userDetails = (UserDetails) SecurityContextHolder.getContext().getAuthentication().getPrincipal();
+        String email = userDetails.getUsername();
+
+        logger.info("Memulai proses update data customer untuk user yang sedang login dengan email: {}", email);
+
+        User loggedInUser = userService.findByEmail(email);
+        if (loggedInUser == null) {
+            logger.warn("User dengan email {} tidak ditemukan", email);
+            throw new CustomException("User tidak ditemukan", HttpStatus.UNAUTHORIZED);
+        }
+
+        if (!Boolean.TRUE.equals(loggedInUser.isFirstLogin())) {
+            logger.warn("User {} mencoba mengakses first time update setelah login pertama", loggedInUser.getId());
+            throw new CustomException("Anda sudah melakukan update pertama. Akses ditolak.", HttpStatus.FORBIDDEN);
+        }
+
+        CustomerDetails customerDetails = getCustomerDetailsByUser(loggedInUser);
+        if (customerDetails == null) {
+            customerDetails = new CustomerDetails();
+            customerDetails.setUser(loggedInUser);
+            logger.debug("CustomerDetails baru dibuat untuk user ID: {}", loggedInUser.getId());
+        }
+
+        // Upload KTP jika ada
+        if (ktpPhoto != null && !ktpPhoto.isEmpty()) {
+            try {
+                String ktpUrl = cloudinaryService.uploadImage(ktpPhoto.getBytes());
+                customerDetails.setKtpUrl(ktpUrl);
+            } catch (IOException e) {
+                logger.error("Terjadi kesalahan saat mengupload foto KTP", e);
+                throw new CustomException("Gagal mengupload foto KTP", HttpStatus.INTERNAL_SERVER_ERROR);
+            }
+        }
+
+        if (selfiePhoto != null && !selfiePhoto.isEmpty()) {
+            try {
+                String selfieUrl = cloudinaryService.uploadImage(selfiePhoto.getBytes());
+                customerDetails.setSelfieKtpUrl(selfieUrl);
+            } catch (IOException e) {
+                throw new CustomException("Gagal mengupload selfie dengan KTP", HttpStatus.INTERNAL_SERVER_ERROR);
+            }
+        }
+
+        // Update data lainnya dari DTO
+        updateCustomerDetailsFromDTO(customerDetails, dto);
+        // Update status isFirstLogin menjadi false setelah update berhasil
+        loggedInUser.setFirstLogin(false); // Asumsi bahwa ada properti `isFirstLogin` di entitas User
+        userService.saveUser(loggedInUser); // Simpan perubahan status isFirstLogin
+        redisService.removeFirstLoginStatus(loggedInUser.getId().toString());
+        // Simpan customer details yang telah diupdate
+        saveCustomerDetails(customerDetails);
+
+        logger.info("Data customer berhasil diupdate untuk user: {}", loggedInUser.getId());
+        return "Customer details updated successfully!";
+    }
+
 
     @Transactional
     public String updateCustomerDetails(UUID id, String token, CustomerProfileUpdateDTO dto, MultipartFile ktpPhoto) {

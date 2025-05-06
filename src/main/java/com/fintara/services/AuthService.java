@@ -73,6 +73,7 @@ public class AuthService {
                 .jenisKelamin(request.getJenisKelamin())
                 .password(passwordEncoder.encode(request.getPassword()))
                 .userType(UserType.CUSTOMER)
+                .isFirstLogin(true)
                 .role(customerRole)
                 .build();
 

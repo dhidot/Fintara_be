@@ -72,4 +72,5 @@ public class User {
     public boolean isMarketing() {
         return this.role != null && this.role.getName().equals("MARKETING");
     }
+
 }
