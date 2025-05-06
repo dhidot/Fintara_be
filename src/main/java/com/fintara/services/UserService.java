@@ -241,6 +241,7 @@ public class UserService implements UserDetailsService {
                     user.getName(),
                     user.getEmail(),
                     user.getRole().getName(),
+                    user.getJenisKelamin(),
                     new CustomerDetailsDTO(user.getCustomerDetails())
             );
         } catch (Exception e) {

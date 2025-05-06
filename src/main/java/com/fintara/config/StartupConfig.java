@@ -86,6 +86,7 @@ public class StartupConfig {
                 // ===== Customer =====
                 Map.of("name", "FEATURE_GET_ALL_CUSTOMER", "role", "SUPER_ADMIN", "category", "Customer"),
                 Map.of("name", "FEATURE_GET_CUSTOMER_BY_ID", "role", "SUPER_ADMIN", "category", "Customer"),
+                Map.of("name", "FEATURE_GET_PROFILE_CUSTOMER", "role", "CUSTOMER", "category", "Customer"),
 
                 // ===== Dashboard ====
                 Map.of("name", "FEATURE_DASHBOARD", "role", "SUPER_ADMIN", "category", "Dashboard"),

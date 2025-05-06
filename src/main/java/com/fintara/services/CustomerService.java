@@ -8,6 +8,8 @@ import com.fintara.repositories.CustomerDetailsRepository;
 import lombok.RequiredArgsConstructor;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.HttpStatus;
+import org.springframework.security.core.context.SecurityContextHolder;
+import org.springframework.security.core.userdetails.UserDetails;
 import org.springframework.stereotype.Service;
 
 import java.util.List;
@@ -50,6 +52,24 @@ public class CustomerService {
         }
     }
 
+    public UserWithCustomerResponseDTO getMyProfile() {
+        // Ambil data user yang sedang login
+        UserDetails userDetails = (UserDetails) SecurityContextHolder.getContext().getAuthentication().getPrincipal();
+        String username = userDetails.getUsername();
+
+        // Ambil user berdasarkan email/username
+        User user = userService.findByEmail(username); // pastikan ini tidak null dan melempar exception kalau tidak ditemukan
+
+        // Mapping ke DTO
+        return UserWithCustomerResponseDTO.builder()
+                .id(user.getId())
+                .name(user.getName())
+                .email(user.getEmail())
+                .role(user.getRole().getName())
+                .jenisKelamin(user.getJenisKelamin())
+                .customerDetails(new CustomerDetailsDTO(user.getCustomerDetails()))
+                .build();
+    }
 
 
     public Long count() {

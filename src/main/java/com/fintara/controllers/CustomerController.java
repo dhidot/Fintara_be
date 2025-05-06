@@ -34,4 +34,11 @@ public class CustomerController {
         UserWithCustomerResponseDTO customer = userService.getCustomerUserById(id);
         return ResponseEntity.ok(ApiResponse.success("Berhasil mengambil data customer", customer));
     }
+
+    @Secured("FEATURE_GET_PROFILE_CUSTOMER")
+    @GetMapping("/me")
+    public ResponseEntity<ApiResponse<UserWithCustomerResponseDTO>> getMyProfile() {
+        UserWithCustomerResponseDTO myProfile = customerService.getMyProfile();
+        return ResponseEntity.ok(ApiResponse.success("Customer profile fetched successfully", myProfile));
+    }
 }
