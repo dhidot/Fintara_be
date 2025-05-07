@@ -19,7 +19,7 @@ import java.util.UUID;
 @RestController
 @RequestMapping("v1/profilecustomer")
 public class CustomerDetailsController {
-
+    private static final Logger logger = LoggerFactory.getLogger(CustomerDetailsController.class);
     @Autowired
     private CustomerDetailsService customerDetailsService;
 
@@ -30,9 +30,6 @@ public ResponseEntity<ApiResponse<String>> updateOwnCustomerDetails(
         @RequestParam("ktpPhoto") MultipartFile ktpPhoto,
         @RequestParam("selfiePhoto") MultipartFile selfiePhoto,
         @RequestParam("request") String requestJson) {
-
-    private static final Logger logger = LoggerFactory.getLogger(CustomerDetailsController.class);
-
     // Log masuknya request untuk memudahkan debugging
     logger.debug("Received token: {}", token);
     logger.debug("Received request JSON: {}", requestJson);
