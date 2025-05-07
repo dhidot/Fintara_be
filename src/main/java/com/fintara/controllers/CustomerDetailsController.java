@@ -20,27 +20,38 @@ public class CustomerDetailsController {
     @Autowired
     private CustomerDetailsService customerDetailsService;
 
-    @Secured("FEATURE_UPDATE_CUSTOMER_PROFILE")
-    @PutMapping("/update")
-    public ResponseEntity<ApiResponse<String>> updateOwnCustomerDetails(
-            @RequestHeader("Authorization") String token,
-            @RequestParam("ktpPhoto") MultipartFile ktpPhoto,
-            @RequestParam("selfiePhoto") MultipartFile selfiePhoto,
-            @RequestParam("request") String requestJson) {
+@Secured("FEATURE_UPDATE_CUSTOMER_PROFILE")
+@PutMapping("/update")
+public ResponseEntity<ApiResponse<String>> updateOwnCustomerDetails(
+        @RequestHeader("Authorization") String token,
+        @RequestParam("ktpPhoto") MultipartFile ktpPhoto,
+        @RequestParam("selfiePhoto") MultipartFile selfiePhoto,
+        @RequestParam("request") String requestJson) {
 
-        CustomerProfileUpdateDTO request = null;
-        try {
-            ObjectMapper objectMapper = new ObjectMapper();
-            request = objectMapper.readValue(requestJson, CustomerProfileUpdateDTO.class);
-        } catch (Exception e) {
-            return ResponseEntity.badRequest().body(
-                    ApiResponse.error(HttpStatus.BAD_REQUEST, "Invalid request data")
-            );
-        }
+    // Log masuknya request untuk memudahkan debugging
+    logger.debug("Received token: {}", token);
+    logger.debug("Received request JSON: {}", requestJson);
+    logger.debug("Received KTP photo: {}", ktpPhoto.getOriginalFilename());
+    logger.debug("Received Selfie photo: {}", selfiePhoto.getOriginalFilename());
 
-        String result = customerDetailsService.updateOwnCustomerDetails(request, ktpPhoto, selfiePhoto);
-        return ResponseEntity.ok(ApiResponse.success("Customer profile updated successfully", result));
+    CustomerProfileUpdateDTO request = null;
+    try {
+        ObjectMapper objectMapper = new ObjectMapper();
+        request = objectMapper.readValue(requestJson, CustomerProfileUpdateDTO.class);
+    } catch (Exception e) {
+        logger.error("Error parsing requestJson: {}", requestJson, e);
+        return ResponseEntity.badRequest().body(
+                ApiResponse.error(HttpStatus.BAD_REQUEST, "Invalid request data")
+        );
     }
+
+    // Log objek yang sudah diparse
+    logger.debug("Parsed DTO: {}", request);
+
+    String result = customerDetailsService.updateOwnCustomerDetails(request, ktpPhoto, selfiePhoto);
+    return ResponseEntity.ok(ApiResponse.success("Customer profile updated successfully", result));
+}
+
 
 
     @Secured("FEATURE_GET_CUSTOMER_PROFILE")
