@@ -11,6 +11,9 @@ import org.springframework.security.access.annotation.Secured;
 import org.springframework.web.bind.annotation.*;
 import org.springframework.web.multipart.MultipartFile;
 
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
+
 import java.util.UUID;
 
 @RestController
@@ -23,6 +26,7 @@ public class CustomerDetailsController {
 @Secured("FEATURE_UPDATE_CUSTOMER_PROFILE")
 @PutMapping("/update")
 public ResponseEntity<ApiResponse<String>> updateOwnCustomerDetails(
+    private static final Logger logger = LoggerFactory.getLogger(CustomerDetailsController.class);
         @RequestHeader("Authorization") String token,
         @RequestParam("ktpPhoto") MultipartFile ktpPhoto,
         @RequestParam("selfiePhoto") MultipartFile selfiePhoto,
