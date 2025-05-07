@@ -26,11 +26,12 @@ public class CustomerDetailsController {
 @Secured("FEATURE_UPDATE_CUSTOMER_PROFILE")
 @PutMapping("/update")
 public ResponseEntity<ApiResponse<String>> updateOwnCustomerDetails(
-    private static final Logger logger = LoggerFactory.getLogger(CustomerDetailsController.class);
         @RequestHeader("Authorization") String token,
         @RequestParam("ktpPhoto") MultipartFile ktpPhoto,
         @RequestParam("selfiePhoto") MultipartFile selfiePhoto,
         @RequestParam("request") String requestJson) {
+
+    private static final Logger logger = LoggerFactory.getLogger(CustomerDetailsController.class);
 
     // Log masuknya request untuk memudahkan debugging
     logger.debug("Received token: {}", token);
