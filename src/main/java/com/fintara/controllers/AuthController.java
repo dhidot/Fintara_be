@@ -7,6 +7,8 @@ import com.fintara.services.AuthService;
 import com.fintara.responses.ApiResponse;
 import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
@@ -21,11 +23,15 @@ import java.util.Map;
 @RequiredArgsConstructor
 public class AuthController {
 
+    private static final Logger logger = LoggerFactory.getLogger(AuthController.class);
+
     @Autowired private AuthService authService;
 
     @PostMapping("/login-customer")
     public ResponseEntity<ApiResponse<Map<String, Object>>> loginCustomer(@RequestBody LoginRequestCustomer request) {
         Map<String, Object> response = authService.loginCustomer(request);
+        logger.debug("Sukses");
+        logger.info("info");
         return ResponseEntity.ok(ApiResponse.success("Login berhasil", response));
     }
 

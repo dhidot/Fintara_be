@@ -31,10 +31,10 @@ public ResponseEntity<ApiResponse<String>> updateOwnCustomerDetails(
         @RequestParam("selfiePhoto") MultipartFile selfiePhoto,
         @RequestParam("request") String requestJson) {
     // Log masuknya request untuk memudahkan debugging
-    logger.debug("Received token: {}", token);
-    logger.debug("Received request JSON: {}", requestJson);
-    logger.debug("Received KTP photo: {}", ktpPhoto.getOriginalFilename());
-    logger.debug("Received Selfie photo: {}", selfiePhoto.getOriginalFilename());
+    logger.info("Received token: {}", token);
+    logger.info("Received request JSON: {}", requestJson);
+    logger.info("Received KTP photo: {}", ktpPhoto.getOriginalFilename());
+    logger.info("Received Selfie photo: {}", selfiePhoto.getOriginalFilename());
 
     CustomerProfileUpdateDTO request = null;
     try {
@@ -48,7 +48,7 @@ public ResponseEntity<ApiResponse<String>> updateOwnCustomerDetails(
     }
 
     // Log objek yang sudah diparse
-    logger.debug("Parsed DTO: {}", request);
+    logger.info("Parsed DTO: {}", request);
 
     String result = customerDetailsService.updateOwnCustomerDetails(request, ktpPhoto, selfiePhoto);
     return ResponseEntity.ok(ApiResponse.success("Customer profile updated successfully", result));
