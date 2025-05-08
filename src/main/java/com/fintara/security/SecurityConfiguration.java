@@ -58,6 +58,7 @@ public class SecurityConfiguration implements WebMvcConfigurer {
                                         "/swagger-ui.html","/swagger-ui/**",
                                         "/v3/api-docs/**","/api-docs/**").permitAll()
                                 .requestMatchers("/v1/auth/**").permitAll()
+                                .requestMatchers("/v1/cloudinary/**").permitAll()
                                 .requestMatchers("/v1/plafonds/all").permitAll()
                                 .anyRequest().authenticated()
                 )

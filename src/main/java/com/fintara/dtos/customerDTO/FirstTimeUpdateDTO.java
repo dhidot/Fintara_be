@@ -5,7 +5,7 @@ import lombok.Setter;
 
 @Setter
 @Getter
-public class CustomerProfileUpdateDTO {
+public class FirstTimeUpdateDTO {
     private String ttl;
     private String alamat;
     private String noTelp;
@@ -15,6 +15,4 @@ public class CustomerProfileUpdateDTO {
     private Double gaji;
     private String noRek;
     private String statusRumah;
-    private String ktpPhotoUrl;
-    private String selfiePhotoUrl;
 }

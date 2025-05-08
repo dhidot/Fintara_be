@@ -2,6 +2,7 @@ package com.fintara.controllers;
 
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.fintara.dtos.customerDTO.CustomerProfileUpdateDTO;
+import com.fintara.dtos.customerDTO.FirstTimeUpdateDTO;
 import com.fintara.responses.ApiResponse;
 import com.fintara.services.CustomerDetailsService;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -24,36 +25,23 @@ public class CustomerDetailsController {
     private CustomerDetailsService customerDetailsService;
 
 @Secured("FEATURE_UPDATE_CUSTOMER_PROFILE")
-@PutMapping("/update")
-public ResponseEntity<ApiResponse<String>> updateOwnCustomerDetails(
+@PutMapping("/first-time_update")
+public ResponseEntity<ApiResponse<String>> updateFirstLogin(
         @RequestHeader("Authorization") String token,
-        @RequestParam("ktpPhoto") MultipartFile ktpPhoto,
-        @RequestParam("selfiePhoto") MultipartFile selfiePhoto,
-        @RequestParam("request") String requestJson) {
-    // Log masuknya request untuk memudahkan debugging
+        @RequestBody FirstTimeUpdateDTO request
+) {
     logger.info("Received token: {}", token);
-    logger.info("Received request JSON: {}", requestJson);
-    logger.info("Received KTP photo: {}", ktpPhoto.getOriginalFilename());
-    logger.info("Received Selfie photo: {}", selfiePhoto.getOriginalFilename());
+    logger.info("Received FirstLogin Request DTO: {}", request);
 
-    CustomerProfileUpdateDTO request = null;
     try {
-        ObjectMapper objectMapper = new ObjectMapper();
-        request = objectMapper.readValue(requestJson, CustomerProfileUpdateDTO.class);
+        String result = customerDetailsService.updateOwnCustomerDetails(request);
+        return ResponseEntity.ok(ApiResponse.success("Customer profile updated successfully", result));
     } catch (Exception e) {
-        logger.error("Error parsing requestJson: {}", requestJson, e);
-        return ResponseEntity.badRequest().body(
-                ApiResponse.error(HttpStatus.BAD_REQUEST, "Invalid request data")
-        );
+        logger.error("Error updating customer profile", e);
+        return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR)
+                .body(ApiResponse.error(HttpStatus.INTERNAL_SERVER_ERROR, "Failed to update customer profile"));
     }
-
-    // Log objek yang sudah diparse
-    logger.info("Parsed DTO: {}", request);
-
-    String result = customerDetailsService.updateOwnCustomerDetails(request, ktpPhoto, selfiePhoto);
-    return ResponseEntity.ok(ApiResponse.success("Customer profile updated successfully", result));
 }
-
 
 
     @Secured("FEATURE_GET_CUSTOMER_PROFILE")
@@ -66,3 +54,35 @@ public ResponseEntity<ApiResponse<String>> updateOwnCustomerDetails(
         return ResponseEntity.ok(ApiResponse.success("Customer profile retrieved successfully", customerProfile));
     }
 }
+
+
+//@Secured("FEATURE_UPDATE_CUSTOMER_PROFILE")
+//@PutMapping("/update")
+//public ResponseEntity<ApiResponse<String>> updateOwnCustomerDetails(
+//        @RequestHeader("Authorization") String token,
+//        @RequestParam("ktpPhoto") MultipartFile ktpPhoto,
+//        @RequestParam("selfiePhoto") MultipartFile selfiePhoto,
+//        @RequestParam("request") String requestJson) {
+//    // Log masuknya request untuk memudahkan debugging
+//    logger.info("Received token: {}", token);
+//    logger.info("Received request JSON: {}", requestJson);
+//    logger.info("Received KTP photo: {}", ktpPhoto.getOriginalFilename());
+//    logger.info("Received Selfie photo: {}", selfiePhoto.getOriginalFilename());
+//
+//    CustomerProfileUpdateDTO request = null;
+//    try {
+//        ObjectMapper objectMapper = new ObjectMapper();
+//        request = objectMapper.readValue(requestJson, CustomerProfileUpdateDTO.class);
+//    } catch (Exception e) {
+//        logger.error("Error parsing requestJson: {}", requestJson, e);
+//        return ResponseEntity.badRequest().body(
+//                ApiResponse.error(HttpStatus.BAD_REQUEST, "Invalid request data")
+//        );
+//    }
+//
+//    // Log objek yang sudah diparse
+//    logger.info("Parsed DTO: {}", request);
+//
+//    String result = customerDetailsService.updateOwnCustomerDetails(request);
+//    return ResponseEntity.ok(ApiResponse.success("Customer profile updated successfully", result));
+//}
