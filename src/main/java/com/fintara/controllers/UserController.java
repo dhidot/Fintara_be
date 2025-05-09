@@ -54,7 +54,7 @@ public class UserController {
                     .body(new ApiResponse<>(HttpStatus.NOT_FOUND.value(), "User not found", null));
         }
 
-        String fotoUrl = cloudinaryService.uploadImage(foto.getBytes());
+        String fotoUrl = cloudinaryService.uploadImageEmployee(foto.getBytes());
         user.setFotoUrl(fotoUrl);
         userService.saveUser(user);
 

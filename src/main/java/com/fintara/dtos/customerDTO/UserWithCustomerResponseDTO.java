@@ -14,6 +14,5 @@ public class UserWithCustomerResponseDTO {
     private String name;
     private String email;
     private String role;
-    private JenisKelamin jenisKelamin;
     private CustomerDetailsDTO customerDetails;
 }

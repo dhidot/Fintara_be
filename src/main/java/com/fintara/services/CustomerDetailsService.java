@@ -1,6 +1,7 @@
 package com.fintara.services;
 
 import com.fintara.dtos.customerDTO.FirstTimeUpdateDTO;
+import com.fintara.enums.JenisKelamin;
 import com.fintara.exceptions.CustomException;
 import com.fintara.utils.JwtUtils;
 import com.fintara.dtos.customerDTO.CustomerProfileResponseDTO;
@@ -97,6 +98,7 @@ public class CustomerDetailsService {
 
     // Metode untuk mengisi data dari DTO ke entitas
     private void updateCustomerDetailsFromDTO(CustomerDetails customerDetails, FirstTimeUpdateDTO dto) {
+        customerDetails.setJenisKelamin(JenisKelamin.valueOf(String.valueOf(dto.getJenisKelamin())));
         customerDetails.setTtl(LocalDate.parse(dto.getTtl()));
         customerDetails.setAlamat(dto.getAlamat());
         customerDetails.setNoTelp(dto.getNoTelp());
@@ -143,6 +145,66 @@ public class CustomerDetailsService {
 
         logger.info("Data customer berhasil diupdate untuk user ID: {}", loggedInUser.getId());
         return "Customer details updated successfully!";
+    }
+
+    public String uploadKtpPhoto(MultipartFile file) throws IOException {
+        // Ambil user yang sedang login
+        UserDetails userDetails = (UserDetails) SecurityContextHolder.getContext()
+                .getAuthentication().getPrincipal();
+        String email = userDetails.getUsername();
+
+        logger.info("Memulai proses upload ktp untuk user: {}", email);
+
+        User loggedInUser = userService.findByEmail(email);
+        if (loggedInUser == null) {
+            throw new CustomException("User tidak ditemukan", HttpStatus.UNAUTHORIZED);
+        }
+
+        CustomerDetails customerDetails = getCustomerDetailsByUser(loggedInUser);
+        if (customerDetails == null) {
+            customerDetails = new CustomerDetails();
+            customerDetails.setUser(loggedInUser);
+        }
+
+        // Upload ke Cloudinary
+        String uploadedUrl = cloudinaryService.uploadFile(file);
+
+        // Simpan URL selfie ke entity
+        customerDetails.setKtpUrl(uploadedUrl);
+        saveCustomerDetails(customerDetails);
+
+        logger.info("Upload selfie berhasil disimpan untuk user ID: {}", loggedInUser.getId());
+        return uploadedUrl;
+    }
+
+    public String uploadSelfiePhoto(MultipartFile file) throws IOException {
+        // Ambil user yang sedang login
+        UserDetails userDetails = (UserDetails) SecurityContextHolder.getContext()
+                .getAuthentication().getPrincipal();
+        String email = userDetails.getUsername();
+
+        logger.info("Memulai proses upload selfie untuk user: {}", email);
+
+        User loggedInUser = userService.findByEmail(email);
+        if (loggedInUser == null) {
+            throw new CustomException("User tidak ditemukan", HttpStatus.UNAUTHORIZED);
+        }
+
+        CustomerDetails customerDetails = getCustomerDetailsByUser(loggedInUser);
+        if (customerDetails == null) {
+            customerDetails = new CustomerDetails();
+            customerDetails.setUser(loggedInUser);
+        }
+
+        // Upload ke Cloudinary
+        String uploadedUrl = cloudinaryService.uploadFile(file);
+
+        // Simpan URL selfie ke entity
+        customerDetails.setSelfieKtpUrl(uploadedUrl);
+        saveCustomerDetails(customerDetails);
+
+        logger.info("Upload selfie berhasil disimpan untuk user ID: {}", loggedInUser.getId());
+        return uploadedUrl;
     }
 
 //    @Transactional

@@ -212,7 +212,6 @@ public class StartupConfig {
                 User superAdmin = User.builder()
                         .name("Super Admin")
                         .email("superadmin@example.com")
-                        .jenisKelamin(JenisKelamin.valueOf("LAKI_LAKI"))
                         .password(passwordEncoder.encode("superadmin123"))
                         .role(superAdminRole)
                         .userType(UserType.PEGAWAI)
@@ -286,7 +285,6 @@ public class StartupConfig {
                     .password(passwordEncoder.encode("test1234")) // 🔹 Password awal
                     .role(role)
                     .userType(UserType.PEGAWAI)
-                    .jenisKelamin(jenisKelamin)  // Menambahkan gender pada user
                     .isFirstLogin(true) // 🔹 Set flag agar pegawai wajib ganti password saat login pertama
                     .build();
 

@@ -9,7 +9,9 @@ import com.fintara.enums.UserType;
 import com.fintara.exceptions.CustomException;
 import com.fintara.models.*;
 import com.fintara.repositories.UserRepository;
+import com.fintara.utils.GoogleTokenVerifier;
 import com.fintara.utils.JwtUtils;
+import com.google.api.client.googleapis.auth.oauth2.GoogleIdToken;
 import jakarta.transaction.Transactional;
 import lombok.RequiredArgsConstructor;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -18,6 +20,7 @@ import org.springframework.http.HttpStatus;
 import org.springframework.security.authentication.AuthenticationManager;
 import org.springframework.security.authentication.UsernamePasswordAuthenticationToken;
 import org.springframework.security.core.Authentication;
+import org.springframework.security.core.GrantedAuthority;
 import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Service;
@@ -27,6 +30,7 @@ import org.slf4j.LoggerFactory;
 import java.time.LocalDateTime;
 import java.time.ZoneId;
 import java.util.*;
+import java.util.stream.Collectors;
 
 @Service
 @RequiredArgsConstructor
@@ -54,6 +58,8 @@ public class AuthService {
     private CustomerDetailsService customerDetailsService;
     @Autowired
     private RedisService redisService;
+    @Autowired
+    private GoogleTokenVerifier googleTokenVerifier;
 
     private static final Logger logger = LoggerFactory.getLogger(UserService.class);
 
@@ -70,7 +76,6 @@ public class AuthService {
         User customer = User.builder()
                 .name(request.getName())
                 .email(request.getEmail())
-                .jenisKelamin(request.getJenisKelamin())
                 .password(passwordEncoder.encode(request.getPassword()))
                 .userType(UserType.CUSTOMER)
                 .isFirstLogin(true)
@@ -158,6 +163,67 @@ public class AuthService {
 
         return response;
     }
+
+    @Transactional
+    public Map<String, Object> loginWithGoogle(String idToken) {
+        GoogleIdToken.Payload payload = googleTokenVerifier.verify(idToken); // ⬅️ helper di bawah
+
+        if (payload == null) {
+            throw new CustomException("ID Token Google tidak valid", HttpStatus.UNAUTHORIZED);
+        }
+
+        String email = payload.getEmail();
+        String name = (String) payload.get("name");
+        String pictureUrl = (String) payload.get("picture");
+
+        User user = userRepository.findByEmail(email).orElse(null);
+
+        if (user == null) {
+            // 🔄 Daftarkan user baru otomatis
+            Role customerRole = roleService.getRoleByName("CUSTOMER");
+
+            user = User.builder()
+                    .name(name)
+                    .email(email)
+                    .password("") // Kosong karena tidak login manual
+                    .userType(UserType.CUSTOMER)
+                    .emailVerified(true)
+                    .isFirstLogin(true)
+                    .fotoUrl(pictureUrl)
+                    .role(customerRole)
+                    .build();
+
+            user = userRepository.save(user);
+
+            Plafond plafond = plafondService.getPlafondByName("Bronze");
+            CustomerDetails details = CustomerDetails.builder()
+                    .user(user)
+                    .plafond(plafond)
+                    .remainingPlafond(plafond.getMaxAmount())
+                    .build();
+
+            customerDetailsService.saveCustomerDetails(details);
+        }
+
+        // 🔐 Simpan session dan buat JWT
+        String jwt = jwtUtils.generateTokenForGoogle(user);
+
+        redisService.saveCustomerSession(email, jwt);
+
+        Map<String, Object> response = new HashMap<>();
+        response.put("jwt", new JwtResponse(jwt, email, user.getRole().getName(), getFeatures(user.getRole().getRoleFeatures()), user.getName()));
+        response.put("firstLogin", user.isFirstLogin());
+
+        return response;
+    }
+
+    public List<String> getFeatures(List<RoleFeature> roleFeature) {
+        // get list feature by role
+        return roleFeature.stream()
+                .map(roleFeature1 -> roleFeature1.getFeature().getName())
+                .collect(Collectors.toList());
+    }
+
 
     // EMPLOYEE AUTHENTICATION
     @Transactional

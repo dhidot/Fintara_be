@@ -66,7 +66,6 @@ public class CustomerService {
                 .name(user.getName())
                 .email(user.getEmail())
                 .role(user.getRole().getName())
-                .jenisKelamin(user.getJenisKelamin())
                 .customerDetails(new CustomerDetailsDTO(user.getCustomerDetails()))
                 .build();
     }

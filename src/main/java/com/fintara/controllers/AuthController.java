@@ -27,6 +27,12 @@ public class AuthController {
 
     @Autowired private AuthService authService;
 
+    @PostMapping("/login-google")
+    public ResponseEntity<ApiResponse<Map<String, Object>>> loginWithGoogle(@RequestBody GoogleLoginRequestDTO request) {
+        Map<String, Object> response = authService.loginWithGoogle(request.getIdToken());
+        return ResponseEntity.ok(ApiResponse.success("Login Google berhasil", response));
+    }
+
     @PostMapping("/login-customer")
     public ResponseEntity<ApiResponse<Map<String, Object>>> loginCustomer(@RequestBody LoginRequestCustomer request) {
         Map<String, Object> response = authService.loginCustomer(request);

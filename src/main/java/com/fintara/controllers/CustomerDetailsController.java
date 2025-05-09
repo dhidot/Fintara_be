@@ -16,6 +16,7 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 import java.util.UUID;
+import java.util.Map;
 
 @RestController
 @RequestMapping("v1/profilecustomer")
@@ -24,24 +25,48 @@ public class CustomerDetailsController {
     @Autowired
     private CustomerDetailsService customerDetailsService;
 
-@Secured("FEATURE_UPDATE_CUSTOMER_PROFILE")
-@PutMapping("/first-time_update")
-public ResponseEntity<ApiResponse<String>> updateFirstLogin(
+    @Secured("FEATURE_UPDATE_CUSTOMER_PROFILE")
+    @PutMapping("/first-time_update")
+    public ResponseEntity<ApiResponse<String>> updateFirstLogin(
         @RequestHeader("Authorization") String token,
         @RequestBody FirstTimeUpdateDTO request
-) {
-    logger.info("Received token: {}", token);
-    logger.info("Received FirstLogin Request DTO: {}", request);
+    ) {
+        logger.info("Received token: {}", token);
+        logger.info("Received FirstLogin Request DTO: {}", request);
 
-    try {
-        String result = customerDetailsService.updateOwnCustomerDetails(request);
-        return ResponseEntity.ok(ApiResponse.success("Customer profile updated successfully", result));
-    } catch (Exception e) {
-        logger.error("Error updating customer profile", e);
-        return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR)
+        try {
+            String result = customerDetailsService.updateOwnCustomerDetails(request);
+            return ResponseEntity.ok(ApiResponse.success("Customer profile updated successfully", result));
+        } catch (Exception e) {
+            logger.error("Error updating customer profile", e);
+            return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR)
                 .body(ApiResponse.error(HttpStatus.INTERNAL_SERVER_ERROR, "Failed to update customer profile"));
+        }
     }
-}
+
+    @Secured("FEATURE_UPDATE_CUSTOMER_PROFILE")
+    @PutMapping("/upload-ktp")
+    public ResponseEntity<ApiResponse<String>> uploadKtp(@RequestParam("file") MultipartFile file) {
+        try {
+            String uploadedUrl = customerDetailsService.uploadKtpPhoto(file);
+            return ResponseEntity.ok(ApiResponse.success("Upload berhasil", uploadedUrl));
+        } catch (Exception e) {
+            return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR)
+                    .body(ApiResponse.error(HttpStatus.INTERNAL_SERVER_ERROR, "Upload gagal: " + e.getMessage()));
+        }
+    }
+
+    @Secured("FEATURE_UPDATE_CUSTOMER_PROFILE")
+    @PutMapping("/upload-selfie")
+    public ResponseEntity<ApiResponse<String>> uploadSelfie(@RequestParam("file") MultipartFile file) {
+        try {
+            String uploadedUrl = customerDetailsService.uploadSelfiePhoto(file);
+            return ResponseEntity.ok(ApiResponse.success("Upload selfie berhasil", uploadedUrl));
+        } catch (Exception e) {
+            return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR)
+                    .body(ApiResponse.error(HttpStatus.INTERNAL_SERVER_ERROR, "Upload gagal: " + e.getMessage()));
+        }
+    }
 
 
     @Secured("FEATURE_GET_CUSTOMER_PROFILE")
@@ -50,11 +75,10 @@ public ResponseEntity<ApiResponse<String>> updateFirstLogin(
             @PathVariable UUID id,
             @RequestHeader("Authorization") String token) {
 
-        Object customerProfile = customerDetailsService.getCustomerProfile(token, id);
-        return ResponseEntity.ok(ApiResponse.success("Customer profile retrieved successfully", customerProfile));
+            Object customerProfile = customerDetailsService.getCustomerProfile(token, id);
+            return ResponseEntity.ok(ApiResponse.success("Customer profile retrieved successfully", customerProfile));
+        }
     }
-}
-
 
 //@Secured("FEATURE_UPDATE_CUSTOMER_PROFILE")
 //@PutMapping("/update")

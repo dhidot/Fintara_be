@@ -69,7 +69,6 @@ public class PegawaiService {
         User pegawai = User.builder()
                 .name(request.getName())
                 .email(request.getEmail())
-                .jenisKelamin(request.getJenisKelamin())
                 .password(passwordEncoder.encode(generatedPassword))
                 .role(pegawaiRole)
                 .userType(UserType.PEGAWAI)
@@ -108,7 +107,6 @@ public class PegawaiService {
                 response.setId(user.getId());
                 response.setName(user.getName());
                 response.setEmail(user.getEmail());
-                response.setJenisKelamin(user.getJenisKelamin());
 
                 // Pastikan role tidak null sebelum diakses
                 if (user.getRole() != null) {
@@ -139,7 +137,6 @@ public class PegawaiService {
         response.setId(user.getId());
         response.setName(user.getName());
         response.setEmail(user.getEmail());
-        response.setJenisKelamin(user.getJenisKelamin());
         response.setRole(user.getRole().getName());
 
         // Konversi PegawaiDetails ke DTO jika ada
@@ -165,7 +162,6 @@ public class PegawaiService {
         response.setId(user.getId());
         response.setFotoUrl(user.getFotoUrl());
         response.setName(user.getName());
-        response.setJenisKelamin(user.getJenisKelamin());
         response.setEmail(user.getEmail());
         response.setRole(user.getRole().getName());
 

@@ -33,10 +33,6 @@ public class User {
     @Column(name = "foto_url")
     private String fotoUrl;
 
-    @Enumerated(EnumType.STRING)
-    @Column(name = "jenis_kelamin", nullable = false)
-    private JenisKelamin jenisKelamin;
-
     @Column(name = "is_first_login", nullable = false)
     private boolean isFirstLogin = true; // Default true untuk pegawai baru dan customer baru
 

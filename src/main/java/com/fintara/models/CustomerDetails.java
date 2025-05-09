@@ -1,6 +1,7 @@
 package com.fintara.models;
 
 import com.fasterxml.jackson.annotation.JsonBackReference;
+import com.fintara.enums.JenisKelamin;
 import jakarta.persistence.*;
 import lombok.*;
 
@@ -26,6 +27,10 @@ public class CustomerDetails {
     @JoinColumn(name = "user_id", nullable = false)
     private User user;
 
+    // jenis kelamin
+    @Enumerated(EnumType.STRING)
+    @Column(name = "jenis_kelamin")
+    private JenisKelamin jenisKelamin;
     private LocalDate ttl;
     @Column(name = "ktp_url")
     private String ktpUrl;

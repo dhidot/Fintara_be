@@ -24,13 +24,16 @@ public class CloudinaryService {
         ));
     }
 
-    public String uploadImage(byte[] imageBytes) throws IOException {
-        Map<String, Object> uploadResult = cloudinary.uploader().upload(imageBytes, ObjectUtils.emptyMap());
-        return (String) uploadResult.get("secure_url"); // Mendapatkan URL aman dari Cloudinary
+    public String uploadFile(MultipartFile file) throws IOException {
+        // Mengupload file ke Cloudinary
+        Map<String, Object> uploadResult = cloudinary.uploader().upload(file.getBytes(), ObjectUtils.emptyMap());
+
+        // Ambil URL yang aman dari hasil upload
+        return (String) uploadResult.get("secure_url");
     }
 
-    public String uploadFile(MultipartFile file) throws IOException {
-        Map uploadResult = cloudinary.uploader().upload(file.getBytes(), ObjectUtils.emptyMap());
-        return uploadResult.get("secure_url").toString();
+    public String uploadImageEmployee(byte[] imageBytes) throws IOException {
+        Map<String, Object> uploadResult = cloudinary.uploader().upload(imageBytes, ObjectUtils.emptyMap());
+        return (String) uploadResult.get("secure_url"); // Mendapatkan URL aman dari Cloudinary
     }
 }

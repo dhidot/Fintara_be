@@ -1,11 +1,13 @@
 package com.fintara.dtos.customerDTO;
 
+import com.fintara.enums.JenisKelamin;
 import lombok.Getter;
 import lombok.Setter;
 
 @Setter
 @Getter
 public class FirstTimeUpdateDTO {
+    private JenisKelamin jenisKelamin;
     private String ttl;
     private String alamat;
     private String noTelp;

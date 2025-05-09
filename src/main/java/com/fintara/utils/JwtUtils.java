@@ -1,5 +1,6 @@
 package com.fintara.utils;
 
+import com.fintara.models.User;
 import com.fintara.security.UserDetailsImpl;
 import io.jsonwebtoken.Jwts;
 import io.jsonwebtoken.io.Decoders;
@@ -36,6 +37,24 @@ public class JwtUtils {
                 .subject(userPrincipal.getUsername())
                 .claim("userId", userPrincipal.getUserId().toString())
                 .claim("role", userPrincipal.getRoleName().toString())
+                .issuedAt(now)
+                .expiration(expiredDate)
+                .signWith(getSignKey())
+                .compact();
+    }
+
+    public String generateTokenForGoogle(User user) {
+
+        Date now = new Date();
+        Calendar calendar = Calendar.getInstance();
+        calendar.setTime(now);
+        calendar.add(Calendar.HOUR, jwtExpirationHour);
+        Date expiredDate = calendar.getTime();
+
+        return Jwts.builder()
+                .subject(user.getEmail())
+                .claim("userId", user.getId().toString())
+                .claim("role", user.getRole().getName())
                 .issuedAt(now)
                 .expiration(expiredDate)
                 .signWith(getSignKey())

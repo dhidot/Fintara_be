@@ -1,5 +1,6 @@
 package com.fintara.dtos.customerDTO;
 
+import com.fintara.enums.JenisKelamin;
 import com.fintara.models.CustomerDetails;
 import com.fintara.models.Plafond;
 import lombok.Getter;
@@ -13,6 +14,7 @@ import java.util.UUID;
 @Setter
 public class CustomerDetailsDTO {
     private UUID id;
+    private JenisKelamin jenisKelamin;
     private LocalDate ttl;
     private String alamat;
     private String noTelp;
@@ -22,10 +24,14 @@ public class CustomerDetailsDTO {
     private BigDecimal gaji;
     private String noRek;
     private String statusRumah;
+    private String ktpUrl;
+    private String selfieKtpUrl;
     private Plafond plafond;
 
     public CustomerDetailsDTO(CustomerDetails customerDetails) {
+        System.out.println("DEBUG jenisKelamin: " + customerDetails.getJenisKelamin());
         this.id = customerDetails.getId();
+        this.jenisKelamin = customerDetails.getJenisKelamin();
         this.ttl = customerDetails.getTtl();
         this.alamat = customerDetails.getAlamat();
         this.noTelp = customerDetails.getNoTelp();
@@ -35,6 +41,8 @@ public class CustomerDetailsDTO {
         this.gaji = customerDetails.getGaji();
         this.noRek = customerDetails.getNoRek();
         this.statusRumah = customerDetails.getStatusRumah();
+        this.ktpUrl = customerDetails.getKtpUrl();
+        this.selfieKtpUrl = customerDetails.getSelfieKtpUrl();
         this.plafond = customerDetails.getPlafond();
     }
 }

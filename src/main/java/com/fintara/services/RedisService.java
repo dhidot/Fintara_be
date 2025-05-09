@@ -19,7 +19,7 @@ public class RedisService {
     private static final String CUSTOMER_SESSION_PREFIX = "customer_session:";
     private static final String FIRST_LOGIN_PREFIX = "first_login:";
     private static final String VERIFY_EMAIL_PREFIX = "verify_email:";
-    private static final long VERIFY_EMAIL_TTL_MINUTES = 30;
+    private static final long VERIFY_EMAIL_TTL_MINUTES = 1440;
 
     // ---------- PEGAWAI ----------
     public void savePegawaiSession(String nip, String jwtToken) {

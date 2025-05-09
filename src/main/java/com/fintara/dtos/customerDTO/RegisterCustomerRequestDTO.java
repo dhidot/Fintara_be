@@ -15,10 +15,6 @@ public class RegisterCustomerRequestDTO {
     @NotBlank(message = "Nama tidak boleh kosong")
     private String name;
 
-    @NotNull(message = "Jenis Kelamin tidak boleh kosong")
-    @JsonProperty("jenis_kelamin")
-    private JenisKelamin jenisKelamin;
-
     @JsonProperty("email")
     @NotBlank(message = "Email tidak boleh kosong")
     @Pattern(
