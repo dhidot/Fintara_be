@@ -3,6 +3,7 @@ package com.fintara.controllers;
 import com.fintara.dtos.authDTO.*;
 import com.fintara.dtos.customerDTO.RegisterCustomerRequestDTO;
 import com.fintara.dtos.customerDTO.CustomerResponseDTO;
+import com.fintara.exceptions.CustomException;
 import com.fintara.services.AuthService;
 import com.fintara.responses.ApiResponse;
 import jakarta.validation.Valid;
@@ -28,8 +29,10 @@ public class AuthController {
     @Autowired private AuthService authService;
 
     @PostMapping("/login-google")
-    public ResponseEntity<ApiResponse<Map<String, Object>>> loginWithGoogle(@RequestBody GoogleLoginRequestDTO request) {
-        Map<String, Object> response = authService.loginWithGoogle(request.getIdToken());
+    public ResponseEntity<ApiResponse<Map<String, Object>>> loginWithGoogle(@RequestHeader("Authorization") String authorizationHeader) {
+        String idToken = authorizationHeader.replace("Bearer ", "");
+
+        Map<String, Object> response = authService.loginWithGoogle(idToken);
         return ResponseEntity.ok(ApiResponse.success("Login Google berhasil", response));
     }
 

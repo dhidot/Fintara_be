@@ -34,51 +34,54 @@ public class SecurityConfiguration implements WebMvcConfigurer {
     final JwtUtils jwtUtils;
 
     @Autowired
-    public SecurityConfiguration(AuthEntryPointJwt unauthorizedHandler, UserDetailsServiceImpl userDetailService, JwtUtils jwtUtils) {
+    public SecurityConfiguration(AuthEntryPointJwt unauthorizedHandler, UserDetailsServiceImpl userDetailService,
+            JwtUtils jwtUtils) {
         this.authEntryPointJwt = unauthorizedHandler;
         this.userDetailService = userDetailService;
         this.jwtUtils = jwtUtils;
     }
 
     @Bean
-    public SecurityFilterChain securityFilterChain(HttpSecurity http, AuthEntryPointJwt authEntryPointJwt) throws Exception {
+    public SecurityFilterChain securityFilterChain(HttpSecurity http, AuthEntryPointJwt authEntryPointJwt)
+            throws Exception {
         http
                 .csrf(AbstractHttpConfigurer::disable)
                 .cors(Customizer.withDefaults())
-                .exceptionHandling(exceptionHandling ->
-                        exceptionHandling
-                                .authenticationEntryPoint(authEntryPointJwt) // Untuk 401 Unauthorized
+                .exceptionHandling(exceptionHandling -> exceptionHandling
+                        .authenticationEntryPoint(authEntryPointJwt) // Untuk 401 Unauthorized
                 )
                 .sessionManagement(session -> session.sessionCreationPolicy(SessionCreationPolicy.STATELESS))
-                .authorizeHttpRequests(auth ->
-                        auth
-                                .requestMatchers(
-                                        "/download/**",
-                                        "/v1/home/",
-                                        "/swagger-ui.html","/swagger-ui/**",
-                                        "/v3/api-docs/**","/api-docs/**").permitAll()
-                                .requestMatchers("/v1/auth/**").permitAll()
-                                .requestMatchers("/v1/cloudinary/**").permitAll()
-                                .requestMatchers("/v1/plafonds/all").permitAll()
-                                .anyRequest().authenticated()
-                )
+                .authorizeHttpRequests(auth -> auth
+                        .requestMatchers(
+                                "/download/**",
+                                "/v1/home/",
+                                "/swagger-ui.html", "/swagger-ui/**",
+                                "/v3/api-docs/**", "/api-docs/**")
+                        .permitAll()
+                        .requestMatchers("/v1/auth/**").permitAll()
+                        .requestMatchers("/v1/firebase/send-notification").permitAll()
+                        .requestMatchers("/v1/auth/login-google").permitAll()
+                        .requestMatchers("/v1/cloudinary/**").permitAll()
+                        .requestMatchers("/v1/profilecustomer/upload-ktp").permitAll()
+                        .requestMatchers("/v1/plafonds/all").permitAll()
+                        .anyRequest().authenticated())
                 .authenticationProvider(authenticationProvider())
                 .addFilterBefore(jwtAuthenticationFilter(), UsernamePasswordAuthenticationFilter.class);
         return http.build();
     }
 
     @Bean
-    public JwtAuthenticationFilter jwtAuthenticationFilter(){
+    public JwtAuthenticationFilter jwtAuthenticationFilter() {
         return new JwtAuthenticationFilter();
     }
 
     @Bean
-    public PasswordEncoder passwordEncoder(){
+    public PasswordEncoder passwordEncoder() {
         return new BCryptPasswordEncoder();
     }
 
     @Bean
-    public DaoAuthenticationProvider authenticationProvider(){
+    public DaoAuthenticationProvider authenticationProvider() {
         DaoAuthenticationProvider authenticationProvider = new DaoAuthenticationProvider();
         authenticationProvider.setPasswordEncoder(passwordEncoder());
         authenticationProvider.setUserDetailsService(userDetailService);
@@ -86,7 +89,8 @@ public class SecurityConfiguration implements WebMvcConfigurer {
     }
 
     @Bean
-    public AuthenticationManager authenticationManager(AuthenticationConfiguration authenticationConfiguration) throws Exception {
+    public AuthenticationManager authenticationManager(AuthenticationConfiguration authenticationConfiguration)
+            throws Exception {
         return authenticationConfiguration.getAuthenticationManager();
     }
 
@@ -99,7 +103,7 @@ public class SecurityConfiguration implements WebMvcConfigurer {
     }
 
     @Bean
-    public CorsConfigurationSource corsConfigurationSource(){
+    public CorsConfigurationSource corsConfigurationSource() {
         CorsConfiguration configuration = new CorsConfiguration();
         configuration.setAllowedOrigins(Arrays.asList("http://localhost:4200"));
         configuration.setAllowedMethods(Arrays.asList("GET", "POST", "PUT", "DELETE", "PATCH"));

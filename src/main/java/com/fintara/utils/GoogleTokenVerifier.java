@@ -15,7 +15,7 @@ public class GoogleTokenVerifier {
 
     public GoogleTokenVerifier() {
         verifier = new GoogleIdTokenVerifier.Builder(new NetHttpTransport(), new JacksonFactory())
-                .setAudience(List.of("322824276751-526ld62dg9d5u3robdeb8fos4ophlrg4.apps.googleusercontent.com"))
+                .setAudience(List.of("124749850521-rjebupase6asr2pngv30p8bt2npevgs5.apps.googleusercontent.com"))
                 .build();
     }
 

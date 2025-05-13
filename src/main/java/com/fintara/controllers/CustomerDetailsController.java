@@ -44,7 +44,6 @@ public class CustomerDetailsController {
         }
     }
 
-    @Secured("FEATURE_UPDATE_CUSTOMER_PROFILE")
     @PutMapping("/upload-ktp")
     public ResponseEntity<ApiResponse<String>> uploadKtp(@RequestParam("file") MultipartFile file) {
         try {
