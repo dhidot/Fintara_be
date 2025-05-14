@@ -54,8 +54,7 @@ public class CustomerDetailsController {
         }
     }
 
-    @Secured("FEATURE_UPDATE_CUSTOMER_PROFILE")
-    @PostMapping("/upload-selfie")
+    @PostMapping("/upload-selfie-ktp")
     public ResponseEntity<ApiResponse<String>> uploadSelfie(@RequestParam("file") MultipartFile file) {
         try {
             String uploadedUrl = customerDetailsService.uploadSelfiePhoto(file);
