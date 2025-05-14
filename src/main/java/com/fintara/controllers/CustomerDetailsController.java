@@ -16,7 +16,6 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 import java.util.UUID;
-import java.util.Map;
 
 @RestController
 @RequestMapping("v1/profilecustomer")
@@ -44,7 +43,7 @@ public class CustomerDetailsController {
         }
     }
 
-    @PutMapping("/upload-ktp")
+    @PostMapping("/upload-ktp")
     public ResponseEntity<ApiResponse<String>> uploadKtp(@RequestParam("file") MultipartFile file) {
         try {
             String uploadedUrl = customerDetailsService.uploadKtpPhoto(file);
@@ -56,7 +55,7 @@ public class CustomerDetailsController {
     }
 
     @Secured("FEATURE_UPDATE_CUSTOMER_PROFILE")
-    @PutMapping("/upload-selfie")
+    @PostMapping("/upload-selfie")
     public ResponseEntity<ApiResponse<String>> uploadSelfie(@RequestParam("file") MultipartFile file) {
         try {
             String uploadedUrl = customerDetailsService.uploadSelfiePhoto(file);

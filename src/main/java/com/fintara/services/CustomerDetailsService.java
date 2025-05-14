@@ -173,7 +173,7 @@ public class CustomerDetailsService {
         customerDetails.setKtpUrl(uploadedUrl);
         saveCustomerDetails(customerDetails);
 
-        logger.info("Upload selfie berhasil disimpan untuk user ID: {}", loggedInUser.getId());
+        logger.info("Upload KTP berhasil disimpan untuk user ID: {}", loggedInUser.getId());
         return uploadedUrl;
     }
 
