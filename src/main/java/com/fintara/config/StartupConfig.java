@@ -269,6 +269,14 @@ public class StartupConfig {
                     userRepository, pegawaiDetailsRepository, roleRepository, passwordEncoder, branchRepository);
             createTestUser("bo_surabaya@example.com", "Back Office Surabaya", "BACK_OFFICE", "BO2026", "Surabaya", JenisKelamin.PEREMPUAN,
                     userRepository, pegawaiDetailsRepository, roleRepository, passwordEncoder, branchRepository);
+
+            // Cabang Jakarta Selatan
+            createTestUser("marketing_jaksel@example.com", "Marketing Jakarta Selatan", "MARKETING", "MKT2027", "Jakarta Selatan", JenisKelamin.LAKI_LAKI,
+                    userRepository, pegawaiDetailsRepository, roleRepository, passwordEncoder, branchRepository);
+            createTestUser("bm_jakse@example.com", "Branch Manager Jakarta Selatan", "BRANCH_MANAGER", "BM2027", "Jakarta Selatan", JenisKelamin.PEREMPUAN,
+                    userRepository, pegawaiDetailsRepository, roleRepository, passwordEncoder, branchRepository);
+            createTestUser("bo_jaksel@example.com", "Back Office Jakarta Selatan", "BACK_OFFICE", "BO2027", "Jakarta Selatan", JenisKelamin.LAKI_LAKI,
+                    userRepository, pegawaiDetailsRepository, roleRepository, passwordEncoder, branchRepository);
         };
     }
 

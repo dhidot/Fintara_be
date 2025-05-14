@@ -35,7 +35,6 @@ public class LoanRequestController {
     @Autowired
     private UserService userService;
 
-    @Secured("FEATURE_CREATE_LOAN_REQUEST")
     @PostMapping
     public ResponseEntity<ApiResponse<LoanRequestResponseDTO>> createLoanRequest(@Valid @RequestBody LoanRequestDTO request) {
         LoanRequestResponseDTO loanRequestResponse = loanRequestService.createLoanRequest(request);
