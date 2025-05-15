@@ -73,6 +73,9 @@ public class UserService implements UserDetailsService {
         return userRepository.existsByEmail(email);
     }
 
+    // existsByBranchAndRole_Name
+
+
     // save
     public User saveUser(User user) {
         try {

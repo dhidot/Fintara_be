@@ -59,7 +59,7 @@ public class SecurityConfiguration implements WebMvcConfigurer {
                                 "/v3/api-docs/**", "/api-docs/**")
                         .permitAll()
                         .requestMatchers("/v1/auth/**").permitAll()
-                        .requestMatchers("/v1/firebase/send-notification").permitAll()
+                        .requestMatchers("/v1/notifications/**").permitAll()
                         .requestMatchers("/v1/auth/login-google").permitAll()
                         .requestMatchers("/v1/cloudinary/**").permitAll()
                         .requestMatchers("/v1/profilecustomer/upload-ktp").permitAll()

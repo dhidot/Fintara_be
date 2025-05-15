@@ -36,4 +36,8 @@ build/
 
 ### Mac OS ###
 .DS_Store
+
+### File Kredensial ###
 /.env
+src/main/resources/firebase/*.json
+

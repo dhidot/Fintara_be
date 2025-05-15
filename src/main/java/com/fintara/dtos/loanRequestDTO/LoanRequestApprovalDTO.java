@@ -21,6 +21,7 @@ public class LoanRequestApprovalDTO {
 
     //    Data customer
     private String customerKtpPhotoUrl;
+    private String customerSelfieKtpPhotoUrl;
     private String customerName;
     private String customerEmail;
     private String customerPhone;

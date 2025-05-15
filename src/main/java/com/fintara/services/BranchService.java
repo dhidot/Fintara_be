@@ -26,6 +26,8 @@ public class BranchService {
     private final BranchRepository branchRepository;
     @Autowired
     private NameNormalizer nameNormalizer;
+    @Autowired
+    private UserService userService;
 
     public ResponseEntity<Branch> createBranch(@Valid @RequestBody Branch branch) {
         String normalizedName = nameNormalizer.normalizedName(branch.getName());
@@ -88,6 +90,19 @@ public class BranchService {
                 .map(Branch::getId)
                 .orElse(null);
     }
+
+//    public UUID findNearestBranchWithMarketing(double latitude, double longitude) {
+//        List<Branch> allBranches = branchRepository.findAll();
+//
+//        return allBranches.stream()
+//                .sorted(Comparator.comparing(branch -> haversineDistance(
+//                        latitude, longitude,
+//                        branch.getLatitude(), branch.getLongitude())))
+//                .filter(branch -> userService.existsByBranchAndRole_Name(branch, "MARKETING"))
+//                .map(Branch::getId)
+//                .findFirst()
+//                .orElse(null);
+//    }
 
     private double haversineDistance(double lat1, double lon1, double lat2, double lon2) {
         final int R = 6371; // Radius bumi dalam KM

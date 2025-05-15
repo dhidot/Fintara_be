@@ -22,4 +22,6 @@ public interface LoanRequestRepository extends JpaRepository<LoanRequest, UUID> 
 
     @Query("SELECT l FROM LoanRequest l WHERE l.branch.id = :branchId AND l.status.name = :status")
     List<LoanRequest> findByBranchIdAndStatus(@Param("branchId") UUID branchId, @Param("status") String status);
+
+    boolean existsByCustomerAndStatus_Name(CustomerDetails customer, String statusName);
 }

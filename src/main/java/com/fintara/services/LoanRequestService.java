@@ -54,31 +54,30 @@ public class LoanRequestService {
 
     @Transactional
     public LoanRequestResponseDTO createLoanRequest(LoanRequestDTO requestDTO) {
-        // Ambil user yang sedang terautentikasi
         User currentUser = userService.getAuthenticatedUser();
 
         validateCustomer(currentUser);
 
-        // Ambil customer details terkait dengan user
         CustomerDetails customerDetails = currentUser.getCustomerDetails();
-
         if (customerDetails == null) {
             throw new CustomException("Customer details tidak ditemukan", HttpStatus.NOT_FOUND);
         }
 
-        // Validasi plafond customer
+        // 🔒 Tambahan validasi status REVIEW
+        boolean hasPendingRequest = loanRequestRepository.existsByCustomerAndStatus_Name(customerDetails, "REVIEW");
+        if (hasPendingRequest) {
+            throw new CustomException("Pengajuan sebelumnya masih dalam review. Harap tunggu hingga proses selesai.", HttpStatus.BAD_REQUEST);
+        }
+
         validatePlafond(customerDetails, requestDTO.getAmount(), requestDTO.getTenor());
 
-        // Cari branch terdekat
         UUID branchId = branchService.findNearestBranch(requestDTO.getLatitude(), requestDTO.getLongitude());
         if (branchId == null) {
             throw new CustomException("Tidak ada cabang terdekat", HttpStatus.BAD_REQUEST);
         }
 
-        // Pilih marketing berdasarkan rotasi
         User assignedMarketing = assignMarketing(branchId);
 
-        // Set status awal "REVIEW"
         LoanStatus pendingStatus = loanStatusService.findByName("REVIEW");
 
         Plafond customerPlafond = validatePlafond(customerDetails, requestDTO.getAmount(), requestDTO.getTenor());
@@ -91,14 +90,14 @@ public class LoanRequestService {
                 .marketing(assignedMarketing)
                 .requestDate(LocalDateTime.now())
                 .status(pendingStatus)
-                .plafond(customerPlafond) // 👈 Ini penting
+                .plafond(customerPlafond)
                 .build();
 
         LoanRequest savedLoanRequest = loanRequestRepository.save(newRequest);
 
-        // Return LoanRequestResponseDTO with the relevant data
         return LoanRequestResponseDTO.fromEntity(savedLoanRequest);
     }
+
 
     private Plafond validatePlafond(CustomerDetails customerDetails, BigDecimal amount, int tenor) {
         Plafond plafond = customerDetails.getPlafond();
@@ -244,6 +243,7 @@ public class LoanRequestService {
 
                 .customerName(customer.getUser().getName())
                 .customerKtpPhotoUrl(customer.getKtpUrl())
+                .customerSelfieKtpPhotoUrl(customer.getSelfieKtpUrl())
                 .customerEmail(customer.getUser().getEmail())
                 .customerPhone(customer.getNoTelp())
                 .customerAddress(customer.getAlamat())
@@ -256,15 +256,26 @@ public class LoanRequestService {
 
     /********** MARKETING APPROVAL **********/
     private LoanRequestApprovalDTO convertToDTO(LoanRequest loanRequest) {
+        CustomerDetails customer = loanRequest.getCustomer();
+        User user = customer.getUser();
+
         return LoanRequestApprovalDTO.builder()
                 .id(loanRequest.getId())
-                .customerName(loanRequest.getCustomer().getUser().getName())
+                .customerName(user.getName())
+                .customerEmail(user.getEmail())
+                .customerPhone(customer.getNoTelp())
+                .customerAddress(customer.getAlamat())
+                .customerJob(customer.getPekerjaan())
+                .customerSalary(customer.getGaji())
+                .customerKtpPhotoUrl(customer.getKtpUrl())
+                .customerSelfieKtpPhotoUrl(customer.getSelfieKtpUrl())
                 .amount(loanRequest.getAmount())
                 .tenor(loanRequest.getTenor())
                 .status(loanRequest.getStatus().getName())
                 .requestDate(loanRequest.getRequestDate())
                 .build();
     }
+
 
     public List<LoanRequestApprovalDTO> getLoanRequestsByMarketing(UUID marketingId) {
         List<LoanRequest> loanRequests = loanRequestRepository.findByMarketingId(marketingId);
