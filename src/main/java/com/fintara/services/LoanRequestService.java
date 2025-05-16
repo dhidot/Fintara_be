@@ -11,6 +11,8 @@ import lombok.RequiredArgsConstructor;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.context.annotation.Lazy;
 import org.springframework.http.HttpStatus;
+import org.springframework.security.core.context.SecurityContextHolder;
+import org.springframework.security.core.userdetails.UserDetails;
 import org.springframework.stereotype.Service;
 
 import java.math.BigDecimal;
@@ -36,6 +38,14 @@ public class LoanRequestService {
     private LoanApprovalService loanApprovalService;
     @Autowired
     private RepaymentScheduleService repaymentScheduleService;
+    @Autowired NotificationService notificationService;
+
+
+    private User getAuthenticatedUser() {
+        UserDetails userDetails = (UserDetails) SecurityContextHolder.getContext().getAuthentication().getPrincipal();
+        String username = userDetails.getUsername();
+        return userService.findByEmail(username);
+    }
 
     // Get loan request byID
     public LoanRequest findById(UUID id) {
@@ -362,7 +372,16 @@ public class LoanRequestService {
                 .approvedAt(LocalDateTime.now())
                 .build();
         loanApprovalService.save(approvalRecord);
+
+        // 5️⃣ Kirim notifikasi jika status approved
+        if ("DISETUJUI_BM".equalsIgnoreCase(newStatus.getName())) {
+            User applicant = loanRequest.getCustomer().getUser();
+            String title = "Pengajuan Pinjaman Disetujui";
+            String body = "Pengajuan pinjaman Anda dengan ID " + loanRequest.getId() + " telah disetujui oleh Branch Manager.";
+            notificationService.sendNotificationToUser(applicant.getId(), title, body);
+        }
     }
+
 
     /********* BACK OFFICE DISBURSE **********/
     public List<LoanRequestApprovalDTO> getLoanRequestsForBackOffice(UUID backOfficeId) {
@@ -400,10 +419,7 @@ public class LoanRequestService {
         loanRequest.setStatus(disbursedStatus);
         loanRequest.setDisbursedAt(LocalDateTime.now());
 
-        // 5️⃣ Hitung repayment schedule
-        // (Sama seperti sebelumnya, tidak perlu diubah)
-
-        // 6️⃣ Simpan record approval oleh BO
+        // 5️⃣ Simpan record approval oleh BO
         LoanApproval approvalRecord = LoanApproval.builder()
                 .loanRequest(loanRequest)
                 .handledBy(userService.findById(backOfficeId))
@@ -413,9 +429,24 @@ public class LoanRequestService {
                 .build();
         loanApprovalService.save(approvalRecord);
 
-        // 7️⃣ Simpan perubahan ke loan request
+        // 6️⃣ Simpan perubahan ke loan request
         loanRequestRepository.save(loanRequest);
+
+        // 7️⃣ Kirim notifikasi ke pemohon
+        User applicant = loanRequest.getCustomer().getUser();
+        String title = "Pinjaman Dicairkan";
+        String body = "Dana pengajuan pinjaman Anda dengan ID " + loanRequest.getId() + " telah berhasil dicairkan.";
+        notificationService.sendNotificationToUser(applicant.getId(), title, body);
     }
 
+
+    public List<LoanRequestResponseDTO> getLoanRequestByStatuses(List<String> statuses) {
+        User currentUser = getAuthenticatedUser();
+        List<LoanRequest> loanRequests = loanRequestRepository.findAllByCustomer_User_IdAndStatus_NameIn(currentUser.getId(), statuses);
+
+        return loanRequests.stream()
+                .map(LoanRequestResponseDTO::fromEntity)
+                .collect(Collectors.toList());
+    }
 }
 

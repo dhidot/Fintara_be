@@ -8,6 +8,7 @@ import lombok.Setter;
 @Setter
 @Getter
 public class LoginRequestCustomer {
+
     @JsonProperty("email")
     @NotBlank(message = "Email tidak boleh kosong")
     private String email;
@@ -15,4 +16,10 @@ public class LoginRequestCustomer {
     @JsonProperty("password")
     @NotBlank(message = "Password tidak boleh kosong")
     private String password;
+
+    @JsonProperty("fcmToken")
+    private String fcmToken;
+
+    @JsonProperty("deviceInfo")
+    private String deviceInfo;
 }

@@ -17,8 +17,11 @@ import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.access.annotation.Secured;
 import org.springframework.security.core.Authentication;
+import org.springframework.security.core.context.SecurityContextHolder;
+import org.springframework.security.core.userdetails.UserDetails;
 import org.springframework.web.bind.annotation.*;
 
+import java.util.Arrays;
 import java.util.List;
 import java.util.Map;
 import java.util.UUID;
@@ -112,5 +115,22 @@ public class LoanRequestController {
         loanRequestService.disburseLoanRequest(loanRequestId, currentBO.getId());
 
         return ResponseEntity.ok(new ApiResponse<>(HttpStatus.OK.value(), "Loan request successfully disbursed", Map.of("message", "Loan request berhasil dicairkan")));
+    }
+
+    // get all loan requests by customer id
+    @GetMapping("/history")
+    public ResponseEntity<ApiResponse<List<LoanRequestResponseDTO>>> getLoanRequestHistory() {
+        List<LoanRequestResponseDTO> history = loanRequestService.getLoanRequestByStatuses(
+                Arrays.asList("DITOLAK", "DISBURSED")
+        );
+        return ResponseEntity.ok(new ApiResponse<>(HttpStatus.OK.value(), "Loan request history", history));
+    }
+
+    @GetMapping("/in-progress")
+    public ResponseEntity<ApiResponse<List<LoanRequestResponseDTO>>> getLoanRequestInProgress() {
+        List<LoanRequestResponseDTO> inProgress = loanRequestService.getLoanRequestByStatuses(
+                Arrays.asList("REVIEW", "DIREKOMENDASIKAN_BM") // Tambahkan status proses lain jika ada
+        );
+        return ResponseEntity.ok(new ApiResponse<>(HttpStatus.OK.value(), "Loan requests in progress", inProgress));
     }
 }

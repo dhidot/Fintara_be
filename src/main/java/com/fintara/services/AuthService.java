@@ -20,7 +20,6 @@ import org.springframework.http.HttpStatus;
 import org.springframework.security.authentication.AuthenticationManager;
 import org.springframework.security.authentication.UsernamePasswordAuthenticationToken;
 import org.springframework.security.core.Authentication;
-import org.springframework.security.core.GrantedAuthority;
 import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Service;
@@ -60,6 +59,9 @@ public class AuthService {
     private RedisService redisService;
     @Autowired
     private GoogleTokenVerifier googleTokenVerifier;
+    @Autowired
+    private UserDeviceTokenService userDeviceTokenService;
+
 
     private static final Logger logger = LoggerFactory.getLogger(UserService.class);
 
@@ -148,6 +150,11 @@ public class AuthService {
         String jwt = jwtUtils.generateToken(authentication);
         redisService.saveCustomerSession(email, jwt);
 
+        // ✅ Simpan FCM token (jika ada)
+        if (request.getFcmToken() != null && !request.getFcmToken().isBlank()) {
+            userDeviceTokenService.saveOrReplaceToken(user, request.getFcmToken(), request.getDeviceInfo());
+        }
+
         // Siapkan response
         JwtResponse jwtResponse = new JwtResponse(
                 jwt,
@@ -165,8 +172,8 @@ public class AuthService {
     }
 
     @Transactional
-    public Map<String, Object> loginWithGoogle(String idToken) {
-        GoogleIdToken.Payload payload = googleTokenVerifier.verify(idToken); // ⬅️ helper di bawah
+    public Map<String, Object> loginWithGoogle(String idToken, String fcmToken, String deviceInfo) {
+        GoogleIdToken.Payload payload = googleTokenVerifier.verify(idToken);
 
         if (payload == null) {
             throw new CustomException("ID Token Google tidak valid", HttpStatus.UNAUTHORIZED);
@@ -179,7 +186,6 @@ public class AuthService {
         User user = userRepository.findByEmail(email).orElse(null);
 
         if (user == null) {
-            // 🔄 Daftarkan user baru otomatis
             Role customerRole = roleService.getRoleByName("CUSTOMER");
 
             user = User.builder()
@@ -205,14 +211,19 @@ public class AuthService {
             customerDetailsService.saveCustomerDetails(details);
         }
 
+        // ⬅️ Simpan FCM Token (hapus yang lama, ganti dengan yang baru)
+        userDeviceTokenService.saveOrReplaceToken(user, fcmToken, deviceInfo);
+
         // 🔐 Simpan session dan buat JWT
         String jwt = jwtUtils.generateTokenForGoogle(user);
-
         redisService.saveCustomerSession(email, jwt);
+
+        boolean hasPassword = user.getPassword() != null && !user.getPassword().isEmpty();
 
         Map<String, Object> response = new HashMap<>();
         response.put("jwt", new JwtResponse(jwt, email, user.getRole().getName(), getFeatures(user.getRole().getRoleFeatures()), user.getName()));
         response.put("firstLogin", user.isFirstLogin());
+        response.put("hasPassword", hasPassword);
 
         return response;
     }
@@ -301,6 +312,20 @@ public class AuthService {
             String email = user.getEmail().toLowerCase().trim();  // Normalisasi
             redisService.removeCustomerSession(email);
         }
+    }
+
+    @Transactional
+    public void setPassword(SetPasswordRequest request) {
+        User user = userService.getAuthenticatedUser(); // ambil user yang sedang login
+
+        // Validasi password baru dan konfirmasi
+        if (!request.getPassword().equals(request.getConfirmPassword())) {
+            throw new CustomException("Konfirmasi password baru tidak cocok", HttpStatus.BAD_REQUEST);
+        }
+
+        // Update password
+        user.setPassword(passwordEncoder.encode(request.getPassword()));
+        userRepository.save(user);
     }
 
     @Transactional

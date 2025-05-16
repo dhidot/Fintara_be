@@ -24,4 +24,8 @@ public interface LoanRequestRepository extends JpaRepository<LoanRequest, UUID> 
     List<LoanRequest> findByBranchIdAndStatus(@Param("branchId") UUID branchId, @Param("status") String status);
 
     boolean existsByCustomerAndStatus_Name(CustomerDetails customer, String statusName);
+
+    List<LoanRequest> findAllByCustomer_User_Id(UUID userId);
+
+    List<LoanRequest> findAllByCustomer_User_IdAndStatus_NameIn(UUID userId, List<String> statusNames);
 }

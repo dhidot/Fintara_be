@@ -29,10 +29,13 @@ public class AuthController {
     @Autowired private AuthService authService;
 
     @PostMapping("/login-google")
-    public ResponseEntity<ApiResponse<Map<String, Object>>> loginWithGoogle(@RequestHeader("Authorization") String authorizationHeader) {
+    public ResponseEntity<ApiResponse<Map<String, Object>>> loginWithGoogle(@RequestHeader("Authorization") String authorizationHeader, @RequestBody GoogleLoginRequestDTO request) {
         String idToken = authorizationHeader.replace("Bearer ", "");
 
-        Map<String, Object> response = authService.loginWithGoogle(idToken);
+        Map<String, Object> response = authService.loginWithGoogle(idToken, request.getFcmToken(), request.getDeviceInfo());
+        // print response
+        System.out.println(response);
+        logger.debug("Response: {}", response);
         return ResponseEntity.ok(ApiResponse.success("Login Google berhasil", response));
     }
 
@@ -84,6 +87,12 @@ public class AuthController {
     public ResponseEntity<ApiResponse<Object>> changePassword(@Valid @RequestBody ChangePasswordRequest request) {
         authService.changePassword(request);
         return ResponseEntity.ok(ApiResponse.success("Password berhasil diperbarui"));
+    }
+
+    @PostMapping("/set-password")
+    public ResponseEntity<ApiResponse<Object>> setPassword(@Valid @RequestBody SetPasswordRequest request) {
+        authService.setPassword(request);
+        return ResponseEntity.ok(ApiResponse.success("Password berhasil diatur"));
     }
 
     @GetMapping("/verify-email")

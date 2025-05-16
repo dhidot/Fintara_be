@@ -120,7 +120,6 @@ public class StartupConfig {
                 Map.of("name", "FEATURE_APPROVAL_HISTORY", "role", "BACK_OFFICE", "category", "Approval History"),
                 Map.of("name", "FEATURE_APPROVAL_HISTORY", "role", "BRANCH_MANAGER", "category", "Approval History"),
                 Map.of("name", "FEATURE_APPROVAL_HISTORY", "role", "MARKETING", "category", "Approval History"),
-                Map.of("name", "FEATURE_APPROVAL_HISTORY", "role", "CUSTOMER", "category", "Approval History"),
 
                 // ===== Pegawai =====
                 Map.of("name", "FEATURE_ADD_EMPLOYEE", "role", "SUPER_ADMIN", "category", "Pegawai"),
