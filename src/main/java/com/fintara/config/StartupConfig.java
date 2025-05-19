@@ -322,10 +322,10 @@ public class StartupConfig {
     CommandLineRunner initPlafonds(PlafondRepository plafondRepository) {
         return args -> {
             List<Plafond> plafonds = List.of(
-                    new Plafond(null, "Bronze", new BigDecimal("2000000"), new BigDecimal("0.10"), 6, 12),
-                    new Plafond(null, "Silver", new BigDecimal("5000000"), new BigDecimal("0.08"), 6, 24),
-                    new Plafond(null, "Gold", new BigDecimal("10000000"), new BigDecimal("0.07"), 12, 36),
-                    new Plafond(null, "Platinum", new BigDecimal("200000000"), new BigDecimal("0.05"), 12, 60)
+                    new Plafond(null, "Bronze", new BigDecimal("2000000"), new BigDecimal("0.4"), new BigDecimal("0.2"), 3, 12),
+                    new Plafond(null, "Silver", new BigDecimal("5000000"), new BigDecimal("0.3"), new BigDecimal("0.15"), 6, 18),
+                    new Plafond(null, "Gold", new BigDecimal("10000000"), new BigDecimal("0.2"), new BigDecimal("0.1"), 12, 20),
+                    new Plafond(null, "Platinum", new BigDecimal("200000000"), new BigDecimal("0.1"), new BigDecimal("0.05"),12, 20)
             );
 
             for (Plafond plafond : plafonds) {

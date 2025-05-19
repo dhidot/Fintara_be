@@ -33,6 +33,9 @@ public class Plafond {
     private BigDecimal interestRate; // Bunga dalam persen (misal: 0.05 untuk 5%)
 
     @Column(nullable = false)
+    private BigDecimal feeRate; // contoh: 0.03 = 3% admin fee
+
+    @Column(nullable = false)
     @NotNull(message = "Minimal tenor tidak boleh kosong")
     private Integer minTenor; // Minimal tenor dalam bulan
 

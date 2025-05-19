@@ -17,7 +17,7 @@ public class FirebaseConfig {
     public void initialize() {
         try {
             FileInputStream serviceAccount =
-                    new FileInputStream("src/main/resources/fintara-001-firebase-adminsdk-fbsvc-325994f6c6.json");
+                    new FileInputStream("src/main/resources/firebase-admin-sdk.json");
 
             FirebaseOptions options = new FirebaseOptions.Builder()
                     .setCredentials(GoogleCredentials.fromStream(serviceAccount))

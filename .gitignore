@@ -42,6 +42,6 @@ build/
 src/main/resources/firebase/*.json
 
 # Firebase credential
-src/main/resources/fintara-001-firebase-adminsdk-fbsvc-325994f6c6.json
+src/main/resources/firebase-admin-sdk.json
 
 

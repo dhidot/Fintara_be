@@ -73,13 +73,14 @@ public class LoanRequestService {
             throw new CustomException("Customer details tidak ditemukan", HttpStatus.NOT_FOUND);
         }
 
-        // 🔒 Tambahan validasi status REVIEW
+        // 🔒 Validasi jika masih ada loan dengan status REVIEW
         boolean hasPendingRequest = loanRequestRepository.existsByCustomerAndStatus_Name(customerDetails, "REVIEW");
         if (hasPendingRequest) {
             throw new CustomException("Pengajuan sebelumnya masih dalam review. Harap tunggu hingga proses selesai.", HttpStatus.BAD_REQUEST);
         }
 
-        validatePlafond(customerDetails, requestDTO.getAmount(), requestDTO.getTenor());
+        // ✅ Validasi jumlah pinjaman dan tenor (sudah termasuk pengecekan remainingPlafond)
+        Plafond customerPlafond = validatePlafond(customerDetails, requestDTO.getAmount(), requestDTO.getTenor());
 
         UUID branchId = branchService.findNearestBranch(requestDTO.getLatitude(), requestDTO.getLongitude());
         if (branchId == null) {
@@ -89,8 +90,6 @@ public class LoanRequestService {
         User assignedMarketing = assignMarketing(branchId);
 
         LoanStatus pendingStatus = loanStatusService.findByName("REVIEW");
-
-        Plafond customerPlafond = validatePlafond(customerDetails, requestDTO.getAmount(), requestDTO.getTenor());
 
         LoanRequest newRequest = LoanRequest.builder()
                 .customer(customerDetails)
@@ -415,9 +414,28 @@ public class LoanRequestService {
         }
 
         // 4️⃣ Update status menjadi DISBURSED dan set waktu disbursement
+        // 4️⃣ Update status menjadi DISBURSED dan set waktu disbursement
         LoanStatus disbursedStatus = loanStatusService.findByName("DISBURSED");
         loanRequest.setStatus(disbursedStatus);
         loanRequest.setDisbursedAt(LocalDateTime.now());
+
+// 💰 Hitung bunga dan biaya
+        BigDecimal amount = loanRequest.getAmount();
+        int tenor = loanRequest.getTenor();
+
+        BigDecimal interestRate = loanRequest.getPlafond().getInterestRate(); // contoh: 2% per bulan
+        BigDecimal feeRate = loanRequest.getPlafond().getFeeRate();           // contoh: 3% dari amount
+
+        BigDecimal interestAmount = amount.multiply(interestRate).multiply(BigDecimal.valueOf(tenor));
+        BigDecimal feesAmount = amount.multiply(feeRate);
+
+        BigDecimal disbursedAmount = amount.subtract(feesAmount);
+        BigDecimal totalRepayment = amount.add(interestAmount);
+
+        loanRequest.setInterestAmount(interestAmount);
+        loanRequest.setFeesAmount(feesAmount);
+        loanRequest.setDisbursedAmount(disbursedAmount);
+        loanRequest.setTotalRepaymentAmount(totalRepayment);
 
         // 5️⃣ Simpan record approval oleh BO
         LoanApproval approvalRecord = LoanApproval.builder()
@@ -429,10 +447,24 @@ public class LoanRequestService {
                 .build();
         loanApprovalService.save(approvalRecord);
 
+        // 6️⃣ Kurangi remainingPlafond customer
+        CustomerDetails customer = loanRequest.getCustomer();
+        BigDecimal remaining = customer.getRemainingPlafond();
+
+        if (remaining.compareTo(amount) < 0) {
+            throw new CustomException("Plafon tidak mencukupi untuk disbursement", HttpStatus.BAD_REQUEST);
+        }
+
+        customer.setRemainingPlafond(remaining.subtract(amount));
+        customerDetailsService.saveCustomerDetails(customer);
+
         // 6️⃣ Simpan perubahan ke loan request
         loanRequestRepository.save(loanRequest);
 
-        // 7️⃣ Kirim notifikasi ke pemohon
+        // 7️⃣ Buat jadwal angsuran
+        repaymentScheduleService.generateRepaymentSchedulesForLoan(loanRequest);
+
+        // 8️⃣ Kirim notifikasi ke customer
         User applicant = loanRequest.getCustomer().getUser();
         String title = "Pinjaman Dicairkan";
         String body = "Dana pengajuan pinjaman Anda dengan ID " + loanRequest.getId() + " telah berhasil dicairkan.";
