@@ -44,6 +44,8 @@ public class LoanRequest {
     private BigDecimal disbursedAmount;    // Dana yang benar-benar cair ke nasabah setelah dipotong biaya
     private BigDecimal totalRepaymentAmount; // Total yang harus dibayar nasabah termasuk bunga dan biaya lainnya
     private BigDecimal interestAmount;     // Jumlah bunga yang dikenakan
+    // interest rate
+    private BigDecimal interestRate;       // Bunga dalam persen (misal: 0.05 untuk 5%)
     private BigDecimal feesAmount;
 
     private LocalDateTime requestDate;

@@ -6,12 +6,15 @@ import com.fintara.enums.UserType;
 import com.fintara.models.*;
 import com.fintara.repositories.*;
 import jakarta.transaction.Transactional;
+import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.CommandLineRunner;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
 import org.springframework.security.crypto.password.PasswordEncoder;
 
 import java.math.BigDecimal;
+import java.math.RoundingMode;
+import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 import java.util.Optional;
@@ -315,17 +318,14 @@ public class StartupConfig {
         }
     }
 
-
-
-
     @Bean
     CommandLineRunner initPlafonds(PlafondRepository plafondRepository) {
         return args -> {
             List<Plafond> plafonds = List.of(
-                    new Plafond(null, "Bronze", new BigDecimal("2000000"), new BigDecimal("0.4"), new BigDecimal("0.2"), 3, 12),
-                    new Plafond(null, "Silver", new BigDecimal("5000000"), new BigDecimal("0.3"), new BigDecimal("0.15"), 6, 18),
-                    new Plafond(null, "Gold", new BigDecimal("10000000"), new BigDecimal("0.2"), new BigDecimal("0.1"), 12, 20),
-                    new Plafond(null, "Platinum", new BigDecimal("200000000"), new BigDecimal("0.1"), new BigDecimal("0.05"),12, 20)
+                    new Plafond(null, "Bronze", new BigDecimal("2000000"), new BigDecimal("0.4"), new BigDecimal("0.2"), 1, 6),
+                    new Plafond(null, "Silver", new BigDecimal("5000000"), new BigDecimal("0.3"), new BigDecimal("0.15"), 1, 12),
+                    new Plafond(null, "Gold", new BigDecimal("10000000"), new BigDecimal("0.2"), new BigDecimal("0.1"), 1, 18),
+                    new Plafond(null, "Platinum", new BigDecimal("200000000"), new BigDecimal("0.1"), new BigDecimal("0.05"),1, 24)
             );
 
             for (Plafond plafond : plafonds) {
@@ -354,5 +354,122 @@ public class StartupConfig {
                 }
             }
         };
+    }
+
+    @Transactional
+    @Bean
+    CommandLineRunner seedInterestPerTenor(
+            InterestPerTenorRepository interestPerTenorRepository,
+            PlafondRepository plafondRepository) {
+        return args -> {
+            var bronze = plafondRepository.findByName("Bronze")
+                    .orElseThrow(() -> new RuntimeException("Plafond Bronze not found"));
+            var silver = plafondRepository.findByName("Silver")
+                    .orElseThrow(() -> new RuntimeException("Plafond Silver not found"));
+            var gold = plafondRepository.findByName("Gold")
+                    .orElseThrow(() -> new RuntimeException("Plafond Gold not found"));
+            var platinum = plafondRepository.findByName("Platinum")
+                    .orElseThrow(() -> new RuntimeException("Plafond Platinum not found"));
+
+            Map<Integer, BigDecimal> bronzeInterestRates = Map.of(
+                    1, new BigDecimal("0.05"),
+                    2, new BigDecimal("0.06"),
+                    3, new BigDecimal("0.07"),
+                    4, new BigDecimal("0.08"),
+                    5, new BigDecimal("0.09"),
+                    6, new BigDecimal("0.10")
+            );
+
+            Map<Integer, BigDecimal> silverInterestRates = Map.ofEntries(
+                    Map.entry(1, new BigDecimal("0.06")),
+                    Map.entry(2, new BigDecimal("0.07")),
+                    Map.entry(3, new BigDecimal("0.08")),
+                    Map.entry(4, new BigDecimal("0.09")),
+                    Map.entry(5, new BigDecimal("0.10")),
+                    Map.entry(6, new BigDecimal("0.11")),
+                    Map.entry(7, new BigDecimal("0.12")),
+                    Map.entry(8, new BigDecimal("0.13")),
+                    Map.entry(9, new BigDecimal("0.14")),
+                    Map.entry(10, new BigDecimal("0.15")),
+                    Map.entry(11, new BigDecimal("0.16")),
+                    Map.entry(12, new BigDecimal("0.17"))
+            );
+
+            Map<Integer, BigDecimal> goldInterestRates = Map.ofEntries(
+                    Map.entry(1, new BigDecimal("0.07")),
+                    Map.entry(2, new BigDecimal("0.08")),
+                    Map.entry(3, new BigDecimal("0.09")),
+                    Map.entry(4, new BigDecimal("0.10")),
+                    Map.entry(5, new BigDecimal("0.11")),
+                    Map.entry(6, new BigDecimal("0.12")),
+                    Map.entry(7, new BigDecimal("0.13")),
+                    Map.entry(8, new BigDecimal("0.14")),
+                    Map.entry(9, new BigDecimal("0.15")),
+                    Map.entry(10, new BigDecimal("0.16")),
+                    Map.entry(11, new BigDecimal("0.17")),
+                    Map.entry(12, new BigDecimal("0.18")),
+                    Map.entry(13, new BigDecimal("0.19")),
+                    Map.entry(14, new BigDecimal("0.20")),
+                    Map.entry(15, new BigDecimal("0.21")),
+                    Map.entry(16, new BigDecimal("0.22")),
+                    Map.entry(17, new BigDecimal("0.23")),
+                    Map.entry(18, new BigDecimal("0.24"))
+            );
+
+            Map<Integer, BigDecimal> platinumInterestRates = Map.ofEntries(
+                    Map.entry(1, new BigDecimal("0.04")),
+                    Map.entry(2, new BigDecimal("0.045")),
+                    Map.entry(3, new BigDecimal("0.05")),
+                    Map.entry(4, new BigDecimal("0.055")),
+                    Map.entry(5, new BigDecimal("0.06")),
+                    Map.entry(6, new BigDecimal("0.065")),
+                    Map.entry(7, new BigDecimal("0.07")),
+                    Map.entry(8, new BigDecimal("0.075")),
+                    Map.entry(9, new BigDecimal("0.08")),
+                    Map.entry(10, new BigDecimal("0.085")),
+                    Map.entry(11, new BigDecimal("0.09")),
+                    Map.entry(12, new BigDecimal("0.095")),
+                    Map.entry(13, new BigDecimal("0.10")),
+                    Map.entry(14, new BigDecimal("0.105")),
+                    Map.entry(15, new BigDecimal("0.11")),
+                    Map.entry(16, new BigDecimal("0.115")),
+                    Map.entry(17, new BigDecimal("0.12")),
+                    Map.entry(18, new BigDecimal("0.125")),
+                    Map.entry(19, new BigDecimal("0.13")),
+                    Map.entry(20, new BigDecimal("0.135")),
+                    Map.entry(21, new BigDecimal("0.14")),
+                    Map.entry(22, new BigDecimal("0.145")),
+                    Map.entry(23, new BigDecimal("0.15")),
+                    Map.entry(24, new BigDecimal("0.155"))
+            );
+
+            seedInterestRates(bronze, bronzeInterestRates, interestPerTenorRepository);
+            seedInterestRates(silver, silverInterestRates, interestPerTenorRepository);
+            seedInterestRates(gold, goldInterestRates, interestPerTenorRepository);
+            seedInterestRates(platinum, platinumInterestRates, interestPerTenorRepository);
+        };
+    }
+
+    private void seedInterestRates(
+            Plafond plafond,
+            Map<Integer, BigDecimal> interestRates,
+            InterestPerTenorRepository repo
+    ) {
+        // Validasi tenor agar tidak out of bound
+        if (interestRates.keySet().stream().anyMatch(t -> t < plafond.getMinTenor() || t > plafond.getMaxTenor())) {
+            throw new IllegalStateException("Tenor di interestRates tidak sesuai min/max tenor untuk " + plafond.getName());
+        }
+
+        for (int tenor = plafond.getMinTenor(); tenor <= plafond.getMaxTenor(); tenor++) {
+            BigDecimal rate = interestRates.get(tenor);
+            if (rate != null && repo.findByPlafondAndTenor(plafond, tenor).isEmpty()) {
+                repo.save(InterestPerTenor.builder()
+                        .plafond(plafond)
+                        .tenor(tenor)
+                        .interestRate(rate)
+                        .build());
+                System.out.println("✅ " + plafond.getName() + " tenor " + tenor + " bulan, interest " + rate);
+            }
+        }
     }
 }

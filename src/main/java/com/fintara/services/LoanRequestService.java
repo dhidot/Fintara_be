@@ -5,6 +5,7 @@ import com.fintara.dtos.loanRequestDTO.LoanRequestApprovalDTO;
 import com.fintara.dtos.loanRequestDTO.LoanRequestDTO;
 import com.fintara.dtos.loanRequestDTO.LoanRequestResponseDTO;
 import com.fintara.models.*;
+import com.fintara.repositories.InterestPerTenorRepository;
 import com.fintara.repositories.LoanRequestRepository;
 import jakarta.transaction.Transactional;
 import lombok.RequiredArgsConstructor;
@@ -38,8 +39,10 @@ public class LoanRequestService {
     private LoanApprovalService loanApprovalService;
     @Autowired
     private RepaymentScheduleService repaymentScheduleService;
-    @Autowired NotificationService notificationService;
-
+    @Autowired
+    NotificationService notificationService;
+    @Autowired
+    private InterestPerTenorRepository interestPerTenorRepository;
 
     private User getAuthenticatedUser() {
         UserDetails userDetails = (UserDetails) SecurityContextHolder.getContext().getAuthentication().getPrincipal();
@@ -73,14 +76,32 @@ public class LoanRequestService {
             throw new CustomException("Customer details tidak ditemukan", HttpStatus.NOT_FOUND);
         }
 
-        // 🔒 Validasi jika masih ada loan dengan status REVIEW
         boolean hasPendingRequest = loanRequestRepository.existsByCustomerAndStatus_Name(customerDetails, "REVIEW");
         if (hasPendingRequest) {
             throw new CustomException("Pengajuan sebelumnya masih dalam review. Harap tunggu hingga proses selesai.", HttpStatus.BAD_REQUEST);
         }
 
-        // ✅ Validasi jumlah pinjaman dan tenor (sudah termasuk pengecekan remainingPlafond)
         Plafond customerPlafond = validatePlafond(customerDetails, requestDTO.getAmount(), requestDTO.getTenor());
+
+        // Cari interest rate dari tabel InterestPerTenor
+        Optional<InterestPerTenor> interestOpt = interestPerTenorRepository.findByPlafondAndTenor(customerPlafond, requestDTO.getTenor())
+                .stream().findFirst();
+
+        if (interestOpt.isEmpty()) {
+            throw new CustomException("Interest rate untuk tenor " + requestDTO.getTenor() + " pada plafond "
+                    + customerPlafond.getName() + " tidak ditemukan.", HttpStatus.BAD_REQUEST);
+        }
+
+        BigDecimal interestRate = interestOpt.get().getInterestRate();
+
+        // Hitung interest amount = amount * interestRate
+        BigDecimal interestAmount = requestDTO.getAmount().multiply(interestRate);
+
+        // Anggap feesAmount 0 dulu, bisa kamu sesuaikan nanti
+        BigDecimal feesAmount = BigDecimal.ZERO;
+
+        // Hitung total repayment = pokok + bunga + biaya
+        BigDecimal totalRepaymentAmount = requestDTO.getAmount().add(interestAmount).add(feesAmount);
 
         UUID branchId = branchService.findNearestBranch(requestDTO.getLatitude(), requestDTO.getLongitude());
         if (branchId == null) {
@@ -100,12 +121,17 @@ public class LoanRequestService {
                 .requestDate(LocalDateTime.now())
                 .status(pendingStatus)
                 .plafond(customerPlafond)
+                .interestRate(interestRate)
+                .interestAmount(interestAmount)
+                .feesAmount(feesAmount)
+                .totalRepaymentAmount(totalRepaymentAmount)
                 .build();
 
         LoanRequest savedLoanRequest = loanRequestRepository.save(newRequest);
 
         return LoanRequestResponseDTO.fromEntity(savedLoanRequest);
     }
+
 
 
     private Plafond validatePlafond(CustomerDetails customerDetails, BigDecimal amount, int tenor) {
@@ -116,13 +142,15 @@ public class LoanRequestService {
             throw new CustomException("Sisa plafond tidak mencukupi!", HttpStatus.BAD_REQUEST);
         }
 
-        // Validasi tenor
-        if (tenor < plafond.getMinTenor() || tenor > plafond.getMaxTenor()) {
-            throw new CustomException("Tenor tidak sesuai dengan batasan plafond!", HttpStatus.BAD_REQUEST);
+        // Validasi tenor berdasarkan data InterestPerTenor
+        boolean tenorAvailable = interestPerTenorRepository.existsByPlafondAndTenor(plafond, tenor);
+        if (!tenorAvailable) {
+            throw new CustomException("Tenor tidak tersedia untuk paket plafond ini!", HttpStatus.BAD_REQUEST);
         }
 
         return plafond;
     }
+
 
     private void validateCustomer(User user) {
         if (!user.getRole().getName().equals("CUSTOMER")) {
@@ -414,17 +442,16 @@ public class LoanRequestService {
         }
 
         // 4️⃣ Update status menjadi DISBURSED dan set waktu disbursement
-        // 4️⃣ Update status menjadi DISBURSED dan set waktu disbursement
         LoanStatus disbursedStatus = loanStatusService.findByName("DISBURSED");
         loanRequest.setStatus(disbursedStatus);
         loanRequest.setDisbursedAt(LocalDateTime.now());
 
-// 💰 Hitung bunga dan biaya
+        // 💰 Hitung bunga dan biaya
         BigDecimal amount = loanRequest.getAmount();
         int tenor = loanRequest.getTenor();
 
-        BigDecimal interestRate = loanRequest.getPlafond().getInterestRate(); // contoh: 2% per bulan
-        BigDecimal feeRate = loanRequest.getPlafond().getFeeRate();           // contoh: 3% dari amount
+        BigDecimal interestRate = loanRequest.getInterestRate(); // Ambil dari entity
+        BigDecimal feeRate = loanRequest.getPlafond().getFeeRate(); // Fee rate masih dari Plafond
 
         BigDecimal interestAmount = amount.multiply(interestRate).multiply(BigDecimal.valueOf(tenor));
         BigDecimal feesAmount = amount.multiply(feeRate);
