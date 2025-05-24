@@ -1,12 +1,12 @@
 package com.fintara.services;
 
+import com.fintara.dtos.loanRequestDTO.*;
+import com.fintara.enums.LoanStatusGroup;
 import com.fintara.exceptions.CustomException;
-import com.fintara.dtos.loanRequestDTO.LoanRequestApprovalDTO;
-import com.fintara.dtos.loanRequestDTO.LoanRequestDTO;
-import com.fintara.dtos.loanRequestDTO.LoanRequestResponseDTO;
 import com.fintara.models.*;
 import com.fintara.repositories.InterestPerTenorRepository;
 import com.fintara.repositories.LoanRequestRepository;
+import com.fintara.repositories.PlafondRepository;
 import jakarta.transaction.Transactional;
 import lombok.RequiredArgsConstructor;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -17,6 +17,7 @@ import org.springframework.security.core.userdetails.UserDetails;
 import org.springframework.stereotype.Service;
 
 import java.math.BigDecimal;
+import java.math.RoundingMode;
 import java.time.LocalDateTime;
 import java.util.*;
 import java.util.stream.Collectors;
@@ -43,6 +44,8 @@ public class LoanRequestService {
     NotificationService notificationService;
     @Autowired
     private InterestPerTenorRepository interestPerTenorRepository;
+    @Autowired
+    private PlafondRepository plafondRepository;
 
     private User getAuthenticatedUser() {
         UserDetails userDetails = (UserDetails) SecurityContextHolder.getContext().getAuthentication().getPrincipal();
@@ -65,6 +68,84 @@ public class LoanRequestService {
         }
     }
 
+    // Simulasi pengajuan pinjaman
+    public LoanPreviewResponseDTO simulatePublicLoan(LoanSimulationRequestDTO request) {
+        // Gunakan plafon default, misal Bronze
+        Plafond defaultPlafond = plafondRepository.findByName("Bronze")
+                .orElseThrow(() -> new CustomException("Default plafond tidak ditemukan", HttpStatus.INTERNAL_SERVER_ERROR));
+
+        Optional<InterestPerTenor> interestOpt = interestPerTenorRepository
+                .findByPlafondAndTenor(defaultPlafond, request.getTenor())
+                .stream().findFirst();
+
+        if (interestOpt.isEmpty()) {
+            throw new CustomException("Interest rate untuk tenor " + request.getTenor() + " pada plafond default tidak ditemukan.", HttpStatus.BAD_REQUEST);
+        }
+
+        BigDecimal interestRate = interestOpt.get().getInterestRate();
+        BigDecimal feesAmount = request.getAmount().multiply(defaultPlafond.getFeeRate());
+        BigDecimal disbursedAmount = request.getAmount().subtract(feesAmount);
+        BigDecimal interestAmount = request.getAmount().multiply(interestRate);
+        BigDecimal totalRepayment = request.getAmount().add(interestAmount).add(feesAmount);
+        BigDecimal estimatedInstallment = totalRepayment.divide(BigDecimal.valueOf(request.getTenor()), 0, RoundingMode.CEILING);
+
+        return LoanPreviewResponseDTO.builder()
+                .requestedAmount(request.getAmount())
+                .disbursedAmount(disbursedAmount)
+                .tenor(request.getTenor())
+                .interestRate(interestRate)
+                .interestAmount(interestAmount)
+                .feesAmount(feesAmount)
+                .totalRepayment(totalRepayment)
+                .estimatedInstallment(estimatedInstallment)
+                .build();
+    }
+
+    public LoanPreviewResponseDTO previewLoanRequest(LoanRequestDTO requestDTO) {
+        User currentUser = userService.getAuthenticatedUser();
+
+        validateCustomer(currentUser);
+
+        CustomerDetails customerDetails = currentUser.getCustomerDetails();
+        if (customerDetails == null) {
+            throw new CustomException("Customer details tidak ditemukan", HttpStatus.NOT_FOUND);
+        }
+
+        Plafond customerPlafond = validatePlafond(customerDetails, requestDTO.getAmount(), requestDTO.getTenor());
+
+        Optional<InterestPerTenor> interestOpt = interestPerTenorRepository
+                .findByPlafondAndTenor(customerPlafond, requestDTO.getTenor())
+                .stream().findFirst();
+
+        if (interestOpt.isEmpty()) {
+            throw new CustomException("Interest rate tidak ditemukan", HttpStatus.BAD_REQUEST);
+        }
+
+        // Ambil disbursedAmount setelah dikurangi biaya admin (fees)
+        // Hitung bunga = amount * interestRate
+        BigDecimal disbursedAmount = requestDTO.getAmount().subtract(requestDTO.getAmount().multiply(customerPlafond.getFeeRate()));
+        BigDecimal interestRate = interestOpt.get().getInterestRate();
+        BigDecimal interestAmount = requestDTO.getAmount().multiply(interestRate);
+        //fee amount diambila dari fee_rate di plafond sesuai dengan plafond customer
+        BigDecimal feesAmount = requestDTO.getAmount().multiply(customerPlafond.getFeeRate());
+
+        BigDecimal totalRepayment = requestDTO.getAmount().add(interestAmount).add(feesAmount);
+
+        // Hitung estimasi cicilan = totalRepayment / tenor
+        BigDecimal estimatedInstallment = totalRepayment.divide(BigDecimal.valueOf(requestDTO.getTenor()), 0, RoundingMode.CEILING);
+
+        return LoanPreviewResponseDTO.builder()
+                .requestedAmount(requestDTO.getAmount())
+                .disbursedAmount(disbursedAmount)
+                .tenor(requestDTO.getTenor())
+                .interestRate(interestRate)
+                .interestAmount(interestAmount)
+                .feesAmount(feesAmount)
+                .totalRepayment(totalRepayment)
+                .estimatedInstallment(estimatedInstallment)
+                .build();
+    }
+
     @Transactional
     public LoanRequestResponseDTO createLoanRequest(LoanRequestDTO requestDTO) {
         User currentUser = userService.getAuthenticatedUser();
@@ -76,14 +157,14 @@ public class LoanRequestService {
             throw new CustomException("Customer details tidak ditemukan", HttpStatus.NOT_FOUND);
         }
 
-        boolean hasPendingRequest = loanRequestRepository.existsByCustomerAndStatus_Name(customerDetails, "REVIEW");
+        List<String> pendingStatuses = List.of("REVIEW", "DIREKOMENDASIKAN_MARKETING", "DISETUJUI_BM");
+        boolean hasPendingRequest = loanRequestRepository.existsByCustomerAndStatus_NameIn(customerDetails, pendingStatuses);
         if (hasPendingRequest) {
-            throw new CustomException("Pengajuan sebelumnya masih dalam review. Harap tunggu hingga proses selesai.", HttpStatus.BAD_REQUEST);
+            throw new CustomException("Anda masih memiliki pengajuan yang sedang diproses. Harap tunggu hingga pengajuan sebelumnya selesai.", HttpStatus.BAD_REQUEST);
         }
 
         Plafond customerPlafond = validatePlafond(customerDetails, requestDTO.getAmount(), requestDTO.getTenor());
 
-        // Cari interest rate dari tabel InterestPerTenor
         Optional<InterestPerTenor> interestOpt = interestPerTenorRepository.findByPlafondAndTenor(customerPlafond, requestDTO.getTenor())
                 .stream().findFirst();
 
@@ -94,14 +175,9 @@ public class LoanRequestService {
 
         BigDecimal interestRate = interestOpt.get().getInterestRate();
 
-        // Hitung interest amount = amount * interestRate
         BigDecimal interestAmount = requestDTO.getAmount().multiply(interestRate);
 
-        // Anggap feesAmount 0 dulu, bisa kamu sesuaikan nanti
-        BigDecimal feesAmount = BigDecimal.ZERO;
-
-        // Hitung total repayment = pokok + bunga + biaya
-        BigDecimal totalRepaymentAmount = requestDTO.getAmount().add(interestAmount).add(feesAmount);
+        BigDecimal feesAmount = requestDTO.getAmount().multiply(customerPlafond.getFeeRate());
 
         UUID branchId = branchService.findNearestBranch(requestDTO.getLatitude(), requestDTO.getLongitude());
         if (branchId == null) {
@@ -124,14 +200,12 @@ public class LoanRequestService {
                 .interestRate(interestRate)
                 .interestAmount(interestAmount)
                 .feesAmount(feesAmount)
-                .totalRepaymentAmount(totalRepaymentAmount)
                 .build();
 
         LoanRequest savedLoanRequest = loanRequestRepository.save(newRequest);
 
         return LoanRequestResponseDTO.fromEntity(savedLoanRequest);
     }
-
 
 
     private Plafond validatePlafond(CustomerDetails customerDetails, BigDecimal amount, int tenor) {
@@ -150,7 +224,6 @@ public class LoanRequestService {
 
         return plafond;
     }
-
 
     private void validateCustomer(User user) {
         if (!user.getRole().getName().equals("CUSTOMER")) {
@@ -453,16 +526,22 @@ public class LoanRequestService {
         BigDecimal interestRate = loanRequest.getInterestRate(); // Ambil dari entity
         BigDecimal feeRate = loanRequest.getPlafond().getFeeRate(); // Fee rate masih dari Plafond
 
+        // amount bunga
         BigDecimal interestAmount = amount.multiply(interestRate).multiply(BigDecimal.valueOf(tenor));
+        // amount biaya
         BigDecimal feesAmount = amount.multiply(feeRate);
-
+        // disbursed amount
         BigDecimal disbursedAmount = amount.subtract(feesAmount);
+        // total repayment
         BigDecimal totalRepayment = amount.add(interestAmount);
+        // cicilan per bulan
+        BigDecimal estimatedInstallment = totalRepayment.divide(BigDecimal.valueOf(tenor), 0, RoundingMode.CEILING);
 
         loanRequest.setInterestAmount(interestAmount);
         loanRequest.setFeesAmount(feesAmount);
         loanRequest.setDisbursedAmount(disbursedAmount);
         loanRequest.setTotalRepaymentAmount(totalRepayment);
+        loanRequest.setEstimatedInstallment(estimatedInstallment);
 
         // 5️⃣ Simpan record approval oleh BO
         LoanApproval approvalRecord = LoanApproval.builder()
@@ -494,18 +573,41 @@ public class LoanRequestService {
         // 8️⃣ Kirim notifikasi ke customer
         User applicant = loanRequest.getCustomer().getUser();
         String title = "Pinjaman Dicairkan";
-        String body = "Dana pengajuan pinjaman Anda dengan ID " + loanRequest.getId() + " telah berhasil dicairkan.";
+        // sebutkan jumlah yang cair
+        String body = "Pinjaman Anda telah dicairkan sebesar " + disbursedAmount + ".";
         notificationService.sendNotificationToUser(applicant.getId(), title, body);
     }
 
 
-    public List<LoanRequestResponseDTO> getLoanRequestByStatuses(List<String> statuses) {
+    public List<LoanInProgressResponseDTO> getLoanRequestByStatuses(List<String> statuses) {
         User currentUser = getAuthenticatedUser();
         List<LoanRequest> loanRequests = loanRequestRepository.findAllByCustomer_User_IdAndStatus_NameIn(currentUser.getId(), statuses);
 
         return loanRequests.stream()
-                .map(LoanRequestResponseDTO::fromEntity)
+                .map(LoanInProgressResponseDTO::fromEntity)
                 .collect(Collectors.toList());
+    }
+
+    // LOAN HISTORY
+    public List<LoanHistoryResponseDTO> findHistoryByFilter(UUID userId, LoanStatusGroup group) {
+        List<String> statusNames = switch (group) {
+            case APPROVED -> List.of("DISBURSED");
+            case REJECTED -> List.of("DITOLAK_BM", "DITOLAK_MARKETING");
+        };
+
+        return loanRequestRepository
+                .findAllByCustomer_User_IdAndStatus_NameIn(userId, statusNames)
+                .stream()
+                .map(loanRequest -> LoanHistoryResponseDTO.builder()
+                        .id(loanRequest.getId())
+                        .amount(loanRequest.getAmount())
+                        .tenor(loanRequest.getTenor())
+                        .interestAmount(loanRequest.getInterestAmount())
+                        .disbursedAmount(loanRequest.getDisbursedAmount())
+                        .status(loanRequest.getStatus().getName())
+                        .createdAt(loanRequest.getCreatedAt())
+                        .build())
+                .toList();
     }
 }
 

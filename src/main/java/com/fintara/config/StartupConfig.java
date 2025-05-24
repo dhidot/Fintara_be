@@ -10,6 +10,7 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.CommandLineRunner;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
+import org.springframework.core.annotation.Order;
 import org.springframework.security.crypto.password.PasswordEncoder;
 
 import java.math.BigDecimal;
@@ -319,6 +320,7 @@ public class StartupConfig {
     }
 
     @Bean
+    @Order(1)
     CommandLineRunner initPlafonds(PlafondRepository plafondRepository) {
         return args -> {
             List<Plafond> plafonds = List.of(
@@ -356,8 +358,8 @@ public class StartupConfig {
         };
     }
 
-    @Transactional
     @Bean
+    @Order(2)
     CommandLineRunner seedInterestPerTenor(
             InterestPerTenorRepository interestPerTenorRepository,
             PlafondRepository plafondRepository) {

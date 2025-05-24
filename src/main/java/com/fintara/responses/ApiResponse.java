@@ -35,9 +35,15 @@ public class ApiResponse<T> {
         return new ApiResponse<>(status.value(), message, null);
     }
 
-    // Dengan data
+    // Error dengan data (kode 400 default)
     public static <T> ApiResponse<T> error(String message, T data) {
         return new ApiResponse<>(HttpStatus.BAD_REQUEST.value(), message, data);
     }
+
+    // ✅ Error dengan custom status dan data
+    public static <T> ApiResponse<T> error(HttpStatus status, String message, T data) {
+        return new ApiResponse<>(status.value(), message, data);
+    }
+
 }
 

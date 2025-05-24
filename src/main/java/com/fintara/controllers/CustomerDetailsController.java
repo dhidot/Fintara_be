@@ -1,10 +1,10 @@
 package com.fintara.controllers;
 
-import com.fasterxml.jackson.databind.ObjectMapper;
-import com.fintara.dtos.customerDTO.CustomerProfileUpdateDTO;
+import com.fintara.dtos.customerDTO.CustomerUpdateProfileRequestDTO;
 import com.fintara.dtos.customerDTO.FirstTimeUpdateDTO;
 import com.fintara.responses.ApiResponse;
 import com.fintara.services.CustomerDetailsService;
+import jakarta.validation.Valid;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
@@ -43,6 +43,12 @@ public class CustomerDetailsController {
         }
     }
 
+    @PutMapping("/update-my-profile")
+    public ResponseEntity<ApiResponse<String>> updateMyProfile(@Valid @RequestBody CustomerUpdateProfileRequestDTO request) {
+        String result = customerDetailsService.updateMyProfile(request);
+        return ResponseEntity.ok(ApiResponse.success("Customer Profile has been updated successfully", result));
+    }
+
     @PostMapping("/upload-ktp")
     public ResponseEntity<ApiResponse<String>> uploadKtp(@RequestParam("file") MultipartFile file) {
         try {
@@ -64,7 +70,6 @@ public class CustomerDetailsController {
                     .body(ApiResponse.error(HttpStatus.INTERNAL_SERVER_ERROR, "Upload gagal: " + e.getMessage()));
         }
     }
-
 
     @Secured("FEATURE_GET_CUSTOMER_PROFILE")
     @GetMapping("/{id}")

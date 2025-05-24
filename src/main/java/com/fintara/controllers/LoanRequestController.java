@@ -1,9 +1,8 @@
 package com.fintara.controllers;
 
-import com.fintara.dtos.loanRequestDTO.LoanRequestApprovalDTO;
-import com.fintara.dtos.loanRequestDTO.LoanRequestDTO;
-import com.fintara.dtos.loanRequestDTO.LoanRequestResponseDTO;
+import com.fintara.dtos.loanRequestDTO.*;
 import com.fintara.dtos.superAdminDTO.LoanReviewDTO;
+import com.fintara.enums.LoanStatusGroup;
 import com.fintara.models.LoanRequest;
 import com.fintara.models.User;
 import com.fintara.responses.ApiResponse;
@@ -17,8 +16,6 @@ import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.access.annotation.Secured;
 import org.springframework.security.core.Authentication;
-import org.springframework.security.core.context.SecurityContextHolder;
-import org.springframework.security.core.userdetails.UserDetails;
 import org.springframework.web.bind.annotation.*;
 
 import java.util.Arrays;
@@ -43,6 +40,20 @@ public class LoanRequestController {
         LoanRequestResponseDTO loanRequestResponse = loanRequestService.createLoanRequest(request);
         return ResponseEntity.status(HttpStatus.CREATED)
                 .body(new ApiResponse<>(HttpStatus.CREATED.value(), "Loan request successfully created", loanRequestResponse));
+    }
+
+    @PostMapping("/loan-preview")
+    public ResponseEntity<ApiResponse<LoanPreviewResponseDTO>> previewLoan(
+            @RequestBody @Valid LoanRequestDTO requestDTO) {
+        LoanPreviewResponseDTO preview = loanRequestService.previewLoanRequest(requestDTO);
+        return ResponseEntity.ok(ApiResponse.success("Berhasil mendapatkan preview pinjaman", preview));
+    }
+
+    @PostMapping("/loan-simulate")
+    public ResponseEntity<ApiResponse<LoanPreviewResponseDTO>> simulateLoanPublic(
+            @RequestBody @Valid LoanSimulationRequestDTO request) {
+        LoanPreviewResponseDTO preview = loanRequestService.simulatePublicLoan(request);
+        return ResponseEntity.ok(ApiResponse.success("Simulasi pinjaman berhasil", preview));
     }
 
     @Secured("FEATURE_REVIEW_LOAN_REQUEST")
@@ -119,17 +130,21 @@ public class LoanRequestController {
 
     // get all loan requests by customer id
     @GetMapping("/history")
-    public ResponseEntity<ApiResponse<List<LoanRequestResponseDTO>>> getLoanRequestHistory() {
-        List<LoanRequestResponseDTO> history = loanRequestService.getLoanRequestByStatuses(
-                Arrays.asList("DITOLAK", "DISBURSED")
-        );
-        return ResponseEntity.ok(new ApiResponse<>(HttpStatus.OK.value(), "Loan request history", history));
+    public ResponseEntity<ApiResponse<List<LoanHistoryResponseDTO>>> getLoanHistoryByStatus(@RequestParam LoanStatusGroup status) {
+        User user = userService.getAuthenticatedUser();
+        if (user.getCustomerDetails() == null) {
+            return ResponseEntity.status(HttpStatus.FORBIDDEN)
+                    .body(new ApiResponse<>(HttpStatus.FORBIDDEN.value(), "User is not a customer", null));
+        }
+        List<LoanHistoryResponseDTO> data = loanRequestService.findHistoryByFilter(user.getId(), status);
+        return ResponseEntity.ok(ApiResponse.success("Success fetch loan history data", data));
     }
 
+
     @GetMapping("/in-progress")
-    public ResponseEntity<ApiResponse<List<LoanRequestResponseDTO>>> getLoanRequestInProgress() {
-        List<LoanRequestResponseDTO> inProgress = loanRequestService.getLoanRequestByStatuses(
-                Arrays.asList("REVIEW", "DIREKOMENDASIKAN_BM") // Tambahkan status proses lain jika ada
+    public ResponseEntity<ApiResponse<List<LoanInProgressResponseDTO>>> getLoanRequestInProgress() {
+        List<LoanInProgressResponseDTO> inProgress = loanRequestService.getLoanRequestByStatuses(
+                Arrays.asList("REVIEW", "DIREKOMENDASIKAN_MARKETING", "DISETUJUI_BM") // Tambahkan status proses lain jika ada
         );
         return ResponseEntity.ok(new ApiResponse<>(HttpStatus.OK.value(), "Loan requests in progress", inProgress));
     }

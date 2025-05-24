@@ -2,9 +2,11 @@ package com.fintara.models;
 
 import com.fasterxml.jackson.annotation.JsonBackReference;
 import com.fintara.enums.JenisKelamin;
+import org.hibernate.annotations.UpdateTimestamp;
 import jakarta.persistence.*;
 import lombok.*;
 
+import java.time.LocalDateTime;
 import java.util.UUID;
 import java.math.BigDecimal;
 import java.time.LocalDate;
@@ -51,4 +53,8 @@ public class CustomerDetails {
 
     @Column(name = "remaining_plafond", nullable = false)
     private BigDecimal remainingPlafond;
+
+    @Column(name = "updated_at")
+    @UpdateTimestamp
+    private LocalDateTime updatedAt;
 }

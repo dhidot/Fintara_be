@@ -19,5 +19,4 @@ public class CustomerProfileResponseDTO {
     private BigDecimal gaji;
     private String noRek;
     private String statusRumah;
-
 }

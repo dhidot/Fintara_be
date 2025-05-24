@@ -24,6 +24,4 @@ public interface RepaymentScheduleRepository extends JpaRepository<RepaymentSche
       AND rs.loanRequest.status.name = 'DISBURSED'
     """)
     BigDecimal getTotalAmountPaidByCustomer(@Param("customerId") UUID customerId);
-
-
 }

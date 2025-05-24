@@ -5,7 +5,6 @@ import com.fintara.responses.ApiResponse;
 import com.fintara.services.CustomerService;
 import com.fintara.services.UserService;
 import lombok.RequiredArgsConstructor;
-import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.access.annotation.Secured;
 import org.springframework.web.bind.annotation.*;

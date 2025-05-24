@@ -68,11 +68,6 @@ public class AuthService {
     // CUSTOMER AUTHENTICATION
     @Transactional
     public CustomerResponseDTO registerCustomer(RegisterCustomerRequestDTO request) {
-        // Cek apakah email sudah pernah didaftarkan
-        if (userRepository.existsByEmail(request.getEmail())) {
-            throw new CustomException("Email sudah terdaftar!", HttpStatus.BAD_REQUEST);
-        }
-
         Role customerRole = roleService.getRoleByName("CUSTOMER");
 
         User customer = User.builder()
@@ -235,7 +230,6 @@ public class AuthService {
                 .collect(Collectors.toList());
     }
 
-
     // EMPLOYEE AUTHENTICATION
     @Transactional
     public Map<String, Object> loginPegawai(LoginRequestPegawai request) {
@@ -281,7 +275,6 @@ public class AuthService {
 
         return response;
     }
-
 
     @Transactional
     public void logout(String token) {

@@ -1,11 +1,11 @@
 package com.fintara.services;
 
+import com.fintara.dtos.customerDTO.CustomerUpdateProfileRequestDTO;
 import com.fintara.dtos.customerDTO.FirstTimeUpdateDTO;
 import com.fintara.enums.JenisKelamin;
 import com.fintara.exceptions.CustomException;
 import com.fintara.utils.JwtUtils;
 import com.fintara.dtos.customerDTO.CustomerProfileResponseDTO;
-import com.fintara.dtos.customerDTO.CustomerProfileUpdateDTO;
 import com.fintara.models.CustomerDetails;
 import com.fintara.models.User;
 import com.fintara.repositories.CustomerDetailsRepository;
@@ -110,6 +110,19 @@ public class CustomerDetailsService {
         customerDetails.setStatusRumah(dto.getStatusRumah());
     }
 
+    // Metode untuk mengupdate data customer
+    private void updateMyProfileFromDTO(CustomerDetails customerDetails, CustomerUpdateProfileRequestDTO dto) {
+        customerDetails.setTtl(LocalDate.parse(dto.getTtl()));
+        customerDetails.setAlamat(dto.getAlamat());
+        customerDetails.setNoTelp(dto.getNoTelp());
+        customerDetails.setNik(dto.getNik());
+        customerDetails.setNamaIbuKandung(dto.getNamaIbuKandung());
+        customerDetails.setPekerjaan(dto.getPekerjaan());
+        customerDetails.setGaji(BigDecimal.valueOf(dto.getGaji()));
+        customerDetails.setNoRek(dto.getNoRek());
+        customerDetails.setStatusRumah(dto.getStatusRumah());
+    }
+
     @Transactional
     public String updateOwnCustomerDetails(FirstTimeUpdateDTO dto) {
         UserDetails userDetails = (UserDetails) SecurityContextHolder.getContext().getAuthentication().getPrincipal();
@@ -145,6 +158,33 @@ public class CustomerDetailsService {
 
         logger.info("Data customer berhasil diupdate untuk user ID: {}", loggedInUser.getId());
         return "Customer details updated successfully!";
+    }
+
+    @Transactional
+    public String updateMyProfile(CustomerUpdateProfileRequestDTO request) {
+        // Ambil data user yang sedang login
+        UserDetails userDetails = (UserDetails) SecurityContextHolder.getContext().getAuthentication().getPrincipal();
+        String email = userDetails.getUsername();
+
+        User loggedInUser = userService.findByEmail(email);
+        if (loggedInUser == null) {
+            throw new CustomException("User tidak ditemukan", HttpStatus.UNAUTHORIZED);
+        }
+
+        CustomerDetails customerDetails = getCustomerDetailsByUser(loggedInUser);
+        if (customerDetails == null) {
+            customerDetails = new CustomerDetails();
+            customerDetails.setUser(loggedInUser);
+        }
+
+        // Update data customer
+        updateMyProfileFromDTO(customerDetails, request);
+        // Simpan perubahan
+        saveCustomerDetails(customerDetails);
+        logger.info("Data customer berhasil diupdate untuk user ID: {}", loggedInUser.getId());
+        // Simpan perubahan
+
+        return "Profile updated successfully";
     }
 
     public String uploadKtpPhoto(MultipartFile file) throws IOException {

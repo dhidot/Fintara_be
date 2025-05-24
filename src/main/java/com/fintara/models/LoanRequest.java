@@ -2,6 +2,7 @@ package com.fintara.models;
 
 import jakarta.persistence.*;
 import lombok.*;
+import org.hibernate.annotations.CreationTimestamp;
 
 import java.math.BigDecimal;
 import java.time.LocalDateTime;
@@ -44,16 +45,16 @@ public class LoanRequest {
     private BigDecimal disbursedAmount;    // Dana yang benar-benar cair ke nasabah setelah dipotong biaya
     private BigDecimal totalRepaymentAmount; // Total yang harus dibayar nasabah termasuk bunga dan biaya lainnya
     private BigDecimal interestAmount;     // Jumlah bunga yang dikenakan
-    // interest rate
     private BigDecimal interestRate;       // Bunga dalam persen (misal: 0.05 untuk 5%)
     private BigDecimal feesAmount;
+    private BigDecimal estimatedInstallment; // Angsuran per bulan yang harus dibayar nasabah
 
     private LocalDateTime requestDate;
     private LocalDateTime approvalMarketingAt;
     private LocalDateTime approvalBMAt;
     private LocalDateTime disbursedAt;
 
-    public String getStatusName() {
-        return this.status != null ? this.status.getName() : null;
-    }
+    @Column(nullable = false, updatable = false)
+    @CreationTimestamp
+    private LocalDateTime createdAt;
 }

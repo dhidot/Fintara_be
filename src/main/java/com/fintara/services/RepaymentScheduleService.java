@@ -1,5 +1,6 @@
 package com.fintara.services;
 
+import com.fintara.dtos.repaymentsDTO.RepaymentsScheduleDTO;
 import com.fintara.models.CustomerDetails;
 import com.fintara.models.LoanRequest;
 import com.fintara.models.Plafond;
@@ -98,6 +99,24 @@ public class RepaymentScheduleService {
         }
     }
 
+    // Pembayaran Cicilan
+    public List<RepaymentsScheduleDTO> getRepaymentByLoanRequestId(UUID loanRequestId) {
+        List<RepaymentSchedule> schedules = repaymentScheduleRepository.findByLoanRequestId(loanRequestId);
+        return schedules.stream().map(this::toDTO).toList();
+    }
+
+    private RepaymentsScheduleDTO toDTO(RepaymentSchedule schedule) {
+        return RepaymentsScheduleDTO.builder()
+                .id(schedule.getId().toString())
+                .installmentNumber(schedule.getInstallmentNumber())
+                .amountToPay(schedule.getAmountToPay())
+                .amountPaid(schedule.getAmountPaid())
+                .dueDate(schedule.getDueDate())
+                .isLate(schedule.getIsLate())
+                .penaltyAmount(schedule.getPenaltyAmount())
+                .paidAt(schedule.getPaidAt())
+                .build();
+    }
 
     // Check apakah ada kenaikan plafond
     public void checkAndUpgradePlafondIfEligible(UUID customerId) {

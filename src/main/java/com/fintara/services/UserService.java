@@ -243,6 +243,7 @@ public class UserService implements UserDetailsService {
                     user.getId(),
                     user.getName(),
                     user.getEmail(),
+                    user.getFotoUrl(),
                     user.getRole().getName(),
                     new CustomerDetailsDTO(user.getCustomerDetails())
             );

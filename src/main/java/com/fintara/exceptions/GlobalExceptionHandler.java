@@ -22,8 +22,12 @@ public class GlobalExceptionHandler {
         for (FieldError error : ex.getBindingResult().getFieldErrors()) {
             errors.put(error.getField(), error.getDefaultMessage());
         }
-        return ResponseEntity.badRequest().body(ApiResponse.error(HttpStatus.BAD_REQUEST, "Validasi gagal: " + errors));
+
+        return ResponseEntity.badRequest().body(
+                ApiResponse.error(HttpStatus.BAD_REQUEST, "Validasi gagal", errors)
+        );
     }
+
 
     @ExceptionHandler(CustomException.class)
     public ResponseEntity<ApiResponse<Object>> handleCustomException(CustomException ex, HttpServletRequest request) {

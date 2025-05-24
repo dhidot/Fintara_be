@@ -8,6 +8,7 @@ import org.springframework.data.repository.query.Param;
 import org.springframework.stereotype.Repository;
 
 import java.util.List;
+import java.util.Optional;
 import java.util.UUID;
 
 @Repository
@@ -23,9 +24,8 @@ public interface LoanRequestRepository extends JpaRepository<LoanRequest, UUID> 
     @Query("SELECT l FROM LoanRequest l WHERE l.branch.id = :branchId AND l.status.name = :status")
     List<LoanRequest> findByBranchIdAndStatus(@Param("branchId") UUID branchId, @Param("status") String status);
 
-    boolean existsByCustomerAndStatus_Name(CustomerDetails customer, String statusName);
-
-    List<LoanRequest> findAllByCustomer_User_Id(UUID userId);
-
     List<LoanRequest> findAllByCustomer_User_IdAndStatus_NameIn(UUID userId, List<String> statusNames);
+
+    boolean existsByCustomerAndStatus_NameIn(CustomerDetails customer, List<String> statusNames);
+
 }

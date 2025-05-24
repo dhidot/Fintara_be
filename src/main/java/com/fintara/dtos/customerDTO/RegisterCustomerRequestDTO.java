@@ -1,6 +1,7 @@
 package com.fintara.dtos.customerDTO;
 
 import com.fasterxml.jackson.annotation.JsonProperty;
+import com.fintara.validators.UniqueEmail;
 import com.fintara.validators.ValidPassword;
 import com.fintara.enums.JenisKelamin;
 import jakarta.validation.constraints.NotBlank;
@@ -21,6 +22,7 @@ public class RegisterCustomerRequestDTO {
             regexp = "^[A-Za-z0-9+_.-]+@[A-Za-z0-9.-]+\\.[A-Za-z]{2,}$",
             message = "Format email tidak valid"
     )
+    @UniqueEmail
     private String email;
 
     @JsonProperty("password")

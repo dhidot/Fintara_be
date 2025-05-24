@@ -64,6 +64,8 @@ public class SecurityConfiguration implements WebMvcConfigurer {
                         .requestMatchers("/v1/cloudinary/**").permitAll()
                         .requestMatchers("/v1/profilecustomer/upload-ktp").permitAll()
                         .requestMatchers("/v1/profilecustomer/upload-selfie-ktp").permitAll()
+                        .requestMatchers("/v1/loan-requests/loan-simulate").permitAll()
+                        .requestMatchers("/v1/repayments/**").permitAll()
                         .requestMatchers("/v1/plafonds/all").permitAll()
                         .anyRequest().authenticated())
                 .authenticationProvider(authenticationProvider())

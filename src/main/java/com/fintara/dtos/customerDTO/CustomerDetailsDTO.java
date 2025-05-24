@@ -8,6 +8,7 @@ import lombok.Setter;
 
 import java.math.BigDecimal;
 import java.time.LocalDate;
+import java.time.LocalDateTime;
 import java.util.UUID;
 
 @Getter
@@ -27,9 +28,9 @@ public class CustomerDetailsDTO {
     private String ktpUrl;
     private String selfieKtpUrl;
     private Plafond plafond;
+    private LocalDateTime updatedAt;
 
     public CustomerDetailsDTO(CustomerDetails customerDetails) {
-        System.out.println("DEBUG jenisKelamin: " + customerDetails.getJenisKelamin());
         this.id = customerDetails.getId();
         this.jenisKelamin = customerDetails.getJenisKelamin();
         this.ttl = customerDetails.getTtl();
@@ -44,5 +45,6 @@ public class CustomerDetailsDTO {
         this.ktpUrl = customerDetails.getKtpUrl();
         this.selfieKtpUrl = customerDetails.getSelfieKtpUrl();
         this.plafond = customerDetails.getPlafond();
+        this.updatedAt = customerDetails.getUpdatedAt();
     }
 }

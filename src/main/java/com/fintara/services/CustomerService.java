@@ -65,11 +65,29 @@ public class CustomerService {
                 .id(user.getId())
                 .name(user.getName())
                 .email(user.getEmail())
+                .fotoUrl(user.getFotoUrl())
                 .role(user.getRole().getName())
                 .customerDetails(new CustomerDetailsDTO(user.getCustomerDetails()))
                 .build();
     }
 
+    public String updateMyProfile(UserWithCustomerResponseDTO request) {
+        // Ambil data user yang sedang login
+        UserDetails userDetails = (UserDetails) SecurityContextHolder.getContext().getAuthentication().getPrincipal();
+        String username = userDetails.getUsername();
+
+        // Ambil user berdasarkan email/username
+        User user = userService.findByEmail(username); // pastikan ini tidak null dan melempar exception kalau tidak ditemukan
+
+        // Update data user
+        user.setName(request.getName());
+        user.setEmail(request.getEmail());
+
+        // Simpan perubahan
+        userService.saveUser(user);
+
+        return "Profile updated successfully";
+    }
 
     public Long count() {
         return customerDetailsRepository.count();
