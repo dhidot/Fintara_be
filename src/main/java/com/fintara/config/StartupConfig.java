@@ -324,10 +324,10 @@ public class StartupConfig {
     CommandLineRunner initPlafonds(PlafondRepository plafondRepository) {
         return args -> {
             List<Plafond> plafonds = List.of(
-                    new Plafond(null, "Bronze", new BigDecimal("2000000"), new BigDecimal("0.4"), new BigDecimal("0.2"), 1, 6),
-                    new Plafond(null, "Silver", new BigDecimal("5000000"), new BigDecimal("0.3"), new BigDecimal("0.15"), 1, 12),
-                    new Plafond(null, "Gold", new BigDecimal("10000000"), new BigDecimal("0.2"), new BigDecimal("0.1"), 1, 18),
-                    new Plafond(null, "Platinum", new BigDecimal("200000000"), new BigDecimal("0.1"), new BigDecimal("0.05"),1, 24)
+                    new Plafond(null, "Bronze", new BigDecimal("2000000"), new BigDecimal("0.1"), new BigDecimal("0.02"), 1, 6),
+                    new Plafond(null, "Silver", new BigDecimal("5000000"), new BigDecimal("0.17"), new BigDecimal("0.015"), 1, 12),
+                    new Plafond(null, "Gold", new BigDecimal("10000000"), new BigDecimal("0.24"), new BigDecimal("0.01"), 1, 18),
+                    new Plafond(null, "Platinum", new BigDecimal("20000000"), new BigDecimal("0.166"), new BigDecimal("0.005"),1, 24)
             );
 
             for (Plafond plafond : plafonds) {
@@ -452,26 +452,47 @@ public class StartupConfig {
         };
     }
 
-    private void seedInterestRates(
-            Plafond plafond,
-            Map<Integer, BigDecimal> interestRates,
-            InterestPerTenorRepository repo
-    ) {
-        // Validasi tenor agar tidak out of bound
-        if (interestRates.keySet().stream().anyMatch(t -> t < plafond.getMinTenor() || t > plafond.getMaxTenor())) {
-            throw new IllegalStateException("Tenor di interestRates tidak sesuai min/max tenor untuk " + plafond.getName());
-        }
+    private void seedInterestRates(Plafond plafond, Map<Integer, BigDecimal> interestRates, InterestPerTenorRepository repo) {
+        int minTenor = plafond.getMinTenor();
+        int maxTenor = plafond.getMaxTenor();
+        BigDecimal maxInterest = plafond.getInterestRate();
 
-        for (int tenor = plafond.getMinTenor(); tenor <= plafond.getMaxTenor(); tenor++) {
-            BigDecimal rate = interestRates.get(tenor);
-            if (rate != null && repo.findByPlafondAndTenor(plafond, tenor).isEmpty()) {
-                repo.save(InterestPerTenor.builder()
-                        .plafond(plafond)
-                        .tenor(tenor)
-                        .interestRate(rate)
-                        .build());
-                System.out.println("✅ " + plafond.getName() + " tenor " + tenor + " bulan, interest " + rate);
+        for (Map.Entry<Integer, BigDecimal> entry : interestRates.entrySet()) {
+            int tenor = entry.getKey();
+            BigDecimal interest = entry.getValue();
+
+            if (tenor < minTenor || tenor > maxTenor) {
+                System.out.printf("⚠️ Tenor %d di luar rentang %d-%d untuk plafon %s, dilewati.%n",
+                        tenor, minTenor, maxTenor, plafond.getName());
+                continue;  // skip tenor di luar range
             }
+
+            if (interest.compareTo(maxInterest) > 0) {
+                System.out.printf("⚠️ Interest %s melebihi maksimum %s untuk plafon %s pada tenor %d, dilewati.%n",
+                        interest, maxInterest, plafond.getName(), tenor);
+                continue;  // skip interest yang melebihi batas plafon
+            }
+
+            // Cek apakah kombinasi plafon dan tenor sudah ada
+            boolean exists = repo.existsByPlafondIdAndTenor(plafond.getId(), tenor);
+            if (exists) {
+                System.out.printf("⚠️ Data sudah ada untuk plafon %s dan tenor %d, dilewati.%n",
+                        plafond.getName(), tenor);
+                continue;  // skip jika data sudah ada
+            }
+
+            // Simpan jika lolos validasi
+            InterestPerTenor entity = InterestPerTenor.builder()
+                    .plafond(plafond)
+                    .tenor(tenor)
+                    .interestRate(interest)
+                    .build();
+
+            repo.save(entity);
+            System.out.printf("✅ Interest %s pada tenor %d untuk plafon %s berhasil disimpan.%n",
+                    interest, tenor, plafond.getName());
         }
     }
+
+
 }

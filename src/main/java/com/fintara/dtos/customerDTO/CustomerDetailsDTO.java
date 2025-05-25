@@ -27,6 +27,7 @@ public class CustomerDetailsDTO {
     private String statusRumah;
     private String ktpUrl;
     private String selfieKtpUrl;
+    private BigDecimal remainingPlafond;
     private Plafond plafond;
     private LocalDateTime updatedAt;
 
@@ -44,6 +45,7 @@ public class CustomerDetailsDTO {
         this.statusRumah = customerDetails.getStatusRumah();
         this.ktpUrl = customerDetails.getKtpUrl();
         this.selfieKtpUrl = customerDetails.getSelfieKtpUrl();
+        this.remainingPlafond = customerDetails.getRemainingPlafond();
         this.plafond = customerDetails.getPlafond();
         this.updatedAt = customerDetails.getUpdatedAt();
     }

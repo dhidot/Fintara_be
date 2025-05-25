@@ -31,9 +31,13 @@ public class GlobalExceptionHandler {
 
     @ExceptionHandler(CustomException.class)
     public ResponseEntity<ApiResponse<Object>> handleCustomException(CustomException ex, HttpServletRequest request) {
+        // kalau errors ada, kirim sebagai data, kalau tidak ada, tetap kirim pesan saja
+        Object data = ex.getErrors() != null ? ex.getErrors() : null;
+
         return ResponseEntity.status(ex.getStatus())
-                .body(ApiResponse.error(ex.getStatus(), ex.getMessage()));
+                .body(ApiResponse.error(ex.getStatus(), ex.getMessage(), data));
     }
+
 
     @ExceptionHandler(Exception.class)
     public ResponseEntity<ApiResponse<Object>> handleGeneralException(Exception ex, HttpServletRequest request) {

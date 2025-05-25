@@ -5,11 +5,14 @@ import org.springframework.data.jpa.repository.JpaRepository;
 import org.springframework.data.jpa.repository.Query;
 import org.springframework.data.repository.query.Param;
 
+import java.util.List;
 import java.util.Optional;
 import java.util.UUID;
 
 public interface PlafondRepository extends JpaRepository<Plafond, UUID> {
     Optional<Plafond> findByName(String name); // Cari berdasarkan nama
+
+    List<Plafond> findAllByOrderByMaxAmountAsc();
 
     @Query("""
     SELECT p FROM Plafond p

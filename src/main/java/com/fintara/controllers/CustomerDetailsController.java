@@ -28,13 +28,13 @@ public class CustomerDetailsController {
     @PutMapping("/first-time_update")
     public ResponseEntity<ApiResponse<String>> updateFirstLogin(
         @RequestHeader("Authorization") String token,
-        @RequestBody FirstTimeUpdateDTO request
+        @Valid @RequestBody FirstTimeUpdateDTO request
     ) {
         logger.info("Received token: {}", token);
         logger.info("Received FirstLogin Request DTO: {}", request);
 
         try {
-            String result = customerDetailsService.updateOwnCustomerDetails(request);
+            String result = customerDetailsService.firstTimeUpdateOwnCustomerDetails(request);
             return ResponseEntity.ok(ApiResponse.success("Customer profile updated successfully", result));
         } catch (Exception e) {
             logger.error("Error updating customer profile", e);
@@ -65,6 +65,17 @@ public class CustomerDetailsController {
         try {
             String uploadedUrl = customerDetailsService.uploadSelfiePhoto(file);
             return ResponseEntity.ok(ApiResponse.success("Upload selfie berhasil", uploadedUrl));
+        } catch (Exception e) {
+            return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR)
+                    .body(ApiResponse.error(HttpStatus.INTERNAL_SERVER_ERROR, "Upload gagal: " + e.getMessage()));
+        }
+    }
+
+    @PostMapping("/upload-photo")
+    public ResponseEntity<ApiResponse<String>> uploadProfilePhoto(@RequestParam("file") MultipartFile file) {
+        try {
+            String uploadedUrl = customerDetailsService.uploadProfilePhoto(file);
+            return ResponseEntity.ok(ApiResponse.success("Upload berhasil", uploadedUrl));
         } catch (Exception e) {
             return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR)
                     .body(ApiResponse.error(HttpStatus.INTERNAL_SERVER_ERROR, "Upload gagal: " + e.getMessage()));

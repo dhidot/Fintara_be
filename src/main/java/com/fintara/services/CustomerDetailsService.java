@@ -124,7 +124,7 @@ public class CustomerDetailsService {
     }
 
     @Transactional
-    public String updateOwnCustomerDetails(FirstTimeUpdateDTO dto) {
+    public String firstTimeUpdateOwnCustomerDetails(FirstTimeUpdateDTO dto) {
         UserDetails userDetails = (UserDetails) SecurityContextHolder.getContext().getAuthentication().getPrincipal();
         String email = userDetails.getUsername();
 
@@ -246,6 +246,31 @@ public class CustomerDetailsService {
         logger.info("Upload selfie berhasil disimpan untuk user ID: {}", loggedInUser.getId());
         return uploadedUrl;
     }
+
+    public String uploadProfilePhoto(MultipartFile file) throws IOException {
+        UserDetails userDetails = (UserDetails) SecurityContextHolder.getContext()
+                .getAuthentication().getPrincipal();
+        String email = userDetails.getUsername();
+
+        logger.info("Memulai proses upload foto profil untuk user: {}", email);
+
+        User loggedInUser = userService.findByEmail(email);
+        if (loggedInUser == null) {
+            throw new CustomException("User tidak ditemukan", HttpStatus.UNAUTHORIZED);
+        }
+
+        // Upload ke Cloudinary
+        String uploadedUrl = cloudinaryService.uploadFile(file);
+
+        // Simpan URL foto profil ke entity User
+        loggedInUser.setFotoUrl(uploadedUrl);
+        userService.saveUser(loggedInUser);  // Pastikan method ini update User di DB
+
+        logger.info("Upload foto profil berhasil disimpan untuk user ID: {}", loggedInUser.getId());
+        return uploadedUrl;
+    }
+
+
 
 //    @Transactional
 //    public String updateOwnCustomerDetailsWithFile(CustomerProfileUpdateDTO dto, MultipartFile ktpPhoto, MultipartFile selfiePhoto) {

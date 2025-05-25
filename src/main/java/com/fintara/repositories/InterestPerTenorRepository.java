@@ -13,6 +13,8 @@ public interface InterestPerTenorRepository extends JpaRepository<InterestPerTen
 
     List<InterestPerTenor> findByPlafond(Plafond plafond);
 
+    boolean existsByPlafondIdAndTenor(UUID plafondId, int tenor);
+
     List<InterestPerTenor> findByPlafondAndTenor(Plafond plafond, int tenor);
 
     boolean existsByPlafondAndTenor(Plafond plafond, int tenor);

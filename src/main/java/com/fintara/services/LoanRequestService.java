@@ -46,6 +46,8 @@ public class LoanRequestService {
     private InterestPerTenorRepository interestPerTenorRepository;
     @Autowired
     private PlafondRepository plafondRepository;
+    @Autowired
+    private EmailService emailService;
 
     private User getAuthenticatedUser() {
         UserDetails userDetails = (UserDetails) SecurityContextHolder.getContext().getAuthentication().getPrincipal();
@@ -67,6 +69,57 @@ public class LoanRequestService {
             throw new CustomException("Gagal menyimpan loan request", HttpStatus.INTERNAL_SERVER_ERROR);
         }
     }
+
+    private void validateCustomerProfile(CustomerDetails customerDetails) {
+        List<String> missingFields = new ArrayList<>();
+
+        if (customerDetails.getJenisKelamin() == null) {
+            missingFields.add("Jenis Kelamin");
+        }
+        if (customerDetails.getTtl() == null) {
+            missingFields.add("Tanggal Lahir");
+        }
+        if (customerDetails.getKtpUrl() == null || customerDetails.getKtpUrl().isBlank()) {
+            missingFields.add("KTP");
+        }
+        if (customerDetails.getSelfieKtpUrl() == null || customerDetails.getSelfieKtpUrl().isBlank()) {
+            missingFields.add("Selfie KTP");
+        }
+        if (customerDetails.getAlamat() == null || customerDetails.getAlamat().isBlank()) {
+            missingFields.add("Alamat");
+        }
+        if (customerDetails.getNoTelp() == null || customerDetails.getNoTelp().isBlank()) {
+            missingFields.add("Nomor Telepon");
+        }
+        if (customerDetails.getNik() == null || customerDetails.getNik().isBlank()) {
+            missingFields.add("NIK");
+        }
+        if (customerDetails.getNamaIbuKandung() == null || customerDetails.getNamaIbuKandung().isBlank()) {
+            missingFields.add("Nama Ibu Kandung");
+        }
+        if (customerDetails.getPekerjaan() == null || customerDetails.getPekerjaan().isBlank()) {
+            missingFields.add("Pekerjaan");
+        }
+        if (customerDetails.getGaji() == null) {
+            missingFields.add("Gaji");
+        }
+        if (customerDetails.getNoRek() == null || customerDetails.getNoRek().isBlank()) {
+            missingFields.add("Nomor Rekening");
+        }
+        if (customerDetails.getStatusRumah() == null || customerDetails.getStatusRumah().isBlank()) {
+            missingFields.add("Status Rumah");
+        }
+
+        if (!missingFields.isEmpty()) {
+            throw new CustomException(
+                    "Data wajib diisi belum lengkap",
+                    HttpStatus.BAD_REQUEST,
+                    missingFields
+            );
+        }
+    }
+
+
 
     // Simulasi pengajuan pinjaman
     public LoanPreviewResponseDTO simulatePublicLoan(LoanSimulationRequestDTO request) {
@@ -111,6 +164,8 @@ public class LoanRequestService {
             throw new CustomException("Customer details tidak ditemukan", HttpStatus.NOT_FOUND);
         }
 
+        validateCustomer(currentUser);
+
         Plafond customerPlafond = validatePlafond(customerDetails, requestDTO.getAmount(), requestDTO.getTenor());
 
         Optional<InterestPerTenor> interestOpt = interestPerTenorRepository
@@ -150,12 +205,12 @@ public class LoanRequestService {
     public LoanRequestResponseDTO createLoanRequest(LoanRequestDTO requestDTO) {
         User currentUser = userService.getAuthenticatedUser();
 
-        validateCustomer(currentUser);
-
         CustomerDetails customerDetails = currentUser.getCustomerDetails();
         if (customerDetails == null) {
             throw new CustomException("Customer details tidak ditemukan", HttpStatus.NOT_FOUND);
         }
+
+        validateCustomer(currentUser);
 
         List<String> pendingStatuses = List.of("REVIEW", "DIREKOMENDASIKAN_MARKETING", "DISETUJUI_BM");
         boolean hasPendingRequest = loanRequestRepository.existsByCustomerAndStatus_NameIn(customerDetails, pendingStatuses);
@@ -179,7 +234,7 @@ public class LoanRequestService {
 
         BigDecimal feesAmount = requestDTO.getAmount().multiply(customerPlafond.getFeeRate());
 
-        UUID branchId = branchService.findNearestBranch(requestDTO.getLatitude(), requestDTO.getLongitude());
+        UUID branchId = branchService.findNearestBranchWithMarketing(requestDTO.getLatitude(), requestDTO.getLongitude());
         if (branchId == null) {
             throw new CustomException("Tidak ada cabang terdekat", HttpStatus.BAD_REQUEST);
         }
@@ -242,9 +297,13 @@ public class LoanRequestService {
                 isNullOrEmpty(customerDetails.getPekerjaan()) ||
                 customerDetails.getGaji() == null ||
                 isNullOrEmpty(customerDetails.getNoRek()) ||
-                customerDetails.getStatusRumah() == null) {
+                customerDetails.getStatusRumah() == null ||
+                isNullOrEmpty(customerDetails.getKtpUrl()) ||
+                isNullOrEmpty(customerDetails.getSelfieKtpUrl())
+            )
+        {
 
-            throw new CustomException("Data customer belum lengkap. Harap lengkapi profil sebelum mengajukan pinjaman", HttpStatus.BAD_REQUEST);
+            throw new CustomException("Data customer belum lengkap. Harap lengkapi profil dan dokumen pribadi sebelum mengajukan pinjaman", HttpStatus.BAD_REQUEST);
         }
     }
 
@@ -576,6 +635,13 @@ public class LoanRequestService {
         // sebutkan jumlah yang cair
         String body = "Pinjaman Anda telah dicairkan sebesar " + disbursedAmount + ".";
         notificationService.sendNotificationToUser(applicant.getId(), title, body);
+
+        // 🔹 Kirim email notifikasi
+        String customerEmail = applicant.getEmail();
+        String customerName = applicant.getName();
+        String loanAmount = disbursedAmount.toString(); // Format sesuai kebutuhan
+
+        emailService.sendLoanDisbursementEmail(customerEmail, customerName, loanAmount);
     }
 
 

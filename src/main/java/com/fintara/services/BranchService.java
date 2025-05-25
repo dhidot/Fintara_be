@@ -1,6 +1,7 @@
 package com.fintara.services;
 
 import com.fintara.exceptions.CustomException;
+import com.fintara.models.User;
 import com.fintara.utils.NameNormalizer;
 import com.fintara.dtos.superAdminDTO.BranchDTO;
 import com.fintara.models.Branch;
@@ -80,15 +81,25 @@ public class BranchService {
                 .orElseThrow(() -> new CustomException("Branch tidak ditemukan", HttpStatus.NOT_FOUND));
     }
 
-    public UUID findNearestBranch(double latitude, double longitude) {
+    public UUID findNearestBranchWithMarketing(double latitude, double longitude) {
         List<Branch> allBranches = branchRepository.findAll();
 
-        return allBranches.stream()
-                .min(Comparator.comparing(branch -> haversineDistance(
+        // Urutkan berdasarkan jarak terdekat
+        List<Branch> sortedBranches = allBranches.stream()
+                .sorted(Comparator.comparing(branch -> haversineDistance(
                         latitude, longitude,
                         branch.getLatitude(), branch.getLongitude())))
-                .map(Branch::getId)
-                .orElse(null);
+                .toList();
+
+        // Cari cabang yang ada marketing
+        for (Branch branch : sortedBranches) {
+            List<User> marketingList = userService.getMarketingByBranch(branch.getId());
+            if (!marketingList.isEmpty()) {
+                return branch.getId();
+            }
+        }
+
+        return null; // Tidak ada cabang dengan marketing
     }
 
 //    public UUID findNearestBranchWithMarketing(double latitude, double longitude) {

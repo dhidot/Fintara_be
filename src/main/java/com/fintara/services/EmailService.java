@@ -96,4 +96,21 @@ public class EmailService {
 
         sendEmail(to, subject, body);
     }
+
+    // 🔹 Kirim email notifikasi dana dicairkan
+    @Async
+    public void sendLoanDisbursementEmail(String to, String customerName, String loanAmount) {
+        String subject = "Pinjaman Anda Telah Dicairkan - SakuBCA";
+        String body = "<html><body>"
+                + "<h2>Hai, " + customerName + "</h2>"
+                + "<p>Selamat! Pinjaman Anda telah berhasil dicairkan dengan nominal <strong>" + loanAmount + "</strong>.</p>"
+                + "<p>Silakan cek detail transaksi di aplikasi SakuBCA Anda.</p>"
+                + "<br>"
+                + "<p>Terima kasih telah menggunakan layanan kami.</p>"
+                + "<p><strong>SakuBCA</strong></p>"
+                + "</body></html>";
+
+        sendEmail(to, subject, body);
+    }
+
 }

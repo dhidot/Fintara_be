@@ -21,7 +21,7 @@ public class PlafondService {
     private final NameNormalizer nameNormalizer;
 
     public List<Plafond> getAllPlafonds() {
-        return plafondRepository.findAll();
+        return plafondRepository.findAllByOrderByMaxAmountAsc();
     }
 
     public Plafond getPlafondByName(String name) {
