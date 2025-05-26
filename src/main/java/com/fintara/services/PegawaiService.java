@@ -80,6 +80,7 @@ public class PegawaiService {
                 .nip(request.getNip())
                 .branch(existingBranch)
                 .statusPegawai(request.getStatusPegawai())
+                .jenisKelamin(request.getJenisKelamin())
                 .user(pegawai)
                 .build();
         pegawaiRepository.save(pegawaiDetails);

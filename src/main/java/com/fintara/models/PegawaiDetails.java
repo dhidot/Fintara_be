@@ -4,6 +4,7 @@ import com.fasterxml.jackson.annotation.JsonBackReference;
 import com.fintara.enums.StatusPegawai;
 import jakarta.persistence.*;
 import lombok.*;
+import com.fintara.enums.JenisKelamin;
 
 import java.util.UUID;
 
@@ -33,4 +34,8 @@ public class PegawaiDetails {
 
     @Enumerated(EnumType.STRING)
     private StatusPegawai statusPegawai;
+
+    @Enumerated(EnumType.STRING)
+    @Column(name = "jenis_kelamin")
+    private JenisKelamin jenisKelamin;
 }

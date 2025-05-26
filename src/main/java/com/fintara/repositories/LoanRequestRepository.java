@@ -1,5 +1,6 @@
 package com.fintara.repositories;
 
+import com.fintara.enums.LoanStatus;
 import com.fintara.models.CustomerDetails;
 import com.fintara.models.LoanRequest;
 import org.springframework.data.jpa.repository.JpaRepository;
@@ -28,4 +29,7 @@ public interface LoanRequestRepository extends JpaRepository<LoanRequest, UUID> 
 
     boolean existsByCustomerAndStatus_NameIn(CustomerDetails customer, List<String> statusNames);
 
+    int countByStatusNameAndMarketingId(String statusName, UUID marketingId);
+
+    int countByStatusNameAndBranchId(String statusName, UUID branchId);
 }

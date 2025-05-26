@@ -97,6 +97,11 @@ public class StartupConfig {
                 Map.of("name", "FEATURE_DASHBOARD", "role", "BACK_OFFICE", "category", "Dashboard"),
                 Map.of("name", "FEATURE_DASHBOARD", "role", "BRANCH_MANAGER", "category", "Dashboard"),
                 Map.of("name", "FEATURE_DASHBOARD", "role", "MARKETING", "category", "Dashboard"),
+                Map.of("name", "FEATURE_DASHBOARD_PEGAWAI", "role", "SUPER_ADMIN", "category", "Dashboard"),
+                Map.of("name", "FEATURE_DASHBOARD_PEGAWAI", "role", "BACK_OFFICE", "category", "Dashboard"),
+                Map.of("name", "FEATURE_DASHBOARD_PEGAWAI", "role", "BRANCH_MANAGER", "category", "Dashboard"),
+                Map.of("name", "FEATURE_DASHBOARD_PEGAWAI", "role", "MARKETING", "category", "Dashboard"),
+
 
                 // ===== Role & Fitur Akses =====
                 Map.of("name", "FEATURE_GET_ALL_ROLE", "role", "SUPER_ADMIN", "category", "Role"),
@@ -228,6 +233,7 @@ public class StartupConfig {
                 PegawaiDetails details = PegawaiDetails.builder()
                         .nip("20242751")
                         .statusPegawai(StatusPegawai.ACTIVE)
+                        .jenisKelamin(JenisKelamin.LAKI_LAKI)
                         .user(superAdmin)
                         .branch(pusatBranch)
                         .build();
@@ -306,6 +312,7 @@ public class StartupConfig {
             PegawaiDetails details = PegawaiDetails.builder()
                     .nip(nip)
                     .statusPegawai(StatusPegawai.ACTIVE)
+                    .jenisKelamin(JenisKelamin.LAKI_LAKI)
                     .user(user)
                     .branch(assignedBranch)
                     .build();
@@ -325,9 +332,9 @@ public class StartupConfig {
         return args -> {
             List<Plafond> plafonds = List.of(
                     new Plafond(null, "Bronze", new BigDecimal("2000000"), new BigDecimal("0.1"), new BigDecimal("0.02"), 1, 6),
-                    new Plafond(null, "Silver", new BigDecimal("5000000"), new BigDecimal("0.17"), new BigDecimal("0.015"), 1, 12),
-                    new Plafond(null, "Gold", new BigDecimal("10000000"), new BigDecimal("0.24"), new BigDecimal("0.01"), 1, 18),
-                    new Plafond(null, "Platinum", new BigDecimal("20000000"), new BigDecimal("0.166"), new BigDecimal("0.005"),1, 24)
+                    new Plafond(null, "Silver", new BigDecimal("5000000"), new BigDecimal("0.07"), new BigDecimal("0.015"), 1, 12),
+                    new Plafond(null, "Gold", new BigDecimal("10000000"), new BigDecimal("0.05"), new BigDecimal("0.01"), 1, 18),
+                    new Plafond(null, "Platinum", new BigDecimal("20000000"), new BigDecimal("0.04"), new BigDecimal("0.005"),1, 24)
             );
 
             for (Plafond plafond : plafonds) {

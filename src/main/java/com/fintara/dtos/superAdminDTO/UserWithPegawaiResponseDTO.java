@@ -15,6 +15,5 @@ public class UserWithPegawaiResponseDTO {
     private String fotoUrl;
     private String email;
     private String role;
-    private JenisKelamin jenisKelamin;
     private PegawaiDetailsDTO pegawaiDetails;
 }
