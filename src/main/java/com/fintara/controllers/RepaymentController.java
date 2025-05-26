@@ -19,7 +19,7 @@ public class RepaymentController {
     @Autowired
     private RepaymentScheduleService repaymentScheduleService;
 
-    @GetMapping("/loan/{loanRequestId}")
+    @GetMapping("/{loanRequestId}")
     public ResponseEntity<ApiResponse<List<RepaymentsScheduleDTO>>> getByLoanRequestId(@PathVariable UUID loanRequestId) {
         List<RepaymentsScheduleDTO> data = repaymentScheduleService.getRepaymentByLoanRequestId(loanRequestId);
         return ResponseEntity.ok(ApiResponse.success("Successfully fetch Repayment Schedule",data));

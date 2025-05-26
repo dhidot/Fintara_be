@@ -43,9 +43,7 @@ public class DashboardService {
     @Autowired
     private UserService userService;
     @Autowired
-    private UserRepository userRepository;
-    @Autowired
-    private LoanApprovalRepository loanApprovalRepository;
+    private LoanApprovalService loanApprovalService;
 
     public Map<String, Object> getDashboardData() {
         Map<String, Object> dashboardData = new HashMap<>();
@@ -72,19 +70,12 @@ public class DashboardService {
         return summary;
     }
 
-    public User getAuthenticatedUser() {
-        Authentication authentication = SecurityContextHolder.getContext().getAuthentication();
-        String username = authentication.getName();
-        return userRepository.findByEmail(username)
-                .orElseThrow(() -> new CustomException("User not found", HttpStatus.UNAUTHORIZED));
-    }
-
     public Map<String, Integer> getLoanRequestCountsForDashboard() {
-        User currentUser = getAuthenticatedUser();
+        User currentUser = userService.getAuthenticatedUser();
         String role = currentUser.getRole().getName(); // Misal: ROLE_MARKETING, ROLE_BRANCH_MANAGER, ROLE_BACK_OFFICE
 
         int toCheckCount = 0;
-        int checkedByUserCount = loanApprovalRepository.countDistinctLoanRequestByHandledBy(currentUser.getId());
+        int checkedByUserCount = loanApprovalService.countDistinctLoanRequestsByHandledBy(currentUser.getId());
 
         switch (role) {
             case "MARKETING":

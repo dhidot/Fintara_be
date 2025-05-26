@@ -28,14 +28,8 @@ public class DebtController {
 
     @GetMapping("/me")
     public ResponseEntity<ApiResponse<DebtInfoResponseDTO>> getDebtInfo() {
-        User currentUser = getAuthenticatedUser();  // Ambil user yang sedang login
+        User currentUser = userService.getAuthenticatedUser();  // Ambil user yang sedang login
         DebtInfoResponseDTO debtInfo = debtInfoService.getDebtInfo(currentUser);  // Ambil informasi utang
         return ResponseEntity.ok(ApiResponse.success("Debt information retrieved successfully", debtInfo));
-    }
-
-    private User getAuthenticatedUser() {
-        UserDetails userDetails = (UserDetails) SecurityContextHolder.getContext().getAuthentication().getPrincipal();
-        String username = userDetails.getUsername();
-        return userService.findByEmail(username);  // Ambil user berdasarkan email
     }
 }

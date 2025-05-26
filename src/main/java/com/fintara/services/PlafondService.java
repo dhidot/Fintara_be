@@ -34,6 +34,11 @@ public class PlafondService {
                 .orElseThrow(() -> new CustomException("Plafond tidak ditemukan", HttpStatus.NOT_FOUND));
     }
 
+    // Find the next plafond based on the current plafond name
+    public Plafond findNextPlafondByName(String currentPlafondName) {
+        return plafondRepository.findNextPlafondByName(currentPlafondName);
+    }
+
     public Plafond createPlafond(Plafond request) {
         String normalizedName = nameNormalizer.normalizedName(request.getName());
         request.setName(normalizedName);

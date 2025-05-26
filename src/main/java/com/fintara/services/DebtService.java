@@ -20,8 +20,9 @@ public class DebtService {
     private DebtRepository debtRepository;
 
     public DebtInfoResponseDTO getDebtInfo(User currentUser) {
-        UUID customerId = currentUser.getId();  // Ambil ID dari User yang sedang login
-        BigDecimal remainingPlafond = debtRepository.getRemainingPlafondByCustomerId(customerId);
+        UUID userId = currentUser.getId();  // Ambil ID dari User yang sedang login
+        UUID customerId = currentUser.getCustomerDetails().getId();  // Ambil ID dari User yang sedang login
+        BigDecimal remainingPlafond = debtRepository.getRemainingPlafondByCustomerId(userId);
         Integer activeLoansCount = debtRepository.countActiveLoansByCustomerId(customerId);
         BigDecimal totalRepayment = debtRepository.getTotalRepaymentByCustomerId(customerId);
 

@@ -29,6 +29,14 @@ public class LoanApprovalService {
     @Autowired
     private UserService userService;
 
+    /**
+     * Approve a loan request with the given decision.
+     *
+     * @param loanRequestId The ID of the loan request to approve.
+     * @param userId        The ID of the user making the decision (marketing/BM).
+     * @param decision      The decision made (REJECT, RECOMMEND, APPROVE, DISBURSED).
+     * @return The created LoanApproval entity.
+     */
     @Transactional
     public LoanApproval approveLoan(UUID loanRequestId, UUID userId, String decision) {
         // 1️⃣ Cek apakah loan request ada
@@ -68,25 +76,32 @@ public class LoanApprovalService {
         return approval;
     }
 
+    // Mendapatkan daftar persetujuan pinjaman berdasarkan
     public List<LoanApproval> getLoanApprovals(UUID loanRequestId) {
         LoanRequest loanRequest = loanRequestService.findById(loanRequestId);
         return loanApprovalRepository.findByLoanRequest(loanRequest);
     }
 
-    // save
+    // Save a new LoanApproval
     public LoanApproval save(LoanApproval loanApproval) {
         return loanApprovalRepository.save(loanApproval);
     }
 
-    // find by id
+    // Find by loanRequestId
     public List<LoanApproval> findByLoanRequestId(UUID loanRequestId) {
         return loanApprovalRepository.findByLoanRequestId(loanRequestId);
     }
 
+    // Mendapatkan riwayat persetujuan pinjaman yang ditangani oleh pengguna tertentu
     public List<LoanApprovalHistoryResponse> getHandledApprovalsByUser(UUID userId) {
         List<LoanApproval> approvals = loanApprovalRepository.findAllByHandledBy(userId);
         return approvals.stream()
                 .map(LoanApprovalHistoryResponse::fromEntity)
                 .toList();
+    }
+
+    // Count Distinct Loan Requests by Handled By Certain User
+    public int countDistinctLoanRequestsByHandledBy(UUID userId) {
+        return loanApprovalRepository.countDistinctLoanRequestByHandledBy(userId);
     }
 }

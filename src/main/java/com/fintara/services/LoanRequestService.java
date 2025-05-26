@@ -27,25 +27,35 @@ import java.util.stream.Collectors;
 public class LoanRequestService {
     @Autowired
     private LoanRequestRepository loanRequestRepository;
+
     @Autowired
     private LoanStatusService loanStatusService;
+
     @Autowired
     private CustomerDetailsService customerDetailsService;
+
     @Autowired
     private BranchService branchService;
+
     @Autowired
     private UserService userService;
+
     @Autowired
     @Lazy
     private LoanApprovalService loanApprovalService;
+
     @Autowired
     private RepaymentScheduleService repaymentScheduleService;
+
     @Autowired
-    NotificationService notificationService;
+    private NotificationService notificationService;
+
     @Autowired
     private InterestPerTenorRepository interestPerTenorRepository;
+
     @Autowired
-    private PlafondRepository plafondRepository;
+    private PlafondService plafondService;
+
     @Autowired
     private EmailService emailService;
 
@@ -119,13 +129,10 @@ public class LoanRequestService {
         }
     }
 
-
-
     // Simulasi pengajuan pinjaman
     public LoanPreviewResponseDTO simulatePublicLoan(LoanSimulationRequestDTO request) {
         // Gunakan plafon default, misal Bronze
-        Plafond defaultPlafond = plafondRepository.findByName("Bronze")
-                .orElseThrow(() -> new CustomException("Default plafond tidak ditemukan", HttpStatus.INTERNAL_SERVER_ERROR));
+        Plafond defaultPlafond = plafondService.getPlafondByName("Bronze");
 
         Optional<InterestPerTenor> interestOpt = interestPerTenorRepository
                 .findByPlafondAndTenor(defaultPlafond, request.getTenor())

@@ -27,10 +27,15 @@ import java.util.UUID;
 public class RepaymentScheduleService {
     @Autowired
     private RepaymentScheduleRepository repaymentScheduleRepository;
+
     @Autowired
-    private CustomerDetailsRepository customerRepository;
+    private CustomerDetailsService customerDetailsService;
+
     @Autowired
     private PlafondRepository plafondRepository;
+
+    @Autowired
+    private PlafondService plafondService;
 
     // save
     public void save(RepaymentSchedule repaymentSchedule) {
@@ -121,8 +126,7 @@ public class RepaymentScheduleService {
     // Check apakah ada kenaikan plafond
     public void checkAndUpgradePlafondIfEligible(UUID customerId) {
         // 1. Ambil CustomerDetails lengkap dengan Plafond-nya
-        CustomerDetails customer = customerRepository.findById(customerId)
-                .orElseThrow(() -> new EntityNotFoundException("Customer not found"));
+        CustomerDetails customer = customerDetailsService.getCustomerDetailsById(customerId);
         Plafond currentPlafond = customer.getPlafond();
 
         // 2. Hitung total pelunasan customer
@@ -131,12 +135,12 @@ public class RepaymentScheduleService {
         // 3. Cek apakah totalPaid > maxAmount currentPlafond
         if (totalPaid.compareTo(currentPlafond.getMaxAmount()) > 0) {
             // 4. Cari plafon berikutnya secara berurutan (Bronze -> Silver -> Gold -> Platinum)
-            Plafond nextPlafond = plafondRepository.findNextPlafondByName(currentPlafond.getName());
+            Plafond nextPlafond = plafondService.findNextPlafondByName(currentPlafond.getName());
 
             if (nextPlafond != null) {
                 // 5. Update plafon customer ke nextPlafond
                 customer.setPlafond(nextPlafond);
-                customerRepository.save(customer);
+                customerDetailsService.saveCustomerDetails(customer);
                 // Bisa log upgrade ini, kirim notifikasi, dll
 
             }
