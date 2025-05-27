@@ -129,7 +129,15 @@ public class LoanRequestService {
         }
     }
 
-    // Simulasi pengajuan pinjaman
+
+    /**
+     * Melakukan simulasi pinjaman publik dengan plafon default.
+     *
+     * @param request Data permintaan simulasi pinjaman yang berisi
+     *                jumlah dan tenor pinjaman.
+     *                @return LoanPreviewResponseDTO yang berisi estimasi pinjaman.
+     *                @throws CustomException jika ada kesalahan dalam proses simulasi pinjaman.
+     */
     public LoanPreviewResponseDTO simulatePublicLoan(LoanSimulationRequestDTO request) {
         // Gunakan plafon default, misal Bronze
         Plafond defaultPlafond = plafondService.getPlafondByName("Bronze");
@@ -161,6 +169,13 @@ public class LoanRequestService {
                 .build();
     }
 
+    /**
+     * Melakukan pratinjau pengajuan pinjaman berdasarkan data yang diberikan.
+     *
+     * @param requestDTO Data pengajuan pinjaman yang berisi jumlah dan tenor.
+     * @return LoanPreviewResponseDTO yang berisi estimasi pinjaman.
+     * @throws CustomException jika ada kesalahan dalam proses pratinjau pinjaman.
+     */
     public LoanPreviewResponseDTO previewLoanRequest(LoanRequestDTO requestDTO) {
         User currentUser = userService.getAuthenticatedUser();
 
@@ -208,6 +223,14 @@ public class LoanRequestService {
                 .build();
     }
 
+    // buat comment yang lengkap tapi pakai bahasa Indonesia
+    /**
+     * Membuat pengajuan pinjaman baru.
+     *
+     * @param requestDTO Data pengajuan pinjaman yang berisi jumlah, tenor, dan lokasi.
+     * @return LoanRequestResponseDTO yang berisi detail pengajuan pinjaman yang telah dibuat.
+     * @throws CustomException jika ada kesalahan dalam proses pembuatan pengajuan pinjaman.
+     */
     @Transactional
     public LoanRequestResponseDTO createLoanRequest(LoanRequestDTO requestDTO) {
         User currentUser = userService.getAuthenticatedUser();
@@ -462,7 +485,7 @@ public class LoanRequestService {
     }
 
     @Transactional
-    public void reviewLoanRequest(UUID loanRequestId, UUID marketingId, String status, String notes) {
+    public void reviewLoanRequest(UUID loanRequestId, UUID marketingId, String status, String notes, String notesIdentitas, String notesPlafond, String notesSummary) {
         // 1️⃣ Ambil loan request yang bersangkutan
         LoanRequest loanRequest = loanRequestRepository.findById(loanRequestId)
                 .orElseThrow(() -> new CustomException("Loan request tidak ditemukan", HttpStatus.NOT_FOUND));
@@ -471,6 +494,12 @@ public class LoanRequestService {
         if (!loanRequest.getMarketing().getId().equals(marketingId)) {
             throw new CustomException("Anda tidak berhak mereview loan request ini", HttpStatus.FORBIDDEN);
         }
+
+        System.out.println("Loan Request ID: " + loanRequest.getId());
+        System.out.println("Notes: " + notes);
+        System.out.println("Notes Identitas: " + notesIdentitas);
+        System.out.println("Notes Plafond: " + notesPlafond);
+        System.out.println("Notes Summary: " + notesSummary);
 
         // 3️⃣ Update status berdasarkan hasil review
         LoanStatus loanStatus = loanStatusService.findByName(status); // Status sudah diterima sebagai parameter
@@ -488,6 +517,9 @@ public class LoanRequestService {
                 .handledBy(loanRequest.getMarketing()) // Marketing yang mereview
                 .status(loanStatus)
                 .notes(notes) // Bisa jadi alasan penolakan atau catatan lain
+                .notesIdentitas(notesIdentitas)// Catatan identitas
+                .notesPlafond(notesPlafond) // Catatan plafon
+                .notesSummary(notesSummary) // Catatan ringkasan
                 .approvedAt(LocalDateTime.now())
                 .build();
 
@@ -510,7 +542,7 @@ public class LoanRequestService {
     }
 
     @Transactional
-    public void reviewLoanRequestByBM(UUID loanRequestId, UUID branchManagerId, String status, String notes) {
+    public void reviewLoanRequestByBM(UUID loanRequestId, UUID branchManagerId, String status, String notes, String notesIdentitas, String notesPlafond, String notesSummary) {
         // 1️⃣ Ambil loan request
         LoanRequest loanRequest = loanRequestRepository.findById(loanRequestId)
                 .orElseThrow(() -> new CustomException("Loan request tidak ditemukan", HttpStatus.NOT_FOUND));
@@ -526,6 +558,15 @@ public class LoanRequestService {
         loanRequest.setStatus(newStatus);
         loanRequest.setApprovalBMAt(LocalDateTime.now()); // Timestamp approval BM
 
+        // print semua notes, notesIdentitas, notesPlafond, notesSummary dalam satu baris
+        // Catatan ringkasan
+        System.out.println("Loan Request ID: " + loanRequest.getId());
+        System.out.println("Notes: " + notes);
+        System.out.println("Notes Identitas: " + notesIdentitas);
+        System.out.println("Notes Plafond: " + notesPlafond);
+        System.out.println("Notes Summary: " + notesSummary);
+
+
         // Simpan perubahan loan request
         loanRequestRepository.save(loanRequest);
 
@@ -535,6 +576,9 @@ public class LoanRequestService {
                 .handledBy(userService.findById(branchManagerId)) // BM yang approve
                 .status(newStatus)
                 .notes(notes)
+                .notesIdentitas(notesIdentitas)// Catatan identitas
+                .notesPlafond(notesPlafond) // Catatan plafon
+                .notesSummary(notesSummary) // Catatan ringkasan
                 .approvedAt(LocalDateTime.now())
                 .build();
         loanApprovalService.save(approvalRecord);

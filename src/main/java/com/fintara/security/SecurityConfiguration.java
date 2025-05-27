@@ -46,7 +46,7 @@ public class SecurityConfiguration implements WebMvcConfigurer {
             throws Exception {
         http
                 .csrf(AbstractHttpConfigurer::disable)
-                .cors(Customizer.withDefaults())
+                .cors(cors -> cors.configurationSource(corsConfigurationSource()))
                 .exceptionHandling(exceptionHandling -> exceptionHandling
                         .authenticationEntryPoint(authEntryPointJwt) // Untuk 401 Unauthorized
                 )

@@ -84,7 +84,7 @@ public class LoanRequestController {
             @RequestBody LoanReviewDTO loanReviewDTO) {
 
         User currentMarketing = userService.getAuthenticatedUser();
-        loanRequestService.reviewLoanRequest(loanRequestId, currentMarketing.getId(), loanReviewDTO.getStatus(), loanReviewDTO.getNotes());
+        loanRequestService.reviewLoanRequest(loanRequestId, currentMarketing.getId(), loanReviewDTO.getStatus(), loanReviewDTO.getNotes(), loanReviewDTO.getNotesIdentitas(), loanReviewDTO.getNotesPlafond(), loanReviewDTO.getNotesSummary());
 
         return ResponseEntity.ok(new ApiResponse<>(HttpStatus.OK.value(), "Marketing review successfully processed", Map.of("message", "Review Marketing berhasil diproses")));
     }
@@ -105,7 +105,7 @@ public class LoanRequestController {
             @RequestBody LoanReviewDTO loanReviewDTO) {
 
         User currentBM = userService.getAuthenticatedUser();
-        loanRequestService.reviewLoanRequestByBM(loanRequestId, currentBM.getId(), loanReviewDTO.getStatus(), loanReviewDTO.getNotes());
+        loanRequestService.reviewLoanRequestByBM(loanRequestId, currentBM.getId(), loanReviewDTO.getStatus(), loanReviewDTO.getNotes(), loanReviewDTO.getNotesIdentitas(), loanReviewDTO.getNotesPlafond(), loanReviewDTO.getNotesSummary());
 
         return ResponseEntity.ok(new ApiResponse<>(HttpStatus.OK.value(), "Branch Manager review successfully processed", Map.of("message", "Review BM berhasil diproses")));
     }
