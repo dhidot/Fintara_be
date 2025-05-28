@@ -1,4 +1,4 @@
-name: Spring Boot CI/CD with dynamic .env and Firebase SDK
+name: Spring Boot CI/CD with dynamic .env
 
 on:
   push:
@@ -19,6 +19,11 @@ jobs:
         with:
           java-version: '21'
           distribution: 'temurin'
+
+      # Step untuk decode dan simpan firebase-admin-sdk.json dari secret base64
+      - name: Decode Firebase Admin SDK JSON
+        run: |
+          echo "${{ secrets.FIREBASE_ADMIN_SDK_BASE64 }}" | base64 -d > src/main/resources/firebase-admin-sdk.json
 
       - name: Create .env file from GitHub Secrets
         run: |
@@ -44,22 +49,31 @@ jobs:
           EOF
           echo ".env file created"
 
-      # Step untuk decode dan simpan firebase-admin-sdk.json dari secret base64
-      - name: Decode Firebase Admin SDK JSON
-        run: |
-          echo "${{ secrets.FIREBASE_ADMIN_SDK_BASE64 }}" | base64 -d > src/main/resources/firebase-admin-sdk.json
-
       - name: Build with Maven
         run: mvn clean package -DskipTests
 
-      - name: Copy files to GCP VM
+      - name: Copy JAR to GCP VM
         uses: appleboy/scp-action@v0.1.4
         with:
           host: ${{ secrets.VM_HOST }}
           username: ${{ secrets.VM_USER }}
           key: ${{ secrets.SSH_PRIVATE_KEY }}
-          source: |
-            target/*.jar
-            .env
-            firebase-admin-sdk.json
-          target: "/home/${{ secrets.VM_USER }}/fintara-dev"
+          source: "target/*.jar"
+          target: "/home/${{ secrets.VM_USER }}/fintara-staging"
+
+#      - name: Copy .env to GCP VM
+#        uses: appleboy/scp-action@v0.1.4
+#        with:
+#          host: ${{ secrets.VM_HOST }}
+#          username: ${{ secrets.VM_USER }}
+#          key: ${{ secrets.SSH_PRIVATE_KEY }}
+#          source: ".env"
+#          target: "/home/${{ secrets.VM_USER }}/fintara-dev"
+
+#      - name: Run tests
+#        run: ./mvnw test
+#
+#      - name: Run Spring Boot application
+#        run: |
+#          export $(grep -v '^#' .env | xargs)
+#          java -jar target/*.jar
