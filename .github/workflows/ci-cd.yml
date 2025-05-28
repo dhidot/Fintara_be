@@ -25,29 +25,29 @@ jobs:
         run: |
           echo "${{ secrets.FIREBASE_ADMIN_SDK_BASE64 }}" | base64 -d > src/main/resources/firebase-admin-sdk.json
 
-      - name: Create .env file from GitHub Secrets
-        run: |
-          echo "Creating .env file from secrets..."
-          cat <<EOF > .env
-          SPRING_DATASOURCE_URL=${{ secrets.SPRING_DATASOURCE_URL }}
-          SPRING_DATASOURCE_USERNAME=${{ secrets.SPRING_DATASOURCE_USERNAME }}
-          SPRING_DATASOURCE_PASSWORD=${{ secrets.SPRING_DATASOURCE_PASSWORD }}
-          SPRING_DATASOURCE_DRIVER_CLASS_NAME=${{ secrets.SPRING_DATASOURCE_DRIVER_CLASS_NAME }}
-          SECURITY_JWT_SECRET_KEY=${{ secrets.SECURITY_JWT_SECRET_KEY }}
-          SECURITY_JWT_EXPIRATION_TIME_HOUR=${{ secrets.SECURITY_JWT_EXPIRATION_TIME_HOUR }}
-          SPRING_REDIS_HOST=${{ secrets.SPRING_REDIS_HOST }}
-          SPRING_REDIS_PORT=${{ secrets.SPRING_REDIS_PORT }}
-          SPRING_REDIS_TIMEOUT=${{ secrets.SPRING_REDIS_TIMEOUT }}
-          SPRING_REDIS_DATABASE=${{ secrets.SPRING_REDIS_DATABASE }}
-          SPRING_MAIL_HOST=${{ secrets.SPRING_MAIL_HOST }}
-          SPRING_MAIL_PORT=${{ secrets.SPRING_MAIL_PORT }}
-          SPRING_MAIL_USERNAME=${{ secrets.SPRING_MAIL_USERNAME }}
-          SPRING_MAIL_PASSWORD=${{ secrets.SPRING_MAIL_PASSWORD }}
-          CLOUD_NAME=${{ secrets.CLOUD_NAME }}
-          API_KEY=${{ secrets.API_KEY }}
-          API_SECRET=${{ secrets.API_SECRET }}
-          EOF
-          echo ".env file created"
+#      - name: Create .env file from GitHub Secrets
+#        run: |
+#          echo "Creating .env file from secrets..."
+#          cat <<EOF > .env
+#          SPRING_DATASOURCE_URL=${{ secrets.SPRING_DATASOURCE_URL }}
+#          SPRING_DATASOURCE_USERNAME=${{ secrets.SPRING_DATASOURCE_USERNAME }}
+#          SPRING_DATASOURCE_PASSWORD=${{ secrets.SPRING_DATASOURCE_PASSWORD }}
+#          SPRING_DATASOURCE_DRIVER_CLASS_NAME=${{ secrets.SPRING_DATASOURCE_DRIVER_CLASS_NAME }}
+#          SECURITY_JWT_SECRET_KEY=${{ secrets.SECURITY_JWT_SECRET_KEY }}
+#          SECURITY_JWT_EXPIRATION_TIME_HOUR=${{ secrets.SECURITY_JWT_EXPIRATION_TIME_HOUR }}
+#          SPRING_REDIS_HOST=${{ secrets.SPRING_REDIS_HOST }}
+#          SPRING_REDIS_PORT=${{ secrets.SPRING_REDIS_PORT }}
+#          SPRING_REDIS_TIMEOUT=${{ secrets.SPRING_REDIS_TIMEOUT }}
+#          SPRING_REDIS_DATABASE=${{ secrets.SPRING_REDIS_DATABASE }}
+#          SPRING_MAIL_HOST=${{ secrets.SPRING_MAIL_HOST }}
+#          SPRING_MAIL_PORT=${{ secrets.SPRING_MAIL_PORT }}
+#          SPRING_MAIL_USERNAME=${{ secrets.SPRING_MAIL_USERNAME }}
+#          SPRING_MAIL_PASSWORD=${{ secrets.SPRING_MAIL_PASSWORD }}
+#          CLOUD_NAME=${{ secrets.CLOUD_NAME }}
+#          API_KEY=${{ secrets.API_KEY }}
+#          API_SECRET=${{ secrets.API_SECRET }}
+#          EOF
+#          echo ".env file created"
 
       - name: Build with Maven
         run: mvn clean package -DskipTests
@@ -59,16 +59,16 @@ jobs:
           username: ${{ secrets.VM_USER }}
           key: ${{ secrets.SSH_PRIVATE_KEY }}
           source: "target/*.jar"
-          target: "/home/${{ secrets.VM_USER }}/fintara-staging"
+          target: "/home/${{ secrets.VM_USER }}/fintara-dev"
 
-      - name: Copy .env to GCP VM
-        uses: appleboy/scp-action@v0.1.4
-        with:
-          host: ${{ secrets.VM_HOST }}
-          username: ${{ secrets.VM_USER }}
-          key: ${{ secrets.SSH_PRIVATE_KEY }}
-          source: ".env"
-          target: "/home/${{ secrets.VM_USER }}/fintara-staging"
+#      - name: Copy .env to GCP VM
+#        uses: appleboy/scp-action@v0.1.4
+#        with:
+#          host: ${{ secrets.VM_HOST }}
+#          username: ${{ secrets.VM_USER }}
+#          key: ${{ secrets.SSH_PRIVATE_KEY }}
+#          source: ".env"
+#          target: "/home/${{ secrets.VM_USER }}/fintara-staging"
 
 #      - name: Run Spring Boot application on VM
 #        uses: appleboy/ssh-action@v0.1.6
