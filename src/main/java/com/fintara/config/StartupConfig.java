@@ -331,10 +331,10 @@ public class StartupConfig {
     CommandLineRunner initPlafonds(PlafondRepository plafondRepository) {
         return args -> {
             List<Plafond> plafonds = List.of(
-                    new Plafond(null, "Bronze", new BigDecimal("2000000"), new BigDecimal("0.1"), new BigDecimal("0.02"), 1, 6),
-                    new Plafond(null, "Silver", new BigDecimal("5000000"), new BigDecimal("0.07"), new BigDecimal("0.015"), 1, 12),
-                    new Plafond(null, "Gold", new BigDecimal("10000000"), new BigDecimal("0.05"), new BigDecimal("0.01"), 1, 18),
-                    new Plafond(null, "Platinum", new BigDecimal("20000000"), new BigDecimal("0.04"), new BigDecimal("0.005"),1, 24)
+                    new Plafond(null, "Bronze", new BigDecimal("2000000"), new BigDecimal("0.13"), new BigDecimal("0.02"), 1, 6),
+                    new Plafond(null, "Silver", new BigDecimal("5000000"), new BigDecimal("0.1"), new BigDecimal("0.015"), 1, 12),
+                    new Plafond(null, "Gold", new BigDecimal("10000000"), new BigDecimal("0.095"), new BigDecimal("0.01"), 1, 18),
+                    new Plafond(null, "Platinum", new BigDecimal("20000000"), new BigDecimal("0.075"), new BigDecimal("0.005"),1, 24)
             );
 
             for (Plafond plafond : plafonds) {
@@ -382,74 +382,76 @@ public class StartupConfig {
 
             Map<Integer, BigDecimal> bronzeInterestRates = Map.of(
                     1, new BigDecimal("0.05"),
-                    2, new BigDecimal("0.06"),
-                    3, new BigDecimal("0.07"),
-                    4, new BigDecimal("0.08"),
-                    5, new BigDecimal("0.09"),
-                    6, new BigDecimal("0.10")
+                    2, new BigDecimal("0.07"),
+                    3, new BigDecimal("0.09"),
+                    4, new BigDecimal("0.11"),
+                    5, new BigDecimal("0.13")
             );
+
 
             Map<Integer, BigDecimal> silverInterestRates = Map.ofEntries(
-                    Map.entry(1, new BigDecimal("0.06")),
-                    Map.entry(2, new BigDecimal("0.07")),
-                    Map.entry(3, new BigDecimal("0.08")),
-                    Map.entry(4, new BigDecimal("0.09")),
-                    Map.entry(5, new BigDecimal("0.10")),
-                    Map.entry(6, new BigDecimal("0.11")),
-                    Map.entry(7, new BigDecimal("0.12")),
-                    Map.entry(8, new BigDecimal("0.13")),
-                    Map.entry(9, new BigDecimal("0.14")),
-                    Map.entry(10, new BigDecimal("0.15")),
-                    Map.entry(11, new BigDecimal("0.16")),
-                    Map.entry(12, new BigDecimal("0.17"))
+                    Map.entry(1, new BigDecimal("0.05")),
+                    Map.entry(2, new BigDecimal("0.055")),
+                    Map.entry(3, new BigDecimal("0.06")),
+                    Map.entry(4, new BigDecimal("0.065")),
+                    Map.entry(5, new BigDecimal("0.07")),
+                    Map.entry(6, new BigDecimal("0.075")),
+                    Map.entry(7, new BigDecimal("0.08")),
+                    Map.entry(8, new BigDecimal("0.085")),
+                    Map.entry(9, new BigDecimal("0.09")),
+                    Map.entry(10, new BigDecimal("0.095")),
+                    Map.entry(11, new BigDecimal("0.10")),
+                    Map.entry(12, new BigDecimal("0.10"))
             );
+
 
             Map<Integer, BigDecimal> goldInterestRates = Map.ofEntries(
-                    Map.entry(1, new BigDecimal("0.07")),
-                    Map.entry(2, new BigDecimal("0.08")),
-                    Map.entry(3, new BigDecimal("0.09")),
-                    Map.entry(4, new BigDecimal("0.10")),
-                    Map.entry(5, new BigDecimal("0.11")),
-                    Map.entry(6, new BigDecimal("0.12")),
-                    Map.entry(7, new BigDecimal("0.13")),
-                    Map.entry(8, new BigDecimal("0.14")),
-                    Map.entry(9, new BigDecimal("0.15")),
-                    Map.entry(10, new BigDecimal("0.16")),
-                    Map.entry(11, new BigDecimal("0.17")),
-                    Map.entry(12, new BigDecimal("0.18")),
-                    Map.entry(13, new BigDecimal("0.19")),
-                    Map.entry(14, new BigDecimal("0.20")),
-                    Map.entry(15, new BigDecimal("0.21")),
-                    Map.entry(16, new BigDecimal("0.22")),
-                    Map.entry(17, new BigDecimal("0.23")),
-                    Map.entry(18, new BigDecimal("0.24"))
+                    Map.entry(1, new BigDecimal("0.05")),
+                    Map.entry(2, new BigDecimal("0.05265")),
+                    Map.entry(3, new BigDecimal("0.05529")),
+                    Map.entry(4, new BigDecimal("0.05794")),
+                    Map.entry(5, new BigDecimal("0.06059")),
+                    Map.entry(6, new BigDecimal("0.06324")),
+                    Map.entry(7, new BigDecimal("0.06588")),
+                    Map.entry(8, new BigDecimal("0.06853")),
+                    Map.entry(9, new BigDecimal("0.07118")),
+                    Map.entry(10, new BigDecimal("0.07382")),
+                    Map.entry(11, new BigDecimal("0.07647")),
+                    Map.entry(12, new BigDecimal("0.07912")),
+                    Map.entry(13, new BigDecimal("0.08176")),
+                    Map.entry(14, new BigDecimal("0.08441")),
+                    Map.entry(15, new BigDecimal("0.08706")),
+                    Map.entry(16, new BigDecimal("0.08971")),
+                    Map.entry(17, new BigDecimal("0.09235")),
+                    Map.entry(18, new BigDecimal("0.09500"))
             );
 
+
             Map<Integer, BigDecimal> platinumInterestRates = Map.ofEntries(
-                    Map.entry(1, new BigDecimal("0.04")),
-                    Map.entry(2, new BigDecimal("0.045")),
-                    Map.entry(3, new BigDecimal("0.05")),
-                    Map.entry(4, new BigDecimal("0.055")),
-                    Map.entry(5, new BigDecimal("0.06")),
-                    Map.entry(6, new BigDecimal("0.065")),
-                    Map.entry(7, new BigDecimal("0.07")),
-                    Map.entry(8, new BigDecimal("0.075")),
-                    Map.entry(9, new BigDecimal("0.08")),
-                    Map.entry(10, new BigDecimal("0.085")),
-                    Map.entry(11, new BigDecimal("0.09")),
-                    Map.entry(12, new BigDecimal("0.095")),
-                    Map.entry(13, new BigDecimal("0.10")),
-                    Map.entry(14, new BigDecimal("0.105")),
-                    Map.entry(15, new BigDecimal("0.11")),
-                    Map.entry(16, new BigDecimal("0.115")),
-                    Map.entry(17, new BigDecimal("0.12")),
-                    Map.entry(18, new BigDecimal("0.125")),
-                    Map.entry(19, new BigDecimal("0.13")),
-                    Map.entry(20, new BigDecimal("0.135")),
-                    Map.entry(21, new BigDecimal("0.14")),
-                    Map.entry(22, new BigDecimal("0.145")),
-                    Map.entry(23, new BigDecimal("0.15")),
-                    Map.entry(24, new BigDecimal("0.155"))
+                    Map.entry(1, new BigDecimal("0.04000")),
+                    Map.entry(2, new BigDecimal("0.04152")),
+                    Map.entry(3, new BigDecimal("0.04304")),
+                    Map.entry(4, new BigDecimal("0.04457")),
+                    Map.entry(5, new BigDecimal("0.04609")),
+                    Map.entry(6, new BigDecimal("0.04761")),
+                    Map.entry(7, new BigDecimal("0.04913")),
+                    Map.entry(8, new BigDecimal("0.05065")),
+                    Map.entry(9, new BigDecimal("0.05217")),
+                    Map.entry(10, new BigDecimal("0.05370")),
+                    Map.entry(11, new BigDecimal("0.05522")),
+                    Map.entry(12, new BigDecimal("0.05674")),
+                    Map.entry(13, new BigDecimal("0.05826")),
+                    Map.entry(14, new BigDecimal("0.05978")),
+                    Map.entry(15, new BigDecimal("0.06130")),
+                    Map.entry(16, new BigDecimal("0.06283")),
+                    Map.entry(17, new BigDecimal("0.06435")),
+                    Map.entry(18, new BigDecimal("0.06587")),
+                    Map.entry(19, new BigDecimal("0.06739")),
+                    Map.entry(20, new BigDecimal("0.06891")),
+                    Map.entry(21, new BigDecimal("0.07043")),
+                    Map.entry(22, new BigDecimal("0.07196")),
+                    Map.entry(23, new BigDecimal("0.07348")),
+                    Map.entry(24, new BigDecimal("0.07500"))
             );
 
             seedInterestRates(bronze, bronzeInterestRates, interestPerTenorRepository);
