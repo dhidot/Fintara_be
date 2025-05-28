@@ -38,8 +38,8 @@ build/
 .DS_Store
 
 ### File Kredensial ###
-/.env
-src/main/resources/firebase/*.json
+#.env
+#src/main/resources/firebase/*.json
 
 # Firebase credential
 src/main/resources/firebase-admin-sdk.json
