@@ -80,7 +80,7 @@ jobs:
           host: ${{ secrets.VM_HOST }}
           username: ${{ secrets.VM_USER }}
           key: ${{ secrets.SSH_PRIVATE_KEY }}
-          source: "*.jar"  # ✅ This works with context from repo root
+          source: "target/*.jar"  # ✅ This works with context from repo root
           target: "/home/${{ secrets.VM_USER }}/fintara-dev"
 
       - name: Copy .env to GCP VM
@@ -89,7 +89,7 @@ jobs:
           host: ${{ secrets.VM_HOST }}
           username: ${{ secrets.VM_USER }}
           key: ${{ secrets.SSH_PRIVATE_KEY }}
-          source: ".env"
+          source: "target/.env"
           target: "/home/${{ secrets.VM_USER }}/fintara-dev"
 
 #      - name: Run tests
