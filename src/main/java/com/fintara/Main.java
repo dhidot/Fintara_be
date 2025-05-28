@@ -18,6 +18,7 @@ import io.github.cdimascio.dotenv.Dotenv;
 public class Main {
     public static void main(String[] args) {
         // Load .env ke System Environment
+//       gunakan dotenv-java untuk memuat file .env
         Dotenv dotenv = Dotenv.configure()
                 .ignoreIfMissing() // biar tetap jalan kalau gak ada file .env
                 .load();
