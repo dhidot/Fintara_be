@@ -70,15 +70,15 @@ jobs:
           source: ".env"
           target: "/home/${{ secrets.VM_USER }}/fintara-staging"
 
-      - name: Run Spring Boot application on VM
-        uses: appleboy/ssh-action@v0.1.6
-        with:
-          host: ${{ secrets.VM_HOST }}
-          username: ${{ secrets.VM_USER }}
-          key: ${{ secrets.SSH_PRIVATE_KEY }}
-          script: |
-            pkill -f 'java -jar' || echo "No running app to stop"
-            cd /home/${{ secrets.VM_USER }}/fintara-staging
-            # Jalankan dengan setsid supaya proses lepas shell dan baca .env di direktori ini
-            setsid java -jar target/*.jar > app.log 2>&1 < /dev/null &
+#      - name: Run Spring Boot application on VM
+#        uses: appleboy/ssh-action@v0.1.6
+#        with:
+#          host: ${{ secrets.VM_HOST }}
+#          username: ${{ secrets.VM_USER }}
+#          key: ${{ secrets.SSH_PRIVATE_KEY }}
+#          script: |
+#            pkill -f 'java -jar' || echo "No running app to stop"
+#            cd /home/${{ secrets.VM_USER }}/fintara-staging
+#            # Jalankan dengan setsid supaya proses lepas shell dan baca .env di direktori ini
+#            setsid java -jar target/*.jar > app.log 2>&1 < /dev/null &
             
