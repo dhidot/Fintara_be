@@ -78,5 +78,6 @@ jobs:
             key: ${{ secrets.SSH_PRIVATE_KEY }}
             script: |
               pkill -f 'java -jar' || echo "No running app to stop"
-              cd /home/${{ secrets.VM_USER }}/fintara-staging/target
-              nohup java -jar *.jar > app.log 2>&1 &
+              cd /home/${{ secrets.VM_USER }}/fintara-staging
+              nohup java -jar target/*.jar > app.log 2>&1 &
+            
