@@ -1,5 +1,6 @@
 package com.fintara.services;
 
+import com.fintara.dtos.loanApprovalDTO.LoanApprovalReviewerResponse;
 import com.fintara.exceptions.CustomException;
 import com.fintara.dtos.loanApprovalDTO.LoanApprovalHistoryResponse;
 import com.fintara.models.LoanApproval;
@@ -75,6 +76,24 @@ public class LoanApprovalService {
 
         return approval;
     }
+
+    public List<LoanApprovalReviewerResponse> getApprovalsByLoanRequestId(UUID loanRequestId) {
+        List<LoanApproval> approvals = loanApprovalRepository.findByLoanRequestIdOrderByApprovedAtAsc(loanRequestId);
+
+        return approvals.stream().map(a -> new LoanApprovalReviewerResponse(
+                a.getId(),
+                a.getHandledBy().getId(),
+                a.getHandledBy().getName(),
+                a.getHandledBy().getRole().getName(),  // pastikan ada method getRole() di User
+                a.getStatus().getName(),     // pastikan status punya getName()
+                a.getNotesIdentitas(),
+                a.getNotesPlafond(),
+                a.getNotesSummary(),
+                a.getApprovedAt()
+        )).toList();
+    }
+
+
 
     // Mendapatkan daftar persetujuan pinjaman berdasarkan
     public List<LoanApproval> getLoanApprovals(UUID loanRequestId) {

@@ -23,5 +23,6 @@ public interface LoanApprovalRepository extends JpaRepository<LoanApproval, UUID
     @Query("SELECT COUNT(DISTINCT la.loanRequest.id) FROM LoanApproval la WHERE la.handledBy.id = :userId")
     int countDistinctLoanRequestByHandledBy(@Param("userId") UUID userId);
 
+    List<LoanApproval> findByLoanRequestIdOrderByApprovedAtAsc(UUID loanRequestId);
 }
 

@@ -1,6 +1,7 @@
 package com.fintara.controllers;
 
 import com.fintara.dtos.loanApprovalDTO.LoanApprovalHistoryResponse;
+import com.fintara.dtos.loanApprovalDTO.LoanApprovalReviewerResponse;
 import com.fintara.dtos.loanRequestDTO.LoanApprovalDTO;
 import com.fintara.models.LoanApproval;
 import com.fintara.models.User;
@@ -52,4 +53,11 @@ public class LoanApprovalController {
         List<LoanApprovalHistoryResponse> result = loanApprovalService.getHandledApprovalsByUser(currentUser.getId());
         return ResponseEntity.ok(new ApiResponse<>(HttpStatus.OK.value(), "Successfully fetched loan approval history", result));
     }
+
+    @GetMapping("/{loanRequestId}")
+    public ResponseEntity<ApiResponse<List<LoanApprovalReviewerResponse>>> getApprovalsByLoanRequest(@PathVariable UUID loanRequestId) {
+        List<LoanApprovalReviewerResponse> approvals = loanApprovalService.getApprovalsByLoanRequestId(loanRequestId);
+        return ResponseEntity.ok(ApiResponse.success("Data approvals berhasil diambil", approvals));
+    }
+
 }
