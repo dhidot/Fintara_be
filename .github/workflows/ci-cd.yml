@@ -74,6 +74,15 @@ jobs:
       - name: Build with Maven
         run: mvn clean package -DskipTests
 
+      - name: Copy JAR to GCP VM
+        uses: appleboy/scp-action@v0.1.4
+        with:
+          host: ${{ secrets.VM_HOST }}
+          username: ${{ secrets.VM_USER }}
+          key: ${{ secrets.SSH_PRIVATE_KEY }}
+          source: "target/*.jar"  # ✅ This works with context from repo root
+          target: "/home/${{ secrets.VM_USER }}/fintara-dev
+
 #      - name: Run tests
 #        run: ./mvnw test
 #
@@ -81,3 +90,4 @@ jobs:
 #        run: |
 #          export $(grep -v '^#' .env | xargs)
 #          java -jar target/*.jar
+
