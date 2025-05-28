@@ -1,0 +1,83 @@
+name: Spring Boot CI/CD with dynamic .env
+
+on:
+  push:
+    branches:
+      - main
+  pull_request:
+
+jobs:
+  build-deploy:
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v3
+
+      - name: Setup JDK 17
+        uses: actions/setup-java@v3
+        with:
+          java-version: '17'
+          distribution: 'temurin'
+
+      - name: Create .env file from GitHub Secrets
+        run: |
+          echo "Creating .env file from secrets..."
+          cat <<EOF > .env
+          SPRING_APPLICATION_NAME=${{ secrets.SPRING_APPLICATION_NAME }}
+          SPRING_PROFILES_ACTIVE=${{ secrets.SPRING_PROFILES_ACTIVE }}
+          SPRING_DATASOURCE_URL=${{ secrets.SPRING_DATASOURCE_URL }}
+          SPRING_DATASOURCE_USERNAME=${{ secrets.SPRING_DATASOURCE_USERNAME }}
+          SPRING_DATASOURCE_PASSWORD=${{ secrets.SPRING_DATASOURCE_PASSWORD }}
+          SPRING_DATASOURCE_DRIVER_CLASS_NAME=${{ secrets.SPRING_DATASOURCE_DRIVER_CLASS_NAME }}
+          SPRING_DEVTOOLS_RESTART_ENABLED=${{ secrets.SPRING_DEVTOOLS_RESTART_ENABLED }}
+          SPRING_DEVTOOLS_LIVERELOAD_ENABLED=${{ secrets.SPRING_DEVTOOLS_LIVERELOAD_ENABLED }}
+          MANAGEMENT_ENDPOINTS_WEB_EXPOSURE_INCLUDE=${{ secrets.MANAGEMENT_ENDPOINTS_WEB_EXPOSURE_INCLUDE }}
+          SERVER_SERVLET_CONTEXT_PATH=${{ secrets.SERVER_SERVLET_CONTEXT_PATH }}
+          SECURITY_JWT_SECRET_KEY=${{ secrets.SECURITY_JWT_SECRET_KEY }}
+          SECURITY_JWT_EXPIRATION_TIME_HOUR=${{ secrets.SECURITY_JWT_EXPIRATION_TIME_HOUR }}
+          SPRING_REDIS_HOST=${{ secrets.SPRING_REDIS_HOST }}
+          SPRING_REDIS_PORT=${{ secrets.SPRING_REDIS_PORT }}
+          SPRING_REDIS_TIMEOUT=${{ secrets.SPRING_REDIS_TIMEOUT }}
+          SPRING_REDIS_DATABASE=${{ secrets.SPRING_REDIS_DATABASE }}
+          SPRING_MVC_THROW_EXCEPTION_IF_NO_HANDLER_FOUND=${{ secrets.SPRING_MVC_THROW_EXCEPTION_IF_NO_HANDLER_FOUND }}
+          SPRING_WEB_RESOURCES_ADD_MAPPINGS=${{ secrets.SPRING_WEB_RESOURCES_ADD_MAPPINGS }}
+          SPRING_MAIL_HOST=${{ secrets.SPRING_MAIL_HOST }}
+          SPRING_MAIL_PORT=${{ secrets.SPRING_MAIL_PORT }}
+          SPRING_MAIL_USERNAME=${{ secrets.SPRING_MAIL_USERNAME }}
+          SPRING_MAIL_PASSWORD=${{ secrets.SPRING_MAIL_PASSWORD }}
+          SPRING_MAIL_PROPERTIES_MAIL_SMTP_AUTH=${{ secrets.SPRING_MAIL_PROPERTIES_MAIL_SMTP_AUTH }}
+          SPRING_MAIL_PROPERTIES_MAIL_SMTP_STARTTLS_ENABLE=${{ secrets.SPRING_MAIL_PROPERTIES_MAIL_SMTP_STARTTLS_ENABLE }}
+          CLOUD_NAME=${{ secrets.CLOUD_NAME }}
+          API_KEY=${{ secrets.API_KEY }}
+          API_SECRT=${{ secrets.API_SECRET }}
+          SPRING_JPA_PROPERTIES_HIBERNATE_SHOW_SQL=${{ secrets.SPRING_JPA_PROPERTIES_HIBERNATE_SHOW_SQL }}
+          SPRING_JPA_HIBERNATE_DDL_AUTO=${{ secrets.SPRING_JPA_HIBERNATE_DDL_AUTO }}
+          SPRING_JPA_OPEN_IN_VIEW=${{ secrets.SPRING_JPA_OPEN_IN_VIEW }}
+          SPRING_JPA_PROPERTIES_HIBERNATE_FORMAT_SQL=${{ secrets.SPRING_JPA_PROPERTIES_HIBERNATE_FORMAT_SQL }}
+          SPRING_JPA_DATABASE_PLATFORM=${{ secrets.SPRING_JPA_DATABASE_PLATFORM }}
+          SPRING_JPA_PROPERTIES_HIBERNATE_TRANSACTION_JTA_PLATFORM=${{ secrets.SPRING_JPA_PROPERTIES_HIBERNATE_TRANSACTION_JTA_PLATFORM }}
+          LOGGING_LEVEL_ORG_HIBERNATE_SQL=${{ secrets.LOGGING_LEVEL_ORG_HIBERNATE_SQL }}
+          LOGGING_LEVEL_ORG_HIBERNATE_TYPE_DESCRIPTOR_SQL_BASICBINDER=${{ secrets.LOGGING_LEVEL_ORG_HIBERNATE_TYPE_DESCRIPTOR_SQL_BASICBINDER }}
+          LOGGING_LEVEL_ORG_SPRINGFRAMEWORK_SECURITY=${{ secrets.LOGGING_LEVEL_ORG_SPRINGFRAMEWORK_SECURITY }}
+          LOG_LEVEL_ROOT=${{ secrets.LOG_LEVEL_ROOT }}
+          EOF
+  
+          echo ".env file created"
+
+      - name: Export environment variables from .env
+        run: |
+          echo "Exporting environment variables from .env..."
+          export $(grep -v '^#' .env | xargs)
+          env | grep -E 'SPRING_|SECURITY_|MANAGEMENT_|LOGGING_|CLOUD_|API_' 
+
+      - name: Build with Maven
+        run: ./mvnw clean package -DskipTests
+
+#      - name: Run tests
+#        run: ./mvnw test
+#
+#      - name: Run Spring Boot application
+#        run: |
+#          export $(grep -v '^#' .env | xargs)
+#          java -jar target/*.jar
