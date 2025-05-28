@@ -1,6 +1,6 @@
 package com.fintara.config;
 
-import java.io.FileInputStream;
+import java.io.InputStream;
 
 import org.springframework.context.annotation.Configuration;
 
@@ -16,8 +16,13 @@ public class FirebaseConfig {
     @PostConstruct
     public void initialize() {
         try {
-            FileInputStream serviceAccount =
-                    new FileInputStream("src/main/resources/firebase-admin-sdk.json");
+            // Load file dari classpath (resources folder)
+            InputStream serviceAccount = getClass().getClassLoader()
+                    .getResourceAsStream("firebase-admin-sdk.json");
+
+            if (serviceAccount == null) {
+                throw new RuntimeException("firebase-admin-sdk.json not found in classpath");
+            }
 
             FirebaseOptions options = new FirebaseOptions.Builder()
                     .setCredentials(GoogleCredentials.fromStream(serviceAccount))
