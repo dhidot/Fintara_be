@@ -72,7 +72,7 @@ jobs:
 #          env | grep -E 'SPRING_|SECURITY_|MANAGEMENT_|LOGGING_|CLOUD_|API_'
 
       - name: Build with Maven
-        run: ./mvnw clean package -DskipTests
+        run: mvn clean package -DskipTests
 
 #      - name: Run tests
 #        run: ./mvnw test
