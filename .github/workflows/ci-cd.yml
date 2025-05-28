@@ -61,14 +61,14 @@ jobs:
           source: "target/*.jar"
           target: "/home/${{ secrets.VM_USER }}/fintara-staging"
 
-#      - name: Copy .env to GCP VM
-#        uses: appleboy/scp-action@v0.1.4
-#        with:
-#          host: ${{ secrets.VM_HOST }}
-#          username: ${{ secrets.VM_USER }}
-#          key: ${{ secrets.SSH_PRIVATE_KEY }}
-#          source: ".env"
-#          target: "/home/${{ secrets.VM_USER }}/fintara-dev"
+      - name: Copy .env to GCP VM
+        uses: appleboy/scp-action@v0.1.4
+        with:
+          host: ${{ secrets.VM_HOST }}
+          username: ${{ secrets.VM_USER }}
+          key: ${{ secrets.SSH_PRIVATE_KEY }}
+          source: ".env"
+          target: "/home/${{ secrets.VM_USER }}/fintara-staging"
 
 #      - name: Run tests
 #        run: ./mvnw test
