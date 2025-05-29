@@ -1,10 +1,10 @@
-# Sakubca - Aplikasi Pinjaman Bank BCA
+# Fintara - Aplikasi Pinjaman Bank BCA
 
-Selamat datang di **Sakubca**, aplikasi pinjaman yang memungkinkan pengguna untuk mengajukan pinjaman ke **Bank BCA** dengan mudah. Aplikasi ini mengintegrasikan platform front-end responsif dengan back-end yang handal, serta aplikasi Android yang memudahkan pengguna dalam mengakses layanan pinjaman.
+Selamat datang di **Fintara**, aplikasi pinjaman yang memungkinkan pengguna untuk mengajukan pinjaman ke **Bank BCA** dengan mudah. Aplikasi ini mengintegrasikan platform front-end responsif dengan back-end yang handal, serta aplikasi Android yang memudahkan pengguna dalam mengakses layanan pinjaman.
 
 ## Deskripsi
 
-**Sakubca** adalah platform aplikasi pinjaman yang dirancang untuk mempermudah proses pengajuan pinjaman bagi pengguna dan pengelolaan data pinjaman oleh manajemen Bank BCA. Pengguna dapat mengajukan pinjaman, melacak status pengajuan, dan mengelola interaksi keuangan mereka dengan Bank BCA. Sementara itu, manajemen bank dapat mengelola data pinjaman secara efektif menggunakan dashboard yang tersedia.
+**Fintara** adalah platform aplikasi pinjaman yang dirancang untuk mempermudah proses pengajuan pinjaman bagi pengguna dan pengelolaan data pinjaman oleh manajemen Bank BCA. Pengguna dapat mengajukan pinjaman, melacak status pengajuan, dan mengelola interaksi keuangan mereka dengan Bank BCA. Sementara itu, manajemen bank dapat mengelola data pinjaman secara efektif menggunakan dashboard yang tersedia.
 
 ## Fitur Utama
 
@@ -50,4 +50,4 @@ Selamat datang di **Sakubca**, aplikasi pinjaman yang memungkinkan pengguna untu
 ### Back-End (Spring Boot)
 1. Clone repositori:
    ```bash
-   git clone https://github.com/username/sakubca.git
+   git clone https://github.com/username/Fintara.git

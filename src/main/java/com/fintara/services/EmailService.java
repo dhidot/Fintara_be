@@ -52,7 +52,7 @@ public class EmailService {
         }
 
         try {
-            String subject = "Akun Pegawai Baru - SakuBCA";
+            String subject = "Akun Pegawai Baru - Fintara";
             String body = "<html><body>"
                     + "<h2>Selamat, akun Anda telah dibuat.</h2>"
                     + "<p>Berikut adalah detail akun Anda:</p>"
@@ -85,10 +85,10 @@ public class EmailService {
     }
 
     public void sendVerificationEmail(String to, String verificationLink) {
-        String subject = "Verifikasi Email Anda - SakuBCA";
+        String subject = "Verifikasi Email Anda - Fintara";
         String body = "<html><body>"
                 + "<p>Hai,</p>"
-                + "<p>Terima kasih telah mendaftar di <strong>SakuBCA</strong>.</p>"
+                + "<p>Terima kasih telah mendaftar di <strong>Fintara</strong>.</p>"
                 + "<p>Silakan klik link di bawah ini untuk memverifikasi email Anda:</p>"
                 + "<p><a href=\"" + verificationLink + "\">Verifikasi Email</a></p>"
                 + "<p><em>Link ini berlaku selama 30 menit.</em></p>"
@@ -100,14 +100,14 @@ public class EmailService {
     // 🔹 Kirim email notifikasi dana dicairkan
     @Async
     public void sendLoanDisbursementEmail(String to, String customerName, String loanAmount) {
-        String subject = "Pinjaman Anda Telah Dicairkan - SakuBCA";
+        String subject = "Pinjaman Anda Telah Dicairkan - Fintara";
         String body = "<html><body>"
                 + "<h2>Hai, " + customerName + "</h2>"
                 + "<p>Selamat! Pinjaman Anda telah berhasil dicairkan dengan nominal <strong>" + loanAmount + "</strong>.</p>"
-                + "<p>Silakan cek detail transaksi di aplikasi SakuBCA Anda.</p>"
+                + "<p>Silakan cek detail transaksi di aplikasi Fintara Anda.</p>"
                 + "<br>"
                 + "<p>Terima kasih telah menggunakan layanan kami.</p>"
-                + "<p><strong>SakuBCA</strong></p>"
+                + "<p><strong>Fintara</strong></p>"
                 + "</body></html>";
 
         sendEmail(to, subject, body);

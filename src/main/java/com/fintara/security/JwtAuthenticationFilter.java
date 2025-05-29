@@ -28,10 +28,31 @@ public class JwtAuthenticationFilter extends OncePerRequestFilter {
     protected void doFilterInternal(HttpServletRequest request,
                                     HttpServletResponse response,
                                     FilterChain filterChain) throws ServletException, IOException {
+        String path = request.getRequestURI();
+
+        // ✅ Skip JWT Filter untuk endpoint public
+        if (path.startsWith("/v1/plafonds/all") ||
+                path.startsWith("/v1/auth/") ||
+                path.startsWith("/v1/loan-requests/loan-simulate") ||
+                path.startsWith("/v1/loan-requests/loan-web-simulate") ||
+                path.startsWith("/v1/profilecustomer/upload-ktp") ||
+                path.startsWith("/v1/profilecustomer/upload-selfie-ktp") ||
+                path.startsWith("/v1/cloudinary/") ||
+                path.startsWith("/v1/notifications/") ||
+                path.startsWith("/v1/repayments/") ||
+                path.startsWith("/download/") ||
+                path.startsWith("/swagger-ui") ||
+                path.startsWith("/v3/api-docs") ||
+                path.startsWith("/api-docs")) {
+
+            filterChain.doFilter(request, response);
+            return;
+        }
+
         try {
             String jwt = parseJwt(request);
             if (StringUtils.hasText(jwt)) {
-                // 🔥 Cek apakah token sudah di-blacklist
+                // 🔥 Cek blacklist
                 if (jwtBlacklist.isBlacklisted(jwt)) {
                     response.setStatus(HttpServletResponse.SC_UNAUTHORIZED);
                     response.getWriter().write("Token sudah tidak valid (blacklisted)");
@@ -55,6 +76,7 @@ public class JwtAuthenticationFilter extends OncePerRequestFilter {
             response.sendError(HttpServletResponse.SC_INTERNAL_SERVER_ERROR, "Internal Server Error");
         }
     }
+
 
 
     private String parseJwt(HttpServletRequest request) {
