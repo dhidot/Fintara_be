@@ -129,6 +129,58 @@ public class LoanRequestService {
         }
     }
 
+    /**
+     * Melakukan simulasi pinjaman publik dengan pemilihan plafond.
+     *
+     * @param request Data permintaan simulasi pinjaman yang berisi
+     *                jumlah dan tenor pinjaman.
+     *                @return LoanPreviewResponseDTO yang berisi estimasi pinjaman.
+     *                @throws CustomException jika ada kesalahan dalam proses simulasi pinjaman.
+     */
+    public LoanPreviewResponseDTO simulateWebLoan(LoanSimulationWebRequestDTO request) {
+        // Ambil plafond sesuai pilihan user
+        Plafond selectedPlafond = plafondService.getPlafondByName(request.getPlafondName());
+
+        if (selectedPlafond == null) {
+            throw new CustomException("Plafond dengan nama " + request.getPlafondName() + " tidak ditemukan.", HttpStatus.BAD_REQUEST);
+        }
+
+        // Validasi amount dan tenor
+        if (request.getAmount().compareTo(selectedPlafond.getMaxAmount()) > 0) {
+            throw new CustomException("Jumlah pinjaman melebihi batas maksimum plafond " + request.getPlafondName(), HttpStatus.BAD_REQUEST);
+        }
+
+        if (request.getTenor() > selectedPlafond.getMaxTenor()) {
+            throw new CustomException("Tenor melebihi batas maksimum plafond " + request.getPlafondName(), HttpStatus.BAD_REQUEST);
+        }
+
+        // Cari bunga sesuai plafond dan tenor
+        Optional<InterestPerTenor> interestOpt = interestPerTenorRepository
+                .findByPlafondAndTenor(selectedPlafond, request.getTenor())
+                .stream().findFirst();
+
+        if (interestOpt.isEmpty()) {
+            throw new CustomException("Interest rate untuk tenor " + request.getTenor() + " pada plafond " + request.getPlafondName() + " tidak ditemukan.", HttpStatus.BAD_REQUEST);
+        }
+
+        BigDecimal interestRate = interestOpt.get().getInterestRate();
+        BigDecimal feesAmount = request.getAmount().multiply(selectedPlafond.getFeeRate());
+        BigDecimal disbursedAmount = request.getAmount().subtract(feesAmount);
+        BigDecimal interestAmount = request.getAmount().multiply(interestRate);
+        BigDecimal totalRepayment = request.getAmount().add(interestAmount).add(feesAmount);
+        BigDecimal estimatedInstallment = totalRepayment.divide(BigDecimal.valueOf(request.getTenor()), 0, RoundingMode.CEILING);
+
+        return LoanPreviewResponseDTO.builder()
+                .requestedAmount(request.getAmount())
+                .disbursedAmount(disbursedAmount)
+                .tenor(request.getTenor())
+                .interestRate(interestRate)
+                .interestAmount(interestAmount)
+                .feesAmount(feesAmount)
+                .totalRepayment(totalRepayment)
+                .estimatedInstallment(estimatedInstallment)
+                .build();
+    }
 
     /**
      * Melakukan simulasi pinjaman publik dengan plafon default.

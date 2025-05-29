@@ -49,6 +49,13 @@ public class LoanRequestController {
         return ResponseEntity.ok(ApiResponse.success("Berhasil mendapatkan preview pinjaman", preview));
     }
 
+    @PostMapping("/loan-web-simulate")
+    public ResponseEntity<ApiResponse<LoanPreviewResponseDTO>> simulateLoanWeb(
+            @RequestBody @Valid LoanSimulationWebRequestDTO request) {
+        LoanPreviewResponseDTO preview = loanRequestService.simulateWebLoan(request);
+        return ResponseEntity.ok(ApiResponse.success("Simulasi pinjaman berhasil", preview));
+    }
+
     @PostMapping("/loan-simulate")
     public ResponseEntity<ApiResponse<LoanPreviewResponseDTO>> simulateLoanPublic(
             @RequestBody @Valid LoanSimulationRequestDTO request) {
