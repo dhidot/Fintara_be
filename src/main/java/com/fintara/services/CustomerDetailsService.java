@@ -189,9 +189,8 @@ public class CustomerDetailsService {
 
     public String uploadKtpPhoto(MultipartFile file) throws IOException {
         // Ambil user yang sedang login
-        UserDetails userDetails = (UserDetails) SecurityContextHolder.getContext()
-                .getAuthentication().getPrincipal();
-        String email = userDetails.getUsername();
+        User currentUser = userService.getAuthenticatedUser();
+        String email = currentUser.getEmail();
 
         logger.info("Memulai proses upload ktp untuk user: {}", email);
 
@@ -219,9 +218,8 @@ public class CustomerDetailsService {
 
     public String uploadSelfiePhoto(MultipartFile file) throws IOException {
         // Ambil user yang sedang login
-        UserDetails userDetails = (UserDetails) SecurityContextHolder.getContext()
-                .getAuthentication().getPrincipal();
-        String email = userDetails.getUsername();
+        User currentUser = userService.getAuthenticatedUser();
+        String email = currentUser.getEmail();
 
         logger.info("Memulai proses upload selfie untuk user: {}", email);
 

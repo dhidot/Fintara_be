@@ -23,7 +23,7 @@ public class DebtService {
         UUID userId = currentUser.getId();  // Ambil ID dari User yang sedang login
         UUID customerId = currentUser.getCustomerDetails().getId();  // Ambil ID dari User yang sedang login
         BigDecimal remainingPlafond = debtRepository.getRemainingPlafondByCustomerId(userId);
-        Integer activeLoansCount = debtRepository.countActiveLoansByCustomerId(customerId);
+        Integer activeLoansCount = debtRepository.countFullyPaidLoansByCustomerId(customerId);
         BigDecimal totalRepayment = debtRepository.getTotalRepaymentByCustomerId(customerId);
         if (totalRepayment == null) {
             totalRepayment = BigDecimal.ZERO;

@@ -35,7 +35,7 @@ public class DashboardController {
         return ResponseEntity.ok(ApiResponse.success("Dashboard data retrieved successfully", summary));
     }
 
-//    @Secured("FEATURE_DASHBOARD")
+    //@Secured("FEATURE_DASHBOARD")
     @GetMapping("/loan")
     public ResponseEntity<ApiResponse<Map<String, Integer>>> getLoanRequestCountsForDashboard() {
         Map<String, Integer> counts = dashboardService.getLoanRequestCountsForDashboard();

@@ -35,8 +35,6 @@ public class JwtAuthenticationFilter extends OncePerRequestFilter {
                 path.startsWith("/api/v1/auth/login") ||
                 path.startsWith("/api/v1/loan-requests/loan-simulate") ||
                 path.startsWith("/api/v1/loan-requests/loan-web-simulate") ||
-                path.startsWith("/api/v1/profilecustomer/upload-ktp") ||
-                path.startsWith("/api/v1/profilecustomer/upload-selfie-ktp") ||
                 path.startsWith("/api/v1/cloudinary/") ||
                 path.startsWith("/api/v1/notifications/") ||
                 path.startsWith("/api/v1/repayments/") ||
