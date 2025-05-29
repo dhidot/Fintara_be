@@ -25,6 +25,9 @@ public class DebtService {
         BigDecimal remainingPlafond = debtRepository.getRemainingPlafondByCustomerId(userId);
         Integer activeLoansCount = debtRepository.countActiveLoansByCustomerId(customerId);
         BigDecimal totalRepayment = debtRepository.getTotalRepaymentByCustomerId(customerId);
+        if (totalRepayment == null) {
+            totalRepayment = BigDecimal.ZERO;
+        }
 
         return new DebtInfoResponseDTO(remainingPlafond, activeLoansCount, totalRepayment);
     }
