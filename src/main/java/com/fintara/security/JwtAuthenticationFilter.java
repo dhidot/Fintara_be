@@ -32,7 +32,7 @@ public class JwtAuthenticationFilter extends OncePerRequestFilter {
 
         // ✅ Skip JWT Filter untuk endpoint public
         if (path.startsWith("/api/v1/plafonds/all") ||
-                path.startsWith("/api/v1/auth/") ||
+                path.startsWith("/api/v1/auth/login") ||
                 path.startsWith("/api/v1/loan-requests/loan-simulate") ||
                 path.startsWith("/api/v1/loan-requests/loan-web-simulate") ||
                 path.startsWith("/api/v1/profilecustomer/upload-ktp") ||
