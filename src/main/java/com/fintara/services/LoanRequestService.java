@@ -660,43 +660,50 @@ public class LoanRequestService {
     }
 
     @Transactional
-    public void disburseLoanRequest(UUID loanRequestId, UUID backOfficeId) {
-        // 1️⃣ Ambil loan request
+    public void disburseLoanRequest(UUID loanRequestId, UUID backOfficeId, String status, String notes, String notesIdentitas, String notesPlafond, String notesSummary) {
+        LoanRequest loanRequest = findAndValidateLoanRequest(loanRequestId, backOfficeId);
+        LoanStatus targetStatus = loanStatusService.findByName(status);
+
+        updateLoanRequestStatusAndCalculation(loanRequest, targetStatus);
+
+        saveApprovalRecord(loanRequest, backOfficeId, targetStatus, notes, notesIdentitas, notesPlafond, notesSummary);
+
+        if ("DISBURSED".equalsIgnoreCase(status)) {
+            handleDisbursement(loanRequest);
+        } else {
+            handleNonDisbursement(loanRequest);
+        }
+    }
+
+    private LoanRequest findAndValidateLoanRequest(UUID loanRequestId, UUID backOfficeId) {
         LoanRequest loanRequest = loanRequestRepository.findById(loanRequestId)
                 .orElseThrow(() -> new CustomException("Loan request tidak ditemukan", HttpStatus.NOT_FOUND));
 
-        // 2️⃣ Pastikan statusnya sudah DISETUJUI_BM
-        if (!loanRequest.getStatus().getName().equals("DISETUJUI_BM")) {
+        if (!"DISETUJUI_BM".equalsIgnoreCase(loanRequest.getStatus().getName())) {
             throw new CustomException("Loan request belum siap untuk dicairkan", HttpStatus.BAD_REQUEST);
         }
 
-        // 3️⃣ Validasi apakah user ini adalah Back Office dan di cabang yang sama
         UUID branchId = userService.getBranchIdByUserId(backOfficeId);
         if (!loanRequest.getBranch().getId().equals(branchId)) {
             throw new CustomException("Anda tidak berhak mencairkan loan request ini", HttpStatus.FORBIDDEN);
         }
 
-        // 4️⃣ Update status menjadi DISBURSED dan set waktu disbursement
-        LoanStatus disbursedStatus = loanStatusService.findByName("DISBURSED");
-        loanRequest.setStatus(disbursedStatus);
+        return loanRequest;
+    }
+
+    private void updateLoanRequestStatusAndCalculation(LoanRequest loanRequest, LoanStatus targetStatus) {
+        loanRequest.setStatus(targetStatus);
         loanRequest.setDisbursedAt(LocalDateTime.now());
 
-        // 💰 Hitung bunga dan biaya
         BigDecimal amount = loanRequest.getAmount();
         int tenor = loanRequest.getTenor();
+        BigDecimal interestRate = loanRequest.getInterestRate();
+        BigDecimal feeRate = loanRequest.getPlafond().getFeeRate();
 
-        BigDecimal interestRate = loanRequest.getInterestRate(); // Ambil dari entity
-        BigDecimal feeRate = loanRequest.getPlafond().getFeeRate(); // Fee rate masih dari Plafond
-
-        // amount bunga
         BigDecimal interestAmount = amount.multiply(interestRate).multiply(BigDecimal.valueOf(tenor));
-        // amount biaya
         BigDecimal feesAmount = amount.multiply(feeRate);
-        // disbursed amount
         BigDecimal disbursedAmount = amount.subtract(feesAmount);
-        // total repayment
         BigDecimal totalRepayment = amount.add(interestAmount);
-        // cicilan per bulan
         BigDecimal estimatedInstallment = totalRepayment.divide(BigDecimal.valueOf(tenor), 0, RoundingMode.CEILING);
 
         loanRequest.setInterestAmount(interestAmount);
@@ -704,50 +711,59 @@ public class LoanRequestService {
         loanRequest.setDisbursedAmount(disbursedAmount);
         loanRequest.setTotalRepaymentAmount(totalRepayment);
         loanRequest.setEstimatedInstallment(estimatedInstallment);
+    }
 
-        // 5️⃣ Simpan record approval oleh BO
-        LoanApproval approvalRecord = LoanApproval.builder()
+    private void saveApprovalRecord(LoanRequest loanRequest, UUID backOfficeId, LoanStatus targetStatus, String notes, String notesIdentitas, String notesPlafond, String notesSummary) {
+        LoanApproval approval = LoanApproval.builder()
                 .loanRequest(loanRequest)
                 .handledBy(userService.findById(backOfficeId))
-                .status(disbursedStatus)
-                .notes("Dana telah dicairkan.")
+                .status(targetStatus)
+                .notes(notes)
+                .notesIdentitas(notesIdentitas)
+                .notesPlafond(notesPlafond)
+                .notesSummary(notesSummary)
                 .approvedAt(LocalDateTime.now())
                 .build();
-        loanApprovalService.save(approvalRecord);
 
-        // 6️⃣ Kurangi remainingPlafond customer
+        loanApprovalService.save(approval);
+    }
+
+    private void handleDisbursement(LoanRequest loanRequest) {
         CustomerDetails customer = loanRequest.getCustomer();
-        BigDecimal remaining = customer.getRemainingPlafond();
+        BigDecimal amount = loanRequest.getAmount();
+        BigDecimal remainingPlafond = customer.getRemainingPlafond();
 
-        if (remaining.compareTo(amount) < 0) {
+        if (remainingPlafond.compareTo(amount) < 0) {
             throw new CustomException("Plafon tidak mencukupi untuk disbursement", HttpStatus.BAD_REQUEST);
         }
 
-        customer.setRemainingPlafond(remaining.subtract(amount));
+        customer.setRemainingPlafond(remainingPlafond.subtract(amount));
         customerDetailsService.saveCustomerDetails(customer);
 
-        // 6️⃣ Simpan perubahan ke loan request
         loanRequestRepository.save(loanRequest);
 
-        // 7️⃣ Buat jadwal angsuran
         repaymentScheduleService.generateRepaymentSchedulesForLoan(loanRequest);
 
-        // 8️⃣ Kirim notifikasi ke customer
-        User applicant = loanRequest.getCustomer().getUser();
+        User applicant = customer.getUser();
         String title = "Pinjaman Dicairkan";
-        // sebutkan jumlah yang cair
-        String body = "Pinjaman Anda telah dicairkan dengan nominal sebesar " + disbursedAmount + ".";
+        String body = "Pinjaman Anda telah dicairkan dengan nominal sebesar " + loanRequest.getDisbursedAmount() + ".";
         notificationService.sendNotificationToUser(applicant.getId(), title, body);
 
-        // 🔹 Kirim email notifikasi
-        String customerEmail = applicant.getEmail();
-        String customerName = applicant.getName();
-        String loanAmount = disbursedAmount.toString(); // Format sesuai kebutuhan
-
-        emailService.sendLoanDisbursementEmail(customerEmail, customerName, loanAmount);
+        emailService.sendLoanDisbursementEmail(applicant.getEmail(), applicant.getName(), loanRequest.getDisbursedAmount().toString());
     }
 
+    private void handleNonDisbursement(LoanRequest loanRequest) {
+        loanRequestRepository.save(loanRequest);
 
+        User applicant = loanRequest.getCustomer().getUser();
+        String title = "Pengajuan Pinjaman Tidak Dicairkan";
+        String body = "Pengajuan pinjaman Anda tidak dapat dicairkan. Silakan hubungi customer service untuk informasi lebih lanjut.";
+        notificationService.sendNotificationToUser(applicant.getId(), title, body);
+
+        emailService.sendLoanDisbursementFailureEmail(applicant.getEmail(), applicant.getName(), loanRequest.getAmount().toString());
+    }
+
+    // get loan requests by statuses
     public List<LoanInProgressResponseDTO> getLoanRequestByStatuses(List<String> statuses) {
         User currentUser = getAuthenticatedUser();
         List<LoanRequest> loanRequests = loanRequestRepository.findAllByCustomer_User_IdAndStatus_NameIn(currentUser.getId(), statuses);
@@ -757,7 +773,7 @@ public class LoanRequestService {
                 .collect(Collectors.toList());
     }
 
-    // LOAN HISTORY
+    // Loan History by Filter
     public List<LoanHistoryResponseDTO> findHistoryByFilter(UUID userId, LoanStatusGroup group) {
         List<String> statusNames = switch (group) {
             case APPROVED -> List.of("DISBURSED");

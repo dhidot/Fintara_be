@@ -128,11 +128,14 @@ public class LoanRequestController {
 
     @Secured("FEATURE_DISBURSE")
     @PutMapping("/back-office/disburse/{loanRequestId}")
-    public ResponseEntity<ApiResponse<Map<String, String>>> disburseLoanRequest(@PathVariable UUID loanRequestId) {
-        User currentBO = userService.getAuthenticatedUser();
-        loanRequestService.disburseLoanRequest(loanRequestId, currentBO.getId());
+    public ResponseEntity<ApiResponse<Map<String, String>>> disburseLoanRequest(
+            @PathVariable UUID loanRequestId,
+            @RequestBody LoanReviewDTO loanReviewDTO) {
 
-        return ResponseEntity.ok(new ApiResponse<>(HttpStatus.OK.value(), "Loan request successfully disbursed", Map.of("message", "Loan request berhasil dicairkan")));
+        User currentBO = userService.getAuthenticatedUser();
+        loanRequestService.disburseLoanRequest(loanRequestId, currentBO.getId(), loanReviewDTO.getStatus(), loanReviewDTO.getNotes(), loanReviewDTO.getNotesIdentitas(), loanReviewDTO.getNotesPlafond(), loanReviewDTO.getNotesSummary());
+
+        return ResponseEntity.ok(new ApiResponse<>(HttpStatus.OK.value(), "Back office processed successfully", Map.of("message", "Loan request berhasil diproses")));
     }
 
     // get all loan requests by customer id

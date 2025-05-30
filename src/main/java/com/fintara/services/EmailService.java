@@ -113,4 +113,20 @@ public class EmailService {
         sendEmail(to, subject, body);
     }
 
+    // 🔹 Kirim email notifikasi gagal disburse
+    @Async
+    public void sendLoanDisbursementFailureEmail(String to, String customerName, String reason) {
+        String subject = "Gagal Cairkan Pinjaman Anda - Fintara";
+        String body = "<html><body>"
+                + "<h2>Hai, " + customerName + "</h2>"
+                + "<p>Maaf, kami tidak dapat mencairkan pinjaman Anda.</p>"
+                + "<p>Silakan hubungi layanan pelanggan kami untuk informasi lebih lanjut.</p>"
+                + "<br>"
+                + "<p>Terima kasih atas pengertian Anda.</p>"
+                + "<p><strong>Fintara</strong></p>"
+                + "</body></html>";
+
+        sendEmail(to, subject, body);
+    }
+
 }
