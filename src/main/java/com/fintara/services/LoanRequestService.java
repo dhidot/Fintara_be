@@ -736,7 +736,7 @@ public class LoanRequestService {
         User applicant = loanRequest.getCustomer().getUser();
         String title = "Pinjaman Dicairkan";
         // sebutkan jumlah yang cair
-        String body = "Pinjaman Anda telah dicairkan sebesar " + disbursedAmount + ".";
+        String body = "Pinjaman Anda telah dicairkan dengan nominal sebesar " + disbursedAmount + ".";
         notificationService.sendNotificationToUser(applicant.getId(), title, body);
 
         // 🔹 Kirim email notifikasi
