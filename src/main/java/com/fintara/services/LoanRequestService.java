@@ -639,7 +639,7 @@ public class LoanRequestService {
         if ("DISETUJUI_BM".equalsIgnoreCase(newStatus.getName())) {
             User applicant = loanRequest.getCustomer().getUser();
             String title = "Pengajuan Pinjaman Disetujui";
-            String body = "Pengajuan pinjaman Anda dengan ID " + loanRequest.getId() + " telah disetujui oleh Branch Manager.";
+            String body = "Pengajuan pinjaman Anda telah disetujui oleh Branch Manager.";
             notificationService.sendNotificationToUser(applicant.getId(), title, body);
         }
     }
