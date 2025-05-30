@@ -99,7 +99,7 @@ public class AuthService {
         String verificationToken = UUID.randomUUID().toString();
         redisService.saveEmailVerificationToken(verificationToken, customer.getEmail());
 
-        String verificationLink = "https://fintara-fe.vercel.app/#/verify-email?token=" + verificationToken;
+        String verificationLink = "https://fintara-fe.vercel.app/verify-email?token=" + verificationToken;
         emailService.sendVerificationEmail(customer.getEmail(), verificationLink);
 
         // 🔹 Langsung kembalikan CustomerResponseDTO
