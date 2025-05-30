@@ -456,4 +456,20 @@ public class AuthService {
                 "httpStatus", HttpStatus.OK
         );
     }
+
+    public void resendVerificationEmail(String email) {
+        User user = userRepository.findByEmail(email)
+                .orElseThrow(() -> new CustomException("User dengan email tersebut tidak ditemukan.", HttpStatus.BAD_REQUEST));
+
+        if (user.isEmailVerified()) {
+            throw new CustomException("Email sudah terverifikasi.", HttpStatus.BAD_REQUEST);
+        }
+
+        String token = UUID.randomUUID().toString();
+        redisService.saveEmailVerificationToken(token, email);
+
+        String verificationLink = "https://fintara-fe.vercel.app/verify-email?token=" + token;
+        emailService.sendVerificationEmail(email, verificationLink);
+    }
+
 }

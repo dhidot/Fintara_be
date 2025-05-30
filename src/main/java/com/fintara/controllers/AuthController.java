@@ -33,17 +33,12 @@ public class AuthController {
         String idToken = authorizationHeader.replace("Bearer ", "");
 
         Map<String, Object> response = authService.loginWithGoogle(idToken, request.getFcmToken(), request.getDeviceInfo());
-        // print response
-        System.out.println(response);
-        logger.debug("Response: {}", response);
         return ResponseEntity.ok(ApiResponse.success("Login Google berhasil", response));
     }
 
     @PostMapping("/login-customer")
     public ResponseEntity<ApiResponse<Map<String, Object>>> loginCustomer(@RequestBody LoginRequestCustomer request) {
         Map<String, Object> response = authService.loginCustomer(request);
-        logger.debug("Sukses");
-        logger.info("info");
         return ResponseEntity.ok(ApiResponse.success("Login berhasil", response));
     }
 
@@ -100,5 +95,15 @@ public class AuthController {
         Map<String, Object> response = authService.verifyEmail(token);
         HttpStatus status = (HttpStatus) response.getOrDefault("httpStatus", HttpStatus.OK);
         return ResponseEntity.status(status).body(ApiResponse.success("Email berhasil diverifikasi", response));
+    }
+
+    @PostMapping("/resend-verification")
+    public ResponseEntity<ApiResponse<Object>> resendVerification(@RequestBody Map<String, String> requestBody) {
+        String email = requestBody.get("email");
+        if (email == null || email.isEmpty()) {
+            return ResponseEntity.badRequest().body(ApiResponse.error(HttpStatus.BAD_REQUEST, "Email tidak boleh kosong."));
+        }
+        authService.resendVerificationEmail(email);
+        return ResponseEntity.ok(ApiResponse.success("Email verifikasi telah dikirim ulang."));
     }
 }
