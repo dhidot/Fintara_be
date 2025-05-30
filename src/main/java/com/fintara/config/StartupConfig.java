@@ -354,7 +354,7 @@ public class StartupConfig {
         return args -> {
             List<String> statuses = List.of(
                     "REVIEW", "DIREKOMENDASIKAN_MARKETING", "DITOLAK_MARKETING",
-                    "DITOLAK_BM", "DISETUJUI_BM", "DISBURSED"
+                    "DITOLAK_BM", "DISETUJUI_BM", "DISBURSED", "NOT_DISBURSED"
             );
 
             for (String status : statuses) {
