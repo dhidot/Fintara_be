@@ -57,13 +57,21 @@ public class PegawaiService {
             throw new DuplicateKeyException("NIP sudah terdaftar");
         }
 
-        // Validasi apakah email sudah terdaftar
         if (userService.existsByEmail(request.getEmail())) {
             throw new DuplicateKeyException("Email sudah terdaftar");
         }
 
         Branch existingBranch = branchService.findBranchByName(request.getBranchName());
         Role pegawaiRole = roleService.getRoleByName(request.getRole());
+
+        // Cek jika role nya BRANCH_MANAGER, pastikan cabang belum punya branch manager
+        if ("BRANCH_MANAGER".equalsIgnoreCase(request.getRole())) {
+            boolean branchManagerExists = pegawaiRepository.existsByBranchAndRoleName(existingBranch, "BRANCH_MANAGER");
+            if (branchManagerExists) {
+                throw new IllegalStateException("Cabang ini sudah memiliki Branch Manager");
+            }
+        }
+
         String generatedPassword = RandomStringUtils.randomAlphanumeric(8);
 
         User pegawai = User.builder()
@@ -72,7 +80,7 @@ public class PegawaiService {
                 .password(passwordEncoder.encode(generatedPassword))
                 .role(pegawaiRole)
                 .userType(UserType.PEGAWAI)
-                .isFirstLogin(true)  // ✅ Set isFirstLogin saat registrasi
+                .isFirstLogin(true)
                 .build();
         userService.saveUser(pegawai);
 
@@ -87,12 +95,12 @@ public class PegawaiService {
 
         emailService.sendInitialPasswordEmail(request.getEmail(), generatedPassword);
 
-        // 🔹 Return response minimal
         return new RegisterPegawaiResponseDTO(
                 pegawai.getEmail(),
                 "Akun pegawai berhasil dibuat. Silakan cek email untuk password. dan segera login untuk mengubah password."
         );
     }
+
 
     public List<UserWithPegawaiResponseDTO> getAllPegawai() {
         try {
