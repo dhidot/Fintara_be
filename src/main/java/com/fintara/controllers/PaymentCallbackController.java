@@ -80,8 +80,6 @@ public class PaymentCallbackController {
         }
     }
 
-
-
     private boolean isValidSignature(String orderId, String statusCode, String grossAmount, String serverKey, String signatureKey) {
         String payload = orderId + statusCode + grossAmount + serverKey;
         String hash = sha512(payload);

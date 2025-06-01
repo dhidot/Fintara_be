@@ -80,6 +80,9 @@ public class StartupConfig {
 
     private void initFeatures(FeatureRepository featureRepository, RoleRepository roleRepository, RoleFeatureRepository roleFeatureRepository) {
         List<Map<String, Object>> featureRoles = List.of(
+                // ===== USERS =====
+                Map.of("name", "FEATURE_GET_ALL_USER", "role", "SUPER_ADMIN", "category", "Customer"),
+
                 // ===== Branch =====
                 Map.of("name", "FEATURE_ADD_BRANCHES", "role", "SUPER_ADMIN", "category", "Branch"),
                 Map.of("name", "FEATURE_GET_ALL_BRANCHES", "role", "SUPER_ADMIN", "category", "Branch"),
